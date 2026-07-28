@@ -16,13 +16,7 @@
             --left-breast: #e8a0bf;
             --right-breast: #a0c4e8;
         }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: var(--bg);
@@ -34,49 +28,23 @@
             user-select: none;
             -webkit-tap-highlight-color: transparent;
         }
-
-        /* Шапка */
-        .header {
-            text-align: center;
-            padding: 20px 0 10px;
-        }
-
-        .header h1 {
-            font-size: 28px;
-            font-weight: 700;
-            margin-bottom: 4px;
-        }
-
-        .header .emoji {
-            font-size: 36px;
-            display: block;
-            margin-bottom: 8px;
-        }
-
-        .header .date {
-            color: var(--text-secondary);
-            font-size: 14px;
-        }
-
-        /* Карточка */
+        .header { text-align: center; padding: 20px 0 10px; }
+        .header h1 { font-size: 28px; font-weight: 700; margin-bottom: 4px; }
+        .header .date { color: var(--text-secondary); font-size: 14px; }
         .card {
             background: var(--surface);
             border-radius: 24px;
             padding: 24px;
             margin: 16px 0;
         }
-
         .card-title {
-            font-size: 16px;
+            font-size: 13px;
             font-weight: 600;
             color: var(--text-secondary);
             margin-bottom: 16px;
             text-transform: uppercase;
             letter-spacing: 1px;
-            font-size: 13px;
         }
-
-        /* Таймер */
         .timer-display {
             text-align: center;
             font-size: 64px;
@@ -86,12 +54,6 @@
             margin: 16px 0 24px;
             letter-spacing: 2px;
         }
-
-        .timer-display .seconds {
-            font-size: 80px;
-            font-weight: 600;
-        }
-
         .side-indicator {
             text-align: center;
             font-size: 16px;
@@ -99,31 +61,16 @@
             margin-bottom: 8px;
             min-height: 24px;
         }
-
         .side-indicator.active {
             color: var(--accent);
             font-weight: 600;
             animation: pulse 1.5s ease-in-out infinite;
         }
-
         @keyframes pulse {
-            0%,
-            100% {
-                opacity: 1;
-            }
-            50% {
-                opacity: 0.5;
-            }
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
-
-        /* Кнопки выбора груди */
-        .breast-select {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 16px;
-        }
-
+        .breast-select { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
         .breast-btn {
             height: 64px;
             border-radius: 20px;
@@ -137,33 +84,11 @@
             justify-content: center;
             gap: 8px;
         }
-
-        .breast-btn.left {
-            background: rgba(232, 160, 191, 0.15);
-            color: var(--left-breast);
-        }
-
-        .breast-btn.right {
-            background: rgba(160, 196, 232, 0.15);
-            color: var(--right-breast);
-        }
-
-        .breast-btn.selected {
-            border-color: currentColor;
-            transform: scale(1.02);
-        }
-
-        .breast-btn.left.selected {
-            background: rgba(232, 160, 191, 0.3);
-            border-color: var(--left-breast);
-        }
-
-        .breast-btn.right.selected {
-            background: rgba(160, 196, 232, 0.3);
-            border-color: var(--right-breast);
-        }
-
-        /* Кнопка старт/стоп */
+        .breast-btn.left { background: rgba(232,160,191,0.15); color: var(--left-breast); }
+        .breast-btn.right { background: rgba(160,196,232,0.15); color: var(--right-breast); }
+        .breast-btn.selected { border-color: currentColor; transform: scale(1.02); }
+        .breast-btn.left.selected { background: rgba(232,160,191,0.3); border-color: var(--left-breast); }
+        .breast-btn.right.selected { background: rgba(160,196,232,0.3); border-color: var(--right-breast); }
         .action-btn {
             width: 100%;
             height: 60px;
@@ -176,139 +101,63 @@
             margin-top: 8px;
             letter-spacing: 0.5px;
         }
-
-        .action-btn.start {
-            background: var(--accent);
-            color: #1a1a2e;
-        }
-
-        .action-btn.stop {
-            background: #e8606e;
-            color: white;
-        }
-
-        .action-btn:active {
-            transform: scale(0.97);
-        }
-
-        .action-btn:disabled {
-            opacity: 0.4;
-            pointer-events: none;
-        }
-
-        /* Статистика */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
-
-        .stat-item {
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 16px;
-            padding: 16px;
-            text-align: center;
-        }
-
-        .stat-value {
-            font-size: 28px;
-            font-weight: 700;
-            color: var(--accent);
-        }
-
-        .stat-label {
-            font-size: 12px;
-            color: var(--text-secondary);
-            margin-top: 4px;
-        }
-
-        /* История */
-        .history-list {
-            max-height: 300px;
-            overflow-y: auto;
-        }
-
+        .action-btn.start { background: var(--accent); color: #1a1a2e; }
+        .action-btn.stop { background: #e8606e; color: white; }
+        .action-btn:active { transform: scale(0.97); }
+        .action-btn:disabled { opacity: 0.4; pointer-events: none; }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .stat-item { background: rgba(255,255,255,0.03); border-radius: 16px; padding: 16px; text-align: center; }
+        .stat-value { font-size: 28px; font-weight: 700; color: var(--accent); }
+        .stat-label { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+        .history-list { max-height: 300px; overflow-y: auto; }
         .history-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 14px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
         }
-
-        .history-item:last-child {
-            border-bottom: none;
-        }
-
-        .history-time {
-            font-size: 15px;
-            font-weight: 500;
-        }
-
-        .history-details {
-            text-align: right;
-        }
-
-        .history-duration {
-            font-weight: 600;
-            font-size: 15px;
-        }
-
-        .history-side {
-            font-size: 12px;
-            color: var(--text-secondary);
-        }
-
+        .history-item:last-child { border-bottom: none; }
+        .history-duration { font-weight: 600; font-size: 15px; }
+        .history-side { font-size: 12px; color: var(--text-secondary); }
         .side-dot {
             display: inline-block;
-            width: 8px;
-            height: 8px;
+            width: 8px; height: 8px;
             border-radius: 50%;
             margin-right: 4px;
         }
-
-        .side-dot.left {
-            background: var(--left-breast);
-        }
-        .side-dot.right {
-            background: var(--right-breast);
-        }
-
-        .empty-state {
-            text-align: center;
-            color: var(--text-secondary);
-            padding: 30px;
+        .side-dot.left { background: var(--left-breast); }
+        .side-dot.right { background: var(--right-breast); }
+        .empty-state { text-align: center; color: var(--text-secondary); padding: 30px; font-size: 14px; }
+        .reminder-btn {
+            flex: 1;
+            height: 44px;
+            border-radius: 14px;
+            border: none;
             font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
         }
-
-        /* Прокрутка */
-        ::-webkit-scrollbar {
-            width: 3px;
-        }
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-        }
+        .reminder-btn:active { transform: scale(0.95); }
+        ::-webkit-scrollbar { width: 3px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
     </style>
 </head>
 <body>
 
- <div class="header">
-    <h1>🤱 Мама Трекер</h1>
-<span class="emoji">🤱</span>
-    <div class="date" id="todayDate"></div>
-    <div id="cloudStatus" style="font-size:11px; color:#7ecb8a; margin-top:4px; display:none;">
-        ☁️ Данные синхронизированы
+    <div class="header">
+        <h1>🤱 Мама Трекер</h1>
+        <div class="date" id="todayDate"></div>
+        <div id="cloudStatus" style="font-size:11px; color:#7ecb8a; margin-top:4px; display:none;">
+            ☁️ Данные синхронизированы
+        </div>
     </div>
-</div>
 
     <!-- Таймер кормления -->
     <div class="card">
         <div class="card-title">🍼 Кормление</div>
-
         <div class="breast-select">
             <button class="breast-btn left" id="btnLeft" onclick="selectSide('left')">
                 ⬅️ Левая
@@ -317,43 +166,40 @@
                 ➡️ Правая
             </button>
         </div>
-
         <div class="side-indicator" id="sideIndicator"></div>
         <div class="timer-display" id="timerDisplay">00:00</div>
-
         <button class="action-btn start" id="actionBtn" onclick="toggleTimer()" disabled>
             ▶️ Начать кормление
         </button>
     </div>
 
-    <!-- Статистика -->
- 
-<div class="card">
-    <div class="card-title">📊 Сегодня</div>
-    <div class="stats-grid">
-        <div class="stat-item">
-            <div class="stat-value" id="statCount">0</div>
-            <div class="stat-label">Кормлений</div>
+    <!-- Статистика и напоминания -->
+    <div class="card">
+        <div class="card-title">📊 Сегодня</div>
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-value" id="statCount">0</div>
+                <div class="stat-label">Кормлений</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="statDuration">0 мин</div>
+                <div class="stat-label">Общее время</div>
+            </div>
         </div>
-        <div class="stat-item">
-            <div class="stat-value" id="statDuration">0 мин</div>
-            <div class="stat-label">Общее время</div>
+        <div id="reminderStatus" style="text-align:center; font-size:13px; margin-top:16px; min-height:20px;"></div>
+        <div style="display:flex; gap:8px; margin-top:12px;">
+            <button onclick="startReminder(120)" class="reminder-btn" style="background:rgba(232,160,191,0.2); color:#e8a0bf;">
+                🔔 2 часа
+            </button>
+            <button onclick="startReminder(180)" class="reminder-btn" style="background:rgba(160,196,232,0.2); color:#a0c4e8;">
+                🔔 3 часа
+            </button>
+            <button onclick="stopReminder()" class="reminder-btn" style="background:rgba(255,255,255,0.05); color:#a8a0b0;">
+                🔕 Откл
+            </button>
         </div>
     </div>
-    <div id="reminderStatus" style="text-align:center; font-size:13px; margin-top:16px; min-height:20px;"></div>
-    <div style="display:flex; gap:8px; margin-top:12px;">
-        <button onclick="startReminder(120)" id="remind2h" style="flex:1; height:44px; border-radius:14px; border:none; background:rgba(232,160,191,0.2); color:#e8a0bf; font-size:14px; font-weight:600; cursor:pointer;">
-            🔔 2 часа
-        </button>
-        <button onclick="startReminder(180)" id="remind3h" style="flex:1; height:44px; border-radius:14px; border:none; background:rgba(160,196,232,0.2); color:#a0c4e8; font-size:14px; font-weight:600; cursor:pointer;">
-            🔔 3 часа
-        </button>
-        <button onclick="stopReminder()" id="remindOff" style="flex:1; height:44px; border-radius:14px; border:none; background:rgba(255,255,255,0.05); color:#a8a0b0; font-size:14px; font-weight:600; cursor:pointer;">
-            🔕 Откл
-        </button>
-    </div>
-</div>
-</div>
+
     <!-- История -->
     <div class="card">
         <div class="card-title">📝 История</div>
@@ -364,165 +210,106 @@
 
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
-        // Инициализация Telegram Web App
+        // Инициализация Telegram
         const tg = window.Telegram?.WebApp;
         if (tg) {
             tg.ready();
             tg.expand();
-            // Применяем тему Telegram, если доступна
-            if (tg.colorScheme === 'dark') {
-                document.body.style.background = '#1a1a2e';
-            }
         }
 
         // Состояние
         let selectedSide = null;
         let isRunning = false;
         let startTime = null;
-        let elapsedSeconds = 0;
         let timerInterval = null;
 
         // DOM элементы
-        const btnLeft = document.getElementById('btnLeft');
-        const btnRight = document.getElementById('btnRight');
-        const sideIndicator = document.getElementById('sideIndicator');
-        const timerDisplay = document.getElementById('timerDisplay');
-        const actionBtn = document.getElementById('actionBtn');
-        const statCount = document.getElementById('statCount');
-        const statDuration = document.getElementById('statDuration');
-        const historyList = document.getElementById('historyList');
-        const todayDate = document.getElementById('todayDate');
-
-        // Устанавливаем сегодняшнюю дату
         const today = new Date();
-        todayDate.textContent = today.toLocaleDateString('ru-RU', {
-            weekday: 'long',
-            day: 'numeric',
-            month: 'long'
+        document.getElementById('todayDate').textContent = today.toLocaleDateString('ru-RU', {
+            weekday: 'long', day: 'numeric', month: 'long'
         });
 
         function selectSide(side) {
-            if (isRunning) return; // Нельзя менять во время кормления
-
+            if (isRunning) return;
             selectedSide = side;
-
-            btnLeft.classList.toggle('selected', side === 'left');
-            btnRight.classList.toggle('selected', side === 'right');
-
+            document.getElementById('btnLeft').classList.toggle('selected', side === 'left');
+            document.getElementById('btnRight').classList.toggle('selected', side === 'right');
             const sideText = side === 'left' ? 'Левая грудь' : 'Правая грудь';
-            sideIndicator.textContent = `● ${sideText}`;
-            sideIndicator.className = 'side-indicator active';
-
-            // Разблокируем кнопку старта
-            actionBtn.disabled = false;
-            actionBtn.textContent = '▶️ Начать кормление';
-            actionBtn.className = 'action-btn start';
+            const indicator = document.getElementById('sideIndicator');
+            indicator.textContent = '● ' + sideText;
+            indicator.className = 'side-indicator active';
+            document.getElementById('actionBtn').disabled = false;
         }
 
         function toggleTimer() {
-            if (!isRunning) {
-                startTimer();
-            } else {
+            if (isRunning) {
                 stopTimer();
+            } else {
+                startTimer();
             }
         }
 
         function startTimer() {
             if (!selectedSide) return;
-
             isRunning = true;
-            startTime = Date.now() - (elapsedSeconds * 1000);
-
-            // Обновляем интерфейс
-            actionBtn.textContent = '⏹ Завершить';
-            actionBtn.className = 'action-btn stop';
-            btnLeft.style.pointerEvents = 'none';
-            btnRight.style.pointerEvents = 'none';
-            btnLeft.style.opacity = '0.6';
-            btnRight.style.opacity = '0.6';
-
+            startTime = Date.now();
+            document.getElementById('actionBtn').textContent = '⏹ Завершить';
+            document.getElementById('actionBtn').className = 'action-btn stop';
+            document.getElementById('btnLeft').style.pointerEvents = 'none';
+            document.getElementById('btnRight').style.pointerEvents = 'none';
+            document.getElementById('btnLeft').style.opacity = '0.6';
+            document.getElementById('btnRight').style.opacity = '0.6';
             const sideText = selectedSide === 'left' ? 'Левая грудь' : 'Правая грудь';
-            sideIndicator.textContent = `🔴 Кормление · ${sideText}`;
-            sideIndicator.className = 'side-indicator active';
-
-            // Запускаем таймер
-            timerInterval = setInterval(updateTimer, 100); // Обновляем 10 раз в секунду для плавности
+            const indicator = document.getElementById('sideIndicator');
+            indicator.textContent = '🔴 Кормление · ' + sideText;
+            indicator.className = 'side-indicator active';
+            timerInterval = setInterval(updateTimer, 200);
         }
 
         function stopTimer() {
             isRunning = false;
             clearInterval(timerInterval);
+            const duration = Math.floor((Date.now() - startTime) / 1000);
+            document.getElementById('timerDisplay').textContent = '00:00';
+            document.getElementById('actionBtn').textContent = '▶️ Начать кормление';
+            document.getElementById('actionBtn').className = 'action-btn start';
+            document.getElementById('actionBtn').disabled = true;
+            document.getElementById('btnLeft').style.pointerEvents = 'auto';
+            document.getElementById('btnRight').style.pointerEvents = 'auto';
+            document.getElementById('btnLeft').style.opacity = '1';
+            document.getElementById('btnRight').style.opacity = '1';
+            document.getElementById('btnLeft').classList.remove('selected');
+            document.getElementById('btnRight').classList.remove('selected');
+            document.getElementById('sideIndicator').textContent = '';
+            document.getElementById('sideIndicator').className = 'side-indicator';
 
-            const endTime = Date.now();
-            const duration = Math.floor((endTime - startTime) / 1000); // в секундах
-
-            if (duration < 30) {
-                // Слишком короткое — не сохраняем (случайное нажатие)
-                if (tg?.showPopup) {
-                    tg.showPopup({
-                        title: 'Слишком коротко',
-                        message: 'Кормление менее 30 секунд не будет сохранено.',
-                        buttons: [{ type: 'ok' }]
-                    });
-                } else {
-                    alert('Кормление менее 30 секунд не будет сохранено.');
+            if (duration >= 30) {
+                saveFeeding(selectedSide, duration);
+                updateStats();
+                renderHistory();
+                if (tg?.HapticFeedback) {
+                    tg.HapticFeedback.notificationOccurred('success');
                 }
-                resetUI();
-                return;
-            }
-
-            // Сохраняем запись
-            saveFeeding(selectedSide, duration);
-
-            // Сбрасываем интерфейс
-            resetUI();
-
-            // Обновляем отображение
-            updateStats();
-            renderHistory();
-
-            // Виброотклик
-            if (tg?.HapticFeedback) {
-                tg.HapticFeedback.notificationOccurred('success');
             }
         }
 
         function updateTimer() {
-            elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
-            const minutes = Math.floor(elapsedSeconds / 60);
-            const seconds = elapsedSeconds % 60;
-            timerDisplay.innerHTML =
-                `${String(minutes).padStart(2, '0')}:<span class="seconds">${String(seconds).padStart(2, '0')}</span>`;
-        }
-
-        function resetUI() {
-            elapsedSeconds = 0;
-            timerDisplay.innerHTML = '00:<span class="seconds">00</span>';
-            actionBtn.textContent = '▶️ Начать кормление';
-            actionBtn.className = 'action-btn start';
-            actionBtn.disabled = true;
-            btnLeft.style.pointerEvents = 'auto';
-            btnRight.style.pointerEvents = 'auto';
-            btnLeft.style.opacity = '1';
-            btnRight.style.opacity = '1';
-            sideIndicator.textContent = '';
-            sideIndicator.className = 'side-indicator';
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            const min = Math.floor(elapsed / 60);
+            const sec = elapsed % 60;
+            document.getElementById('timerDisplay').textContent =
+                String(min).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
         }
 
         // Работа с данными
         function getStorageKey() {
-            const dateStr = today.toISOString().split('T')[0]; // YYYY-MM-DD
-            return `mama-tracker-${dateStr}`;
+            return 'mama-tracker-' + today.toISOString().split('T')[0];
         }
 
         function saveFeeding(side, duration) {
             const key = getStorageKey();
             const existing = JSON.parse(localStorage.getItem(key) || '[]');
-            existing.push({
-                side: side,
-                duration: duration,
-                timestamp: Date.now()
-            });
+            existing.push({ side: side, duration: duration, timestamp: Date.now() });
             localStorage.setItem(key, JSON.stringify(existing));
         }
 
@@ -533,322 +320,226 @@
 
         function updateStats() {
             const feedings = getTodayFeedings();
-            statCount.textContent = feedings.length;
-
-            const totalSeconds = feedings.reduce((sum, f) => sum + f.duration, 0);
-            const totalMinutes = Math.floor(totalSeconds / 60);
-
-            if (totalMinutes < 60) {
-                statDuration.textContent = `${totalMinutes} мин`;
+            document.getElementById('statCount').textContent = feedings.length;
+            const totalMin = Math.floor(feedings.reduce((s, f) => s + f.duration, 0) / 60);
+            if (totalMin < 60) {
+                document.getElementById('statDuration').textContent = totalMin + ' мин';
             } else {
-                const hours = Math.floor(totalMinutes / 60);
-                const mins = totalMinutes % 60;
-                statDuration.textContent = `${hours} ч ${mins} мин`;
+                const h = Math.floor(totalMin / 60);
+                const m = totalMin % 60;
+                document.getElementById('statDuration').textContent = h + ' ч ' + m + ' мин';
             }
         }
 
         function renderHistory() {
-            const feedings = getTodayFeedings();
-
+            const feedings = getTodayFeedings().sort((a, b) => b.timestamp - a.timestamp);
+            const list = document.getElementById('historyList');
             if (feedings.length === 0) {
-                historyList.innerHTML = '<div class="empty-state">Пока нет записей за сегодня</div>';
+                list.innerHTML = '<div class="empty-state">Пока нет записей за сегодня</div>';
                 return;
             }
-
-            // Сортируем от новых к старым
-            feedings.sort((a, b) => b.timestamp - a.timestamp);
-
-            historyList.innerHTML = feedings.map(f => {
-                const time = new Date(f.timestamp).toLocaleTimeString('ru-RU', {
-                    hour: '2-digit',
-                    minute: '2-digit'
-                });
-                const minutes = Math.floor(f.duration / 60);
-                const seconds = f.duration % 60;
-                const durationStr = `${minutes}:${String(seconds).padStart(2, '0')}`;
-                const sideEmoji = f.side === 'left' ? '⬅️' : '➡️';
-                const sideText = f.side === 'left' ? 'Левая' : 'Правая';
+            list.innerHTML = feedings.map(f => {
+                const time = new Date(f.timestamp).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+                const min = Math.floor(f.duration / 60);
+                const sec = f.duration % 60;
                 const dotClass = f.side === 'left' ? 'left' : 'right';
-
-                return `
-                    <div class="history-item">
-                        <div class="history-time">${time}</div>
-                        <div class="history-details">
-                            <div class="history-duration">${durationStr}</div>
-                            <div class="history-side">
-                                <span class="side-dot ${dotClass}"></span>${sideText}
-                            </div>
-                        </div>
-                    </div>
-                `;
+                const sideText = f.side === 'left' ? 'Левая' : 'Правая';
+                return `<div class="history-item">
+                    <span>${time}</span>
+                    <span class="history-duration">${min}:${String(sec).padStart(2,'0')}</span>
+                    <span class="history-side"><span class="side-dot ${dotClass}"></span>${sideText}</span>
+                </div>`;
             }).join('');
         }
 
-        // Инициализация
-  
-// === ОБЛАЧНАЯ СИНХРОНИЗАЦИЯ ЧЕРЕЗ TELEGRAM ===
+        // === ОБЛАЧНАЯ СИНХРОНИЗАЦИЯ ===
+        const CLOUD_KEY = 'mama-tracker-all-data';
 
-const CLOUD_KEY = 'mama-tracker-all-data';
-
-// Проверяем, доступен ли Telegram CloudStorage
-function hasCloudStorage() {
-    return window.Telegram?.WebApp?.CloudStorage !== undefined;
-}
-
-// Сохраняем все данные в облако
-function syncToCloud() {
-    if (!hasCloudStorage()) {
-        console.log('☁️ CloudStorage недоступен');
-        return;
-    }
-
-    const allData = {};
-    for (let i = 0; i < 60; i++) {
-        const date = new Date();
-        date.setDate(date.getDate() - i);
-        const key = `mama-tracker-${date.toISOString().split('T')[0]}`;
-        const data = localStorage.getItem(key);
-        if (data) {
-            allData[key] = data;
+        function hasCloudStorage() {
+            return window.Telegram?.WebApp?.CloudStorage !== undefined;
         }
-    }
 
-    try {
-        window.Telegram.WebApp.CloudStorage.setItem(
-            CLOUD_KEY,
-            JSON.stringify(allData),
-            (err, result) => {
-                if (err) {
-                    console.log('Ошибка сохранения в облако:', err);
-                } else {
-                    console.log('☁️ Данные сохранены в облако');
-const status = document.getElementById('cloudStatus');
-if (status) {
-    status.style.display = 'block';
-    status.textContent = '☁️ Сохранено в облако';
-    setTimeout(() => {
-        status.textContent = '☁️ Данные синхронизированы';
-    }, 2000);
-}
-                }
+        function syncToCloud() {
+            if (!hasCloudStorage()) return;
+            const allData = {};
+            for (let i = 0; i < 60; i++) {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                const key = 'mama-tracker-' + d.toISOString().split('T')[0];
+                const data = localStorage.getItem(key);
+                if (data) allData[key] = data;
             }
-        );
-    } catch (e) {
-        console.log('Ошибка синхронизации:', e);
-    }
-}
+            try {
+                window.Telegram.WebApp.CloudStorage.setItem(CLOUD_KEY, JSON.stringify(allData), (err, result) => {
+                    if (!err) {
+                        const status = document.getElementById('cloudStatus');
+                        if (status) {
+                            status.style.display = 'block';
+                            status.textContent = '☁️ Сохранено в облако';
+                            setTimeout(() => { status.textContent = '☁️ Данные синхронизированы'; }, 2000);
+                        }
+                    }
+                });
+            } catch (e) {
+                console.log('Ошибка синхронизации:', e);
+            }
+        }
 
-// Загружаем данные из облака
-function loadFromCloud() {
-    if (!hasCloudStorage()) {
-        console.log('☁️ CloudStorage недоступен, используем только телефон');
-        updateStats();
-        renderHistory();
-        return;
-    }
-
-    try {
-        window.Telegram.WebApp.CloudStorage.getItem(
-            CLOUD_KEY,
-            (err, result) => {
-                if (err) {
-                    console.log('Ошибка загрузки из облака:', err);
+        function loadFromCloud() {
+            if (!hasCloudStorage()) {
+                updateStats();
+                renderHistory();
+                return;
+            }
+            try {
+                window.Telegram.WebApp.CloudStorage.getItem(CLOUD_KEY, (err, result) => {
+                    if (!err && result) {
+                        try {
+                            const allData = JSON.parse(result);
+                            Object.entries(allData).forEach(([key, value]) => {
+                                if (!localStorage.getItem(key)) {
+                                    localStorage.setItem(key, value);
+                                }
+                            });
+                        } catch (e) {
+                            console.log('Ошибка чтения облака:', e);
+                        }
+                    }
                     updateStats();
                     renderHistory();
-                    return;
-                }
-
-                if (result) {
-                    try {
-                        const allData = JSON.parse(result);
-                        let restored = 0;
-                        Object.entries(allData).forEach(([key, value]) => {
-                            const local = localStorage.getItem(key);
-                            if (!local) {
-                                localStorage.setItem(key, value);
-                                restored++;
-                            }
-                        });
-                        console.log(`☁️ Восстановлено ${restored} дней из облака`);
-                    } catch (e) {
-                        console.log('Ошибка чтения данных облака:', e);
-                    }
-                }
-                // В любом случае показываем актуальные данные
+                });
+            } catch (e) {
+                console.log('Ошибка:', e);
                 updateStats();
                 renderHistory();
             }
-        );
-    } catch (e) {
-        console.log('Ошибка:', e);
-        updateStats();
-        renderHistory();
-    }
-}
+        }
 
-// Модифицируем функцию сохранения — добавляем автосинхронизацию
-const originalSaveFeeding = saveFeeding;
-saveFeeding = function(side, duration) {
-    originalSaveFeeding(side, duration);
-    syncToCloud(); // Автоматически сохраняем в облако после каждого кормления
-};
+        const originalSaveFeeding = saveFeeding;
+        saveFeeding = function(side, duration) {
+            originalSaveFeeding(side, duration);
+            syncToCloud();
+        };
 
-// Загружаем данные при старте
-loadFromCloud();
+        // === НАПОМИНАНИЯ ===
+        let reminderInterval = null;
+        let reminderMinutes = null;
 
-// === НАПОМИНАНИЯ ===
-
-let reminderInterval = null;
-let reminderMinutes = null;
-
-// Запрашиваем разрешение на уведомления
-function requestNotificationPermission() {
-    if ('Notification' in window && Notification.permission === 'default') {
-        Notification.requestPermission().then(permission => {
-            if (permission === 'granted') {
-                console.log('🔔 Уведомления разрешены');
-                updateReminderStatus();
+        function requestNotificationPermission() {
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission().then(permission => {
+                    if (permission === 'granted') {
+                        updateReminderStatus();
+                    }
+                });
             }
-        });
-    }
-}
-
-// Проверяем, когда было последнее кормление
-function getMinutesSinceLastFeeding() {
-    const feedings = getTodayFeedings();
-    if (feedings.length === 0) return null;
-    
-    const lastFeeding = feedings[feedings.length - 1];
-    return Math.floor((Date.now() - lastFeeding.timestamp) / 60000);
-}
-
-// Форматирование минут в читаемый вид
-function formatTimeAgo(minutes) {
-    if (minutes === null) return 'нет данных';
-    if (minutes < 60) {
-        const min = minutes === 1 ? 'минуту' : 
-                    minutes >= 2 && minutes <= 4 ? 'минуты' : 'минут';
-        return `${minutes} ${min} назад`;
-    }
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    const hourWord = hours === 1 ? 'час' : 
-                     hours >= 2 && hours <= 4 ? 'часа' : 'часов';
-    if (mins === 0) return `${hours} ${hourWord} назад`;
-    const minWord = mins === 1 ? 'минуту' : 
-                    mins >= 2 && mins <= 4 ? 'минуты' : 'минут';
-    return `${hours} ${hourWord} ${mins} ${minWord} назад`;
-}
-
-// Отправляем уведомление
-function sendReminder() {
-    const minutesSince = getMinutesSinceLastFeeding();
-    
-    if ('Notification' in window && Notification.permission === 'granted') {
-        const timeText = minutesSince !== null ? 
-            `Прошло ${formatTimeAgo(minutesSince)} с последнего кормления` : 
-            'Пора покормить малыша';
-        
-        new Notification('🍼 Время кормления!', {
-            body: timeText,
-            icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y="80" font-size="80">🤱</text></svg>',
-            tag: 'feeding-reminder',
-            vibrate: [200, 100, 200, 100, 200]
-        });
-        
-        console.log('🔔 Уведомление отправлено');
-    }
-}
-
-// Запускаем отслеживание
-function startReminder(minutes) {
-    stopReminder();
-    
-    reminderMinutes = minutes;
-    
-    // Проверяем каждые 30 секунд
-    reminderInterval = setInterval(() => {
-        const minutesSince = getMinutesSinceLastFeeding();
-        
-        // Если прошло больше указанного времени — напоминаем
-        if (minutesSince !== null && minutesSince >= reminderMinutes) {
-            sendReminder();
-            stopReminder(); // Останавливаем, чтобы не спамить
         }
-    }, 30000); // Проверка каждые 30 секунд
-    
-    updateReminderStatus();
-    console.log(`⏰ Напоминание установлено: каждые ${minutes} мин`);
-}
 
-// Останавливаем отслеживание
-function stopReminder() {
-    if (reminderInterval) {
-        clearInterval(reminderInterval);
-        reminderInterval = null;
-    }
-    reminderMinutes = null;
-    updateReminderStatus();
-    console.log('⏰ Напоминание отключено');
-}
+        function getMinutesSinceLastFeeding() {
+            const feedings = getTodayFeedings();
+            if (feedings.length === 0) return null;
+            const last = feedings[feedings.length - 1];
+            return Math.floor((Date.now() - last.timestamp) / 60000);
+        }
 
-// Обновляем текст статуса напоминания
-function updateReminderStatus() {
-    const statusEl = document.getElementById('reminderStatus');
-    const minutesSince = getMinutesSinceLastFeeding();
-    const timeAgo = formatTimeAgo(minutesSince);
-    
-    if (!statusEl) return;
-    
-    if (reminderMinutes) {
-        statusEl.innerHTML = `⏰ Напоминание: каждые ${reminderMinutes} мин<br><small>Последнее кормление: ${timeAgo}</small>`;
-        statusEl.style.color = '#7ecb8a';
-    } else if (Notification.permission === 'denied') {
-        statusEl.innerHTML = '⚠️ Уведомления запрещены в настройках браузера';
-        statusEl.style.color = '#e8606e';
-    } else if (Notification.permission === 'default') {
-        statusEl.innerHTML = 'Нажмите на кнопку ниже и разрешите уведомления';
-        statusEl.style.color = '#a8a0b0';
-    } else {
-        statusEl.innerHTML = `Последнее кормление: ${timeAgo}`;
-        statusEl.style.color = '#a8a0b0';
-    }
-}
+        function formatTimeAgo(minutes) {
+            if (minutes === null) return 'нет данных';
+            if (minutes < 60) {
+                const w = minutes === 1 ? 'минуту' : (minutes >= 2 && minutes <= 4 ? 'минуты' : 'минут');
+                return minutes + ' ' + w + ' назад';
+            }
+            const h = Math.floor(minutes / 60);
+            const m = minutes % 60;
+            const hw = h === 1 ? 'час' : (h >= 2 && h <= 4 ? 'часа' : 'часов');
+            if (m === 0) return h + ' ' + hw + ' назад';
+            const mw = m === 1 ? 'минуту' : (m >= 2 && m <= 4 ? 'минуты' : 'минут');
+            return h + ' ' + hw + ' ' + m + ' ' + mw + ' назад';
+        }
 
-// Обновляем статус при каждом новом кормлении
-const origSaveFeeding3 = saveFeeding;
-saveFeeding = function(side, duration) {
-    origSaveFeeding3(side, duration);
-    updateReminderStatus();
-    // Если было установлено напоминание — перезапускаем отсчёт
-    if (reminderMinutes) {
-        stopReminder();
-        startReminder(reminderMinutes);
-    }
-};
+        function sendReminder() {
+            const minutesSince = getMinutesSinceLastFeeding();
+            if ('Notification' in window && Notification.permission === 'granted') {
+                const timeText = minutesSince !== null ?
+                    'Прошло ' + formatTimeAgo(minutesSince) + ' с последнего кормления' :
+                    'Пора покормить малыша';
+                new Notification('🍼 Время кормления!', {
+                    body: timeText,
+                    icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y="80" font-size="80">🤱</text></svg>',
+                    tag: 'feeding-reminder',
+                    vibrate: [200, 100, 200, 100, 200]
+                });
+            }
+        }
 
-// Запрашиваем разрешение при загрузке
-requestNotificationPermission();
-
-// Обновляем статус каждые 10 секунд (для актуальности времени)
-setInterval(updateReminderStatus, 10000);
-
-        // Обработка свайпа назад в Telegram
-        if (tg?.BackButton) {
-            tg.BackButton.onClick(() => {
-                if (isRunning) {
-                    tg.showPopup({
-                        title: 'Идёт кормление',
-                        message: 'Сначала завершите кормление.',
-                        buttons: [{ type: 'ok' }]
-                    });
-                } else {
-                    tg.BackButton.hide();
+        function startReminder(minutes) {
+            stopReminder();
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission().then(permission => {
+                    if (permission === 'granted') {
+                        startReminder(minutes);
+                    } else {
+                        updateReminderStatus();
+                    }
+                });
+                return;
+            }
+            reminderMinutes = minutes;
+            reminderInterval = setInterval(() => {
+                const mins = getMinutesSinceLastFeeding();
+                if (mins !== null && mins >= reminderMinutes) {
+                    sendReminder();
+                    stopReminder();
                 }
-            });
+            }, 30000);
+            updateReminderStatus();
         }
 
-        console.log('🤱 Мама Трекер загружен!');
+        function stopReminder() {
+            if (reminderInterval) {
+                clearInterval(reminderInterval);
+                reminderInterval = null;
+            }
+            reminderMinutes = null;
+            updateReminderStatus();
+        }
+
+        function updateReminderStatus() {
+            const statusEl = document.getElementById('reminderStatus');
+            if (!statusEl) return;
+            const minsSince = getMinutesSinceLastFeeding();
+            const timeAgo = formatTimeAgo(minsSince);
+
+            if (reminderMinutes) {
+                statusEl.innerHTML = '⏰ Напоминание: каждые ' + reminderMinutes + ' мин<br><small>Последнее кормление: ' + timeAgo + '</small>';
+                statusEl.style.color = '#7ecb8a';
+            } else if ('Notification' in window && Notification.permission === 'denied') {
+                statusEl.innerHTML = '⚠️ Уведомления запрещены в настройках';
+                statusEl.style.color = '#e8606e';
+            } else if ('Notification' in window && Notification.permission === 'default') {
+                statusEl.innerHTML = 'Нажмите 🔔 и разрешите уведомления';
+                statusEl.style.color = '#a8a0b0';
+            } else {
+                statusEl.innerHTML = 'Последнее кормление: ' + timeAgo;
+                statusEl.style.color = '#a8a0b0';
+            }
+        }
+
+        const origSaveFeeding3 = saveFeeding;
+        saveFeeding = function(side, duration) {
+            origSaveFeeding3(side, duration);
+            updateReminderStatus();
+            if (reminderMinutes) {
+                const mins = reminderMinutes;
+                stopReminder();
+                startReminder(mins);
+            }
+        };
+
+        requestNotificationPermission();
+        setInterval(updateReminderStatus, 10000);
+
+        // Загрузка данных при старте
+        loadFromCloud();
     </script>
 </body>
 </html>
