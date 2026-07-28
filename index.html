@@ -296,11 +296,14 @@
 </head>
 <body>
 
-    <div class="header">
-        <span class="emoji">🤱</span>
-        <h1>Мама Трекер</h1>
-        <div class="date" id="todayDate"></div>
+ <div class="header">
+    <h1>🤱 Мама Трекер</h1>
+<span class="emoji">🤱</span>
+    <div class="date" id="todayDate"></div>
+    <div id="cloudStatus" style="font-size:11px; color:#7ecb8a; margin-top:4px; display:none;">
+        ☁️ Данные синхронизированы
     </div>
+</div>
 
     <!-- Таймер кормления -->
     <div class="card">
@@ -569,8 +572,116 @@
         }
 
         // Инициализация
+  
+// === ОБЛАЧНАЯ СИНХРОНИЗАЦИЯ ЧЕРЕЗ TELEGRAM ===
+
+const CLOUD_KEY = 'mama-tracker-all-data';
+
+// Проверяем, доступен ли Telegram CloudStorage
+function hasCloudStorage() {
+    return window.Telegram?.WebApp?.CloudStorage !== undefined;
+}
+
+// Сохраняем все данные в облако
+function syncToCloud() {
+    if (!hasCloudStorage()) {
+        console.log('☁️ CloudStorage недоступен');
+        return;
+    }
+
+    const allData = {};
+    for (let i = 0; i < 60; i++) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        const key = `mama-tracker-${date.toISOString().split('T')[0]}`;
+        const data = localStorage.getItem(key);
+        if (data) {
+            allData[key] = data;
+        }
+    }
+
+    try {
+        window.Telegram.WebApp.CloudStorage.setItem(
+            CLOUD_KEY,
+            JSON.stringify(allData),
+            (err, result) => {
+                if (err) {
+                    console.log('Ошибка сохранения в облако:', err);
+                } else {
+                    console.log('☁️ Данные сохранены в облако');
+const status = document.getElementById('cloudStatus');
+if (status) {
+    status.style.display = 'block';
+    status.textContent = '☁️ Сохранено в облако';
+    setTimeout(() => {
+        status.textContent = '☁️ Данные синхронизированы';
+    }, 2000);
+}
+                }
+            }
+        );
+    } catch (e) {
+        console.log('Ошибка синхронизации:', e);
+    }
+}
+
+// Загружаем данные из облака
+function loadFromCloud() {
+    if (!hasCloudStorage()) {
+        console.log('☁️ CloudStorage недоступен, используем только телефон');
         updateStats();
         renderHistory();
+        return;
+    }
+
+    try {
+        window.Telegram.WebApp.CloudStorage.getItem(
+            CLOUD_KEY,
+            (err, result) => {
+                if (err) {
+                    console.log('Ошибка загрузки из облака:', err);
+                    updateStats();
+                    renderHistory();
+                    return;
+                }
+
+                if (result) {
+                    try {
+                        const allData = JSON.parse(result);
+                        let restored = 0;
+                        Object.entries(allData).forEach(([key, value]) => {
+                            const local = localStorage.getItem(key);
+                            if (!local) {
+                                localStorage.setItem(key, value);
+                                restored++;
+                            }
+                        });
+                        console.log(`☁️ Восстановлено ${restored} дней из облака`);
+                    } catch (e) {
+                        console.log('Ошибка чтения данных облака:', e);
+                    }
+                }
+                // В любом случае показываем актуальные данные
+                updateStats();
+                renderHistory();
+            }
+        );
+    } catch (e) {
+        console.log('Ошибка:', e);
+        updateStats();
+        renderHistory();
+    }
+}
+
+// Модифицируем функцию сохранения — добавляем автосинхронизацию
+const originalSaveFeeding = saveFeeding;
+saveFeeding = function(side, duration) {
+    originalSaveFeeding(side, duration);
+    syncToCloud(); // Автоматически сохраняем в облако после каждого кормления
+};
+
+// Загружаем данные при старте
+loadFromCloud();
 
         // Обработка свайпа назад в Telegram
         if (tg?.BackButton) {
