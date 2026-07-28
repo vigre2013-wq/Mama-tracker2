@@ -395,12 +395,14 @@
                 window.Telegram.WebApp.CloudStorage.getItem(CLOUD_KEY, (err, result) => {
                     if (!err && result) {
                         try {
-                            const allData = JSON.parse(result);
-                            Object.entries(allData).forEach(([key, value]) => {
-                                if (!localStorage.getItem(key)) {
-                                    localStorage.setItem(key, value);
-                                }
-                            });
+                            const allData = typeof result === 'string' ? JSON.parse(result) : result;
+                            if (allData && typeof allData === 'object') {
+                                Object.entries(allData).forEach(([key, value]) => {
+                                    if (!localStorage.getItem(key)) {
+                                        localStorage.setItem(key, value);
+                                    }
+                                });
+                            }
                         } catch (e) {
                             console.log('Ошибка чтения облака:', e);
                         }
@@ -538,7 +540,7 @@
         requestNotificationPermission();
         setInterval(updateReminderStatus, 10000);
 
-        // Загрузка данных при старте 
+        // Загрузка данных при старте
         loadFromCloud();
     </script>
 </body>
