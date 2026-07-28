@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Мама Трекер</title>
+    <style>
+        :root {
+            --bg: #1a1a2e;
+            --surface: #16213e;
+            --accent: #e8a0bf;
+            --accent-dark: #d4899f;
+            --text: #f0e6ef;
+            --text-secondary: #a8a0b0;
+            --success: #7ecb8a;
+            --left-breast: #e8a0bf;
+            --right-breast: #a0c4e8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: env(safe-area-inset-top, 20px) 20px env(safe-area-inset-bottom, 20px);
+            max-width: 500px;
+            margin: 0 auto;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Шапка */
+        .header {
+            text-align: center;
+            padding: 20px 0 10px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .header .emoji {
+            font-size: 36px;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .header .date {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        /* Карточка */
+        .card {
+            background: var(--surface);
+            border-radius: 24px;
+            padding: 24px;
+            margin: 16px 0;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 13px;
+        }
+
+        /* Таймер */
+        .timer-display {
+            text-align: center;
+            font-size: 64px;
+            font-weight: 300;
+            font-variant-numeric: tabular-nums;
+            font-family: 'SF Mono', 'Menlo', 'Courier New', monospace;
+            margin: 16px 0 24px;
+            letter-spacing: 2px;
+        }
+
+        .timer-display .seconds {
+            font-size: 80px;
+            font-weight: 600;
+        }
+
+        .side-indicator {
+            text-align: center;
+            font-size: 16px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            min-height: 24px;
+        }
+
+        .side-indicator.active {
+            color: var(--accent);
+            font-weight: 600;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%,
+            100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        /* Кнопки выбора груди */
+        .breast-select {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .breast-btn {
+            height: 64px;
+            border-radius: 20px;
+            border: 2px solid transparent;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .breast-btn.left {
+            background: rgba(232, 160, 191, 0.15);
+            color: var(--left-breast);
+        }
+
+        .breast-btn.right {
+            background: rgba(160, 196, 232, 0.15);
+            color: var(--right-breast);
+        }
+
+        .breast-btn.selected {
+            border-color: currentColor;
+            transform: scale(1.02);
+        }
+
+        .breast-btn.left.selected {
+            background: rgba(232, 160, 191, 0.3);
+            border-color: var(--left-breast);
+        }
+
+        .breast-btn.right.selected {
+            background: rgba(160, 196, 232, 0.3);
+            border-color: var(--right-breast);
+        }
+
+        /* Кнопка старт/стоп */
+        .action-btn {
+            width: 100%;
+            height: 60px;
+            border-radius: 20px;
+            border: none;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        .action-btn.start {
+            background: var(--accent);
+            color: #1a1a2e;
+        }
+
+        .action-btn.stop {
+            background: #e8606e;
+            color: white;
+        }
+
+        .action-btn:active {
+            transform: scale(0.97);
+        }
+
+        .action-btn:disabled {
+            opacity: 0.4;
+            pointer-events: none;
+        }
+
+        /* Статистика */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .stat-item {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 16px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* История */
+        .history-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .history-item:last-child {
+            border-bottom: none;
+        }
+
+        .history-time {
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .history-details {
+            text-align: right;
+        }
+
+        .history-duration {
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .history-side {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .side-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 4px;
+        }
+
+        .side-dot.left {
+            background: var(--left-breast);
+        }
+        .side-dot.right {
+            background: var(--right-breast);
+        }
+
+        .empty-state {
+            text-align: center;
+            color: var(--text-secondary);
+            padding: 30px;
+            font-size: 14px;
+        }
+
+        /* Прокрутка */
+        ::-webkit-scrollbar {
+            width: 3px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <span class="emoji">🤱</span>
+        <h1>Мама Трекер</h1>
+        <div class="date" id="todayDate"></div>
+    </div>
+
+    <!-- Таймер кормления -->
+    <div class="card">
+        <div class="card-title">🍼 Кормление</div>
+
+        <div class="breast-select">
+            <button class="breast-btn left" id="btnLeft" onclick="selectSide('left')">
+                ⬅️ Левая
+            </button>
+            <button class="breast-btn right" id="btnRight" onclick="selectSide('right')">
+                ➡️ Правая
+            </button>
+        </div>
+
+        <div class="side-indicator" id="sideIndicator"></div>
+        <div class="timer-display" id="timerDisplay">00:00</div>
+
+        <button class="action-btn start" id="actionBtn" onclick="toggleTimer()" disabled>
+            ▶️ Начать кормление
+        </button>
+    </div>
+
+    <!-- Статистика -->
+    <div class="card">
+        <div class="card-title">📊 Сегодня</div>
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-value" id="statCount">0</div>
+                <div class="stat-label">Кормлений</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="statDuration">0 мин</div>
+                <div class="stat-label">Общее время</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- История -->
+    <div class="card">
+        <div class="card-title">📝 История</div>
+        <div class="history-list" id="historyList">
+            <div class="empty-state">Пока нет записей за сегодня</div>
+        </div>
+    </div>
+
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script>
+        // Инициализация Telegram Web App
+        const tg = window.Telegram?.WebApp;
+        if (tg) {
+            tg.ready();
+            tg.expand();
+            // Применяем тему Telegram, если доступна
+            if (tg.colorScheme === 'dark') {
+                document.body.style.background = '#1a1a2e';
+            }
+        }
+
+        // Состояние
+        let selectedSide = null;
+        let isRunning = false;
+        let startTime = null;
+        let elapsedSeconds = 0;
+        let timerInterval = null;
+
+        // DOM элементы
+        const btnLeft = document.getElementById('btnLeft');
+        const btnRight = document.getElementById('btnRight');
+        const sideIndicator = document.getElementById('sideIndicator');
+        const timerDisplay = document.getElementById('timerDisplay');
+        const actionBtn = document.getElementById('actionBtn');
+        const statCount = document.getElementById('statCount');
+        const statDuration = document.getElementById('statDuration');
+        const historyList = document.getElementById('historyList');
+        const todayDate = document.getElementById('todayDate');
+
+        // Устанавливаем сегодняшнюю дату
+        const today = new Date();
+        todayDate.textContent = today.toLocaleDateString('ru-RU', {
+            weekday: 'long',
+            day: 'numeric',
+            month: 'long'
+        });
+
+        function selectSide(side) {
+            if (isRunning) return; // Нельзя менять во время кормления
+
+            selectedSide = side;
+
+            btnLeft.classList.toggle('selected', side === 'left');
+            btnRight.classList.toggle('selected', side === 'right');
+
+            const sideText = side === 'left' ? 'Левая грудь' : 'Правая грудь';
+            sideIndicator.textContent = `● ${sideText}`;
+            sideIndicator.className = 'side-indicator active';
+
+            // Разблокируем кнопку старта
+            actionBtn.disabled = false;
+            actionBtn.textContent = '▶️ Начать кормление';
+            actionBtn.className = 'action-btn start';
+        }
+
+        function toggleTimer() {
+            if (!isRunning) {
+                startTimer();
+            } else {
+                stopTimer();
+            }
+        }
+
+        function startTimer() {
+            if (!selectedSide) return;
+
+            isRunning = true;
+            startTime = Date.now() - (elapsedSeconds * 1000);
+
+            // Обновляем интерфейс
+            actionBtn.textContent = '⏹ Завершить';
+            actionBtn.className = 'action-btn stop';
+            btnLeft.style.pointerEvents = 'none';
+            btnRight.style.pointerEvents = 'none';
+            btnLeft.style.opacity = '0.6';
+            btnRight.style.opacity = '0.6';
+
+            const sideText = selectedSide === 'left' ? 'Левая грудь' : 'Правая грудь';
+            sideIndicator.textContent = `🔴 Кормление · ${sideText}`;
+            sideIndicator.className = 'side-indicator active';
+
+            // Запускаем таймер
+            timerInterval = setInterval(updateTimer, 100); // Обновляем 10 раз в секунду для плавности
+        }
+
+        function stopTimer() {
+            isRunning = false;
+            clearInterval(timerInterval);
+
+            const endTime = Date.now();
+            const duration = Math.floor((endTime - startTime) / 1000); // в секундах
+
+            if (duration < 30) {
+                // Слишком короткое — не сохраняем (случайное нажатие)
+                if (tg?.showPopup) {
+                    tg.showPopup({
+                        title: 'Слишком коротко',
+                        message: 'Кормление менее 30 секунд не будет сохранено.',
+                        buttons: [{ type: 'ok' }]
+                    });
+                } else {
+                    alert('Кормление менее 30 секунд не будет сохранено.');
+                }
+                resetUI();
+                return;
+            }
+
+            // Сохраняем запись
+            saveFeeding(selectedSide, duration);
+
+            // Сбрасываем интерфейс
+            resetUI();
+
+            // Обновляем отображение
+            updateStats();
+            renderHistory();
+
+            // Виброотклик
+            if (tg?.HapticFeedback) {
+                tg.HapticFeedback.notificationOccurred('success');
+            }
+        }
+
+        function updateTimer() {
+            elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+            const minutes = Math.floor(elapsedSeconds / 60);
+            const seconds = elapsedSeconds % 60;
+            timerDisplay.innerHTML =
+                `${String(minutes).padStart(2, '0')}:<span class="seconds">${String(seconds).padStart(2, '0')}</span>`;
+        }
+
+        function resetUI() {
+            elapsedSeconds = 0;
+            timerDisplay.innerHTML = '00:<span class="seconds">00</span>';
+            actionBtn.textContent = '▶️ Начать кормление';
+            actionBtn.className = 'action-btn start';
+            actionBtn.disabled = true;
+            btnLeft.style.pointerEvents = 'auto';
+            btnRight.style.pointerEvents = 'auto';
+            btnLeft.style.opacity = '1';
+            btnRight.style.opacity = '1';
+            sideIndicator.textContent = '';
+            sideIndicator.className = 'side-indicator';
+        }
+
+        // Работа с данными
+        function getStorageKey() {
+            const dateStr = today.toISOString().split('T')[0]; // YYYY-MM-DD
+            return `mama-tracker-${dateStr}`;
+        }
+
+        function saveFeeding(side, duration) {
+            const key = getStorageKey();
+            const existing = JSON.parse(localStorage.getItem(key) || '[]');
+            existing.push({
+                side: side,
+                duration: duration,
+                timestamp: Date.now()
+            });
+            localStorage.setItem(key, JSON.stringify(existing));
+        }
+
+        function getTodayFeedings() {
+            const key = getStorageKey();
+            return JSON.parse(localStorage.getItem(key) || '[]');
+        }
+
+        function updateStats() {
+            const feedings = getTodayFeedings();
+            statCount.textContent = feedings.length;
+
+            const totalSeconds = feedings.reduce((sum, f) => sum + f.duration, 0);
+            const totalMinutes = Math.floor(totalSeconds / 60);
+
+            if (totalMinutes < 60) {
+                statDuration.textContent = `${totalMinutes} мин`;
+            } else {
+                const hours = Math.floor(totalMinutes / 60);
+                const mins = totalMinutes % 60;
+                statDuration.textContent = `${hours} ч ${mins} мин`;
+            }
+        }
+
+        function renderHistory() {
+            const feedings = getTodayFeedings();
+
+            if (feedings.length === 0) {
+                historyList.innerHTML = '<div class="empty-state">Пока нет записей за сегодня</div>';
+                return;
+            }
+
+            // Сортируем от новых к старым
+            feedings.sort((a, b) => b.timestamp - a.timestamp);
+
+            historyList.innerHTML = feedings.map(f => {
+                const time = new Date(f.timestamp).toLocaleTimeString('ru-RU', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                const minutes = Math.floor(f.duration / 60);
+                const seconds = f.duration % 60;
+                const durationStr = `${minutes}:${String(seconds).padStart(2, '0')}`;
+                const sideEmoji = f.side === 'left' ? '⬅️' : '➡️';
+                const sideText = f.side === 'left' ? 'Левая' : 'Правая';
+                const dotClass = f.side === 'left' ? 'left' : 'right';
+
+                return `
+                    <div class="history-item">
+                        <div class="history-time">${time}</div>
+                        <div class="history-details">
+                            <div class="history-duration">${durationStr}</div>
+                            <div class="history-side">
+                                <span class="side-dot ${dotClass}"></span>${sideText}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Инициализация
+        updateStats();
+        renderHistory();
+
+        // Обработка свайпа назад в Telegram
+        if (tg?.BackButton) {
+            tg.BackButton.onClick(() => {
+                if (isRunning) {
+                    tg.showPopup({
+                        title: 'Идёт кормление',
+                        message: 'Сначала завершите кормление.',
+                        buttons: [{ type: 'ok' }]
+                    });
+                } else {
+                    tg.BackButton.hide();
+                }
+            });
+        }
+
+        console.log('🤱 Мама Трекер загружен!');
+    </script>
+</body>
+</html>
