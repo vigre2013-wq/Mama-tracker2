@@ -327,20 +327,33 @@
     </div>
 
     <!-- Статистика -->
-    <div class="card">
-        <div class="card-title">📊 Сегодня</div>
-        <div class="stats-grid">
-            <div class="stat-item">
-                <div class="stat-value" id="statCount">0</div>
-                <div class="stat-label">Кормлений</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-value" id="statDuration">0 мин</div>
-                <div class="stat-label">Общее время</div>
-            </div>
+ 
+<div class="card">
+    <div class="card-title">📊 Сегодня</div>
+    <div class="stats-grid">
+        <div class="stat-item">
+            <div class="stat-value" id="statCount">0</div>
+            <div class="stat-label">Кормлений</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-value" id="statDuration">0 мин</div>
+            <div class="stat-label">Общее время</div>
         </div>
     </div>
-
+    <div id="reminderStatus" style="text-align:center; font-size:13px; margin-top:16px; min-height:20px;"></div>
+    <div style="display:flex; gap:8px; margin-top:12px;">
+        <button onclick="startReminder(120)" id="remind2h" style="flex:1; height:44px; border-radius:14px; border:none; background:rgba(232,160,191,0.2); color:#e8a0bf; font-size:14px; font-weight:600; cursor:pointer;">
+            🔔 2 часа
+        </button>
+        <button onclick="startReminder(180)" id="remind3h" style="flex:1; height:44px; border-radius:14px; border:none; background:rgba(160,196,232,0.2); color:#a0c4e8; font-size:14px; font-weight:600; cursor:pointer;">
+            🔔 3 часа
+        </button>
+        <button onclick="stopReminder()" id="remindOff" style="flex:1; height:44px; border-radius:14px; border:none; background:rgba(255,255,255,0.05); color:#a8a0b0; font-size:14px; font-weight:600; cursor:pointer;">
+            🔕 Откл
+        </button>
+    </div>
+</div>
+</div>
     <!-- История -->
     <div class="card">
         <div class="card-title">📝 История</div>
@@ -682,6 +695,143 @@ saveFeeding = function(side, duration) {
 
 // Загружаем данные при старте
 loadFromCloud();
+
+// === НАПОМИНАНИЯ ===
+
+let reminderInterval = null;
+let reminderMinutes = null;
+
+// Запрашиваем разрешение на уведомления
+function requestNotificationPermission() {
+    if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission().then(permission => {
+            if (permission === 'granted') {
+                console.log('🔔 Уведомления разрешены');
+                updateReminderStatus();
+            }
+        });
+    }
+}
+
+// Проверяем, когда было последнее кормление
+function getMinutesSinceLastFeeding() {
+    const feedings = getTodayFeedings();
+    if (feedings.length === 0) return null;
+    
+    const lastFeeding = feedings[feedings.length - 1];
+    return Math.floor((Date.now() - lastFeeding.timestamp) / 60000);
+}
+
+// Форматирование минут в читаемый вид
+function formatTimeAgo(minutes) {
+    if (minutes === null) return 'нет данных';
+    if (minutes < 60) {
+        const min = minutes === 1 ? 'минуту' : 
+                    minutes >= 2 && minutes <= 4 ? 'минуты' : 'минут';
+        return `${minutes} ${min} назад`;
+    }
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    const hourWord = hours === 1 ? 'час' : 
+                     hours >= 2 && hours <= 4 ? 'часа' : 'часов';
+    if (mins === 0) return `${hours} ${hourWord} назад`;
+    const minWord = mins === 1 ? 'минуту' : 
+                    mins >= 2 && mins <= 4 ? 'минуты' : 'минут';
+    return `${hours} ${hourWord} ${mins} ${minWord} назад`;
+}
+
+// Отправляем уведомление
+function sendReminder() {
+    const minutesSince = getMinutesSinceLastFeeding();
+    
+    if ('Notification' in window && Notification.permission === 'granted') {
+        const timeText = minutesSince !== null ? 
+            `Прошло ${formatTimeAgo(minutesSince)} с последнего кормления` : 
+            'Пора покормить малыша';
+        
+        new Notification('🍼 Время кормления!', {
+            body: timeText,
+            icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y="80" font-size="80">🤱</text></svg>',
+            tag: 'feeding-reminder',
+            vibrate: [200, 100, 200, 100, 200]
+        });
+        
+        console.log('🔔 Уведомление отправлено');
+    }
+}
+
+// Запускаем отслеживание
+function startReminder(minutes) {
+    stopReminder();
+    
+    reminderMinutes = minutes;
+    
+    // Проверяем каждые 30 секунд
+    reminderInterval = setInterval(() => {
+        const minutesSince = getMinutesSinceLastFeeding();
+        
+        // Если прошло больше указанного времени — напоминаем
+        if (minutesSince !== null && minutesSince >= reminderMinutes) {
+            sendReminder();
+            stopReminder(); // Останавливаем, чтобы не спамить
+        }
+    }, 30000); // Проверка каждые 30 секунд
+    
+    updateReminderStatus();
+    console.log(`⏰ Напоминание установлено: каждые ${minutes} мин`);
+}
+
+// Останавливаем отслеживание
+function stopReminder() {
+    if (reminderInterval) {
+        clearInterval(reminderInterval);
+        reminderInterval = null;
+    }
+    reminderMinutes = null;
+    updateReminderStatus();
+    console.log('⏰ Напоминание отключено');
+}
+
+// Обновляем текст статуса напоминания
+function updateReminderStatus() {
+    const statusEl = document.getElementById('reminderStatus');
+    const minutesSince = getMinutesSinceLastFeeding();
+    const timeAgo = formatTimeAgo(minutesSince);
+    
+    if (!statusEl) return;
+    
+    if (reminderMinutes) {
+        statusEl.innerHTML = `⏰ Напоминание: каждые ${reminderMinutes} мин<br><small>Последнее кормление: ${timeAgo}</small>`;
+        statusEl.style.color = '#7ecb8a';
+    } else if (Notification.permission === 'denied') {
+        statusEl.innerHTML = '⚠️ Уведомления запрещены в настройках браузера';
+        statusEl.style.color = '#e8606e';
+    } else if (Notification.permission === 'default') {
+        statusEl.innerHTML = 'Нажмите на кнопку ниже и разрешите уведомления';
+        statusEl.style.color = '#a8a0b0';
+    } else {
+        statusEl.innerHTML = `Последнее кормление: ${timeAgo}`;
+        statusEl.style.color = '#a8a0b0';
+    }
+}
+
+// Обновляем статус при каждом новом кормлении
+const origSaveFeeding3 = saveFeeding;
+saveFeeding = function(side, duration) {
+    origSaveFeeding3(side, duration);
+    updateReminderStatus();
+    // Если было установлено напоминание — перезапускаем отсчёт
+    if (reminderMinutes) {
+        stopReminder();
+        startReminder(reminderMinutes);
+    }
+};
+
+// Запрашиваем разрешение при загрузке
+requestNotificationPermission();
+
+// Обновляем статус каждые 10 секунд (для актуальности времени)
+setInterval(updateReminderStatus, 10000);
 
         // Обработка свайпа назад в Telegram
         if (tg?.BackButton) {
