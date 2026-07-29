@@ -442,7 +442,119 @@
         function getGrowthRecords(){return JSON.parse(localStorage.getItem('mama-growth')||'[]').sort((a,b)=>a.date.localeCompare(b.date));}
         function addGrowth(){const date=document.getElementById('growthDate').value; const weight=parseFloat(document.getElementById('growthWeight').value); const height=parseFloat(document.getElementById('growthHeight').value); if(!date){alert('Выберите дату'); return;} if(!weight&&!height){alert('Введите вес или рост'); return;} const records=getGrowthRecords(); const existing=records.findIndex(r=>r.date===date); const entry={date,weight:weight||null,height:height||null,timestamp:Date.now()}; if(existing>=0){records[existing]=entry;}else{records.push(entry);} localStorage.setItem('mama-growth',JSON.stringify(records)); document.getElementById('growthDate').value=''; document.getElementById('growthWeight').value=''; document.getElementById('growthHeight').value=''; updateGrowthUI(); if(tg?.HapticFeedback)tg.HapticFeedback.notificationOccurred('success');}
         function deleteGrowth(index){const records=getGrowthRecords(); records.splice(index,1); localStorage.setItem('mama-growth',JSON.stringify(records)); updateGrowthUI();}
-        function drawGrowthChart(canvasId,records,field,color,unit){const canvas=document.getElementById(canvasId); if(!canvas||!records.length)return; const valid=records.filter(r=>r[field]!=null); if(valid.length<1)return; const ctx=canvas.getContext('2d'); const dpr=window.devicePixelRatio||1; const rect=canvas.parentElement.getBoundingClientRect(); canvas.width=rect.width*dpr; canvas.height=200*dpr; canvas.style.width=rect.width+'px'; canvas.style.height='200px'; ctx.scale(dpr,dpr); const w=rect.width-40; const h=160; const pad={top:10,right:10,bottom:30,left:40}; const values=valid.map(r=>r[field]); const minVal=Math.floor(Math.min(...values)*0.9); const maxVal=Math.ceil(Math.max(...values)*1.1); const range=maxVal-minVal||1; ctx.fillStyle=getComputedStyle(document.body).getPropertyValue('--surface').trim()||'#16213e'; ctx.fillRect(0,0,w,200); ctx.strokeStyle='rgba(255,255,255,0.05)'; ctx.lineWidth=0.5; for(let i=0;i<=4;i++){const y=pad.top+(h/4)*i; ctx.beginPath(); ctx.moveTo(pad.left,y); ctx.lineTo(w-pad.right,y); ctx.stroke(); ctx.fillStyle=getComputedStyle(document.body).getPropertyValue('--text-secondary').trim()||'#a8a0b0'; ctx.font='10px -apple-system, sans-serif'; ctx.fillText((maxVal-(range/4)*i).toFixed(1)+unit,2,y+4);} if(valid.length===1){const x=w/2; const y=pad.top+h-((valid[0][field]-minVal)/range)*h; ctx.fillStyle=color; ctx.beginPath(); ctx.arc(x,y,8,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#fff'; ctx.font='bold 12px -apple-system, sans-serif'; ctx.textAlign='center'; ctx.fillText(valid[0][field]+unit,x,y-12); ctx.fillStyle=getComputedStyle(document.body).getPropertyValue('--text-secondary').trim()||'#a8a0b0'; ctx.font='11px -apple-system, sans-serif'; ctx.fillText(new Date(valid[0].date).toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'}),x,pad.top+h+20);}else{const stepX=(w-pad.left-pad.right)/(valid.length-1); ctx.strokeStyle=color; ctx.lineWidth=2; ctx.beginPath(); valid.forEach((r,i)=>{const x=pad.left+stepX*i; const y=pad.top+h-((r[field]-minVal)/range)*h; if(i===0)ctx.moveTo(x,y); else ctx.lineTo(x,y);}); ctx.stroke(); valid.forEach((r,i)=>{const x=pad.left+stepX*i; const y=pad.top+h-((r[field]-minVal)/range)*h; ctx.fillStyle=color; ctx.beginPath(); ctx.arc(x,y,5,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#fff'; ctx.font='bold 11px -apple-system, sans-serif'; ctx.textAlign='center'; ctx.fillText(r[field]+unit,x,y-10); if(i===0||i===valid.length-1){ctx.fillStyle=getComputedStyle(document.body).getPropertyValue('--text-secondary').trim()||'#a8a0b0'; ctx.font='10px -apple-system, sans-serif'; ctx.fillText(new Date(r.date).toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'}),x,pad.top+h+18);}});}}
+        function drawGrowthChart(canvasId,records,field,color,unit){
+            const canvas=document.getElementById(canvasId);
+            if(!canvas||!records.length)return;
+            const valid=records.filter(r=>r[field]!=null);
+            if(valid.length<1)return;
+            
+            const ctx=canvas.getContext('2d');
+            const dpr=window.devicePixelRatio||1;
+            const rect=canvas.parentElement.getBoundingClientRect();
+            canvas.width=rect.width*dpr;
+            canvas.height=200*dpr;
+            canvas.style.width=rect.width+'px';
+            canvas.style.height='200px';
+            ctx.scale(dpr,dpr);
+            
+            const w=rect.width-40;
+            const h=160;
+            const pad={top:10,right:10,bottom:30,left:40};
+            
+            const values=valid.map(r=>r[field]);
+            const minVal=Math.floor(Math.min(...values)*0.9);
+            const maxVal=Math.ceil(Math.max(...values)*1.1);
+            const range=maxVal-minVal||1;
+            
+            ctx.clearRect(0,0,w,200);
+            
+            const surfaceColor=getComputedStyle(document.body).getPropertyValue('--surface').trim()||'#16213e';
+            ctx.fillStyle=surfaceColor;
+            ctx.fillRect(0,0,w,200);
+            
+            ctx.strokeStyle='rgba(255,255,255,0.08)';
+            ctx.lineWidth=0.5;
+            const secondaryColor=getComputedStyle(document.body).getPropertyValue('--text-secondary').trim()||'#a8a0b0';
+            for(let i=0;i<=4;i++){
+                const gy=pad.top+(h/4)*i;
+                ctx.beginPath();
+                ctx.moveTo(pad.left,gy);
+                ctx.lineTo(w-pad.right,gy);
+                ctx.stroke();
+                ctx.fillStyle=secondaryColor;
+                ctx.font='10px -apple-system, sans-serif';
+                ctx.fillText((maxVal-(range/4)*i).toFixed(1)+unit,2,gy+4);
+            }
+            
+            const cssColor=getComputedStyle(document.body).getPropertyValue(field==='weight'?'--accent':'--sleep').trim();
+            const actualColor=cssColor||(field==='weight'?'#e8a0bf':'#c4a0e8');
+            
+            if(valid.length===1){
+                const x=pad.left+(w-pad.left-pad.right)/2;
+                const y=pad.top+h-((valid[0][field]-minVal)/range)*h;
+                
+                ctx.fillStyle=actualColor;
+                ctx.beginPath();
+                ctx.arc(x,y,8,0,Math.PI*2);
+                ctx.fill();
+                
+                ctx.fillStyle='#fff';
+                ctx.font='bold 13px -apple-system, sans-serif';
+                ctx.textAlign='center';
+                ctx.fillText(valid[0][field]+unit,x,y-14);
+                
+                ctx.fillStyle=secondaryColor;
+                ctx.font='11px -apple-system, sans-serif';
+                const dateLabel=new Date(valid[0].date).toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'});
+                ctx.fillText(dateLabel,x,pad.top+h+20);
+            }else{
+                const stepX=(w-pad.left-pad.right)/(valid.length-1);
+                
+                ctx.strokeStyle=actualColor;
+                ctx.lineWidth=3;
+                ctx.lineJoin='round';
+                ctx.lineCap='round';
+                ctx.beginPath();
+                
+                valid.forEach((r,i)=>{
+                    const x=pad.left+stepX*i;
+                    const y=pad.top+h-((r[field]-minVal)/range)*h;
+                    if(i===0){
+                        ctx.moveTo(x,y);
+                    }else{
+                        ctx.lineTo(x,y);
+                    }
+                });
+                ctx.stroke();
+                
+                valid.forEach((r,i)=>{
+                    const x=pad.left+stepX*i;
+                    const y=pad.top+h-((r[field]-minVal)/range)*h;
+                    
+                    ctx.fillStyle='#fff';
+                    ctx.beginPath();
+                    ctx.arc(x,y,7,0,Math.PI*2);
+                    ctx.fill();
+                    
+                    ctx.fillStyle=actualColor;
+                    ctx.beginPath();
+                    ctx.arc(x,y,5,0,Math.PI*2);
+                    ctx.fill();
+                    
+                    ctx.fillStyle='#fff';
+                    ctx.font='bold 12px -apple-system, sans-serif';
+                    ctx.textAlign='center';
+                    ctx.fillText(r[field]+unit,x,y-14);
+                    
+                    if(i===0||i===valid.length-1){
+                        ctx.fillStyle=secondaryColor;
+                        ctx.font='10px -apple-system, sans-serif';
+                        const dateLabel=new Date(r.date).toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'});
+                        ctx.fillText(dateLabel,x,pad.top+h+18);
+                    }
+                });
+            }
+        }
         function updateGrowthUI(){const records=getGrowthRecords(); const list=document.getElementById('growthHistory'); if(!records.length){list.innerHTML='<div class="empty-state">Нет записей</div>';}else{list.innerHTML=records.map((r,i)=>{const d=new Date(r.date).toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit',year:'numeric'}); const parts=[]; if(r.weight)parts.push('⚖️ '+r.weight+' кг'); if(r.height)parts.push('📏 '+r.height+' см'); return `<div class="growth-list-item" onclick="editGrowth(${i})"><span>${d}</span><span style="font-size:13px; color:var(--text-secondary);">${parts.join(' · ')}</span><span onclick="event.stopPropagation(); deleteGrowth(${i})" style="color:#e8606e; cursor:pointer;">🗑</span></div>`;}).join('');} document.getElementById('growthDate').value=today.toISOString().split('T')[0]; setTimeout(()=>{drawGrowthChart('weightChart',records,'weight','var(--accent)',' кг'); drawGrowthChart('heightChart',records,'height','var(--sleep)',' см');},100);}
         function editGrowth(index){const records=getGrowthRecords(); const r=records[index]; if(!r)return; document.getElementById('growthDate').value=r.date; document.getElementById('growthWeight').value=r.weight||''; document.getElementById('growthHeight').value=r.height||''; records.splice(index,1); localStorage.setItem('mama-growth',JSON.stringify(records));}
 
