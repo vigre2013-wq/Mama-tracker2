@@ -224,10 +224,6 @@
         }
         .timer-row button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 
-        .growth-form { display: flex; flex-direction: column; gap: 12px; }
-        .growth-form-row { display: flex; gap: 8px; }
-        .growth-form-row input { flex: 1; margin-bottom: 0; }
-        .growth-form-row input[type="date"] { text-align: left; }
         .growth-chart-container { position: relative; height: 200px; margin: 8px 0; }
         .growth-chart-container canvas { width: 100%; height: 100%; }
     </style>
@@ -303,15 +299,11 @@
         <div class="tab-content" id="tab-growth">
             <div class="card">
                 <div class="card-title">📏 Добавить запись</div>
-                <div class="growth-form">
-                    <div class="growth-form-row">
-                        <input type="date" id="growthDate">
-                        <input type="number" id="growthWeight" placeholder="Вес (кг)" step="0.1" min="0" max="30">
-                    </div>
-                    <div class="growth-form-row">
-                        <input type="number" id="growthHeight" placeholder="Рост (см)" step="0.1" min="0" max="150">
-                        <button class="action-btn start" style="margin:0;" onclick="addGrowth()">💾 Сохранить</button>
-                    </div>
+                <div style="display:flex; flex-direction:column; gap:12px;">
+                    <input type="date" id="growthDate" style="height:48px; font-size:16px; text-align:left; padding-left:16px;">
+                    <input type="number" id="growthWeight" placeholder="Вес (кг)" step="0.1" min="0" max="30" style="height:56px; font-size:20px; font-weight:600; text-align:center; color:var(--text);">
+                    <input type="number" id="growthHeight" placeholder="Рост (см)" step="0.1" min="0" max="150" style="height:56px; font-size:20px; font-weight:600; text-align:center; color:var(--text);">
+                    <button class="action-btn start" style="margin:0; height:56px; font-size:18px;" onclick="addGrowth()">💾 Сохранить</button>
                 </div>
             </div>
             <div class="card">
