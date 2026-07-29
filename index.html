@@ -196,7 +196,6 @@
         .note-save-btn { background: var(--accent); color: #fff; }
         .note-skip-btn { background: var(--btn-ghost); color: var(--text-secondary); }
 
-        /* Панель звуков */
         .sound-panel {
             position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
             width: 100%; max-width: 500px; background: var(--surface);
@@ -267,7 +266,6 @@
             <button class="tab-btn" onclick="switchMainTab('pro')">👑</button>
         </div>
 
-        <!-- Кормление -->
         <div class="tab-content active" id="tab-feeding">
             <div class="card">
                 <div class="card-title">🍼 Кормление</div>
@@ -297,7 +295,6 @@
             </div>
         </div>
 
-        <!-- Сон -->
         <div class="tab-content" id="tab-sleep">
             <div class="card">
                 <div class="card-title">😴 Сон</div>
@@ -317,7 +314,6 @@
             </div>
         </div>
 
-        <!-- Подгузники -->
         <div class="tab-content" id="tab-diaper">
             <div class="card">
                 <div class="card-title">💧 Сменить подгузник</div>
@@ -341,7 +337,6 @@
             </div>
         </div>
 
-        <!-- Статистика -->
         <div class="tab-content" id="tab-stats">
             <div class="sub-tabs">
                 <button class="sub-tab active" onclick="switchStatsTab('feed')">🍼 Кормления</button>
@@ -363,7 +358,6 @@
             </div>
         </div>
 
-        <!-- PRO -->
         <div class="tab-content" id="tab-pro">
             <div id="proActive" style="display:none;">
                 <div class="card pro-card" style="text-align:center;">
@@ -402,7 +396,6 @@
         </div>
     </div>
 
-    <!-- Панель белого шума -->
     <div class="sound-panel hidden" id="soundPanel">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
             <h3 style="font-size:18px;">🎵 Белый шум</h3>
@@ -470,27 +463,25 @@
         applyTheme(localStorage.getItem(THEME_KEY) || 'dark');
 
         // === БЕЛЫЙ ШУМ ===
-        let audioContext = null;
-        let currentOscillator = null;
-        let currentGain = null;
+        let audioElement = null;
         let soundTimer = null;
         let currentSound = null;
         let currentVolume = 0.5;
 
-        function initAudio() {
-            if (!audioContext) {
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            }
-        }
+        const soundUrls = {
+            whitenoise: 'https://www.soundjay.com/nature/sounds/white-noise-1.mp3',
+            fan: 'https://www.soundjay.com/mechanical/sounds/fan-1.mp3',
+            rain: 'https://www.soundjay.com/nature/sounds/rain-1.mp3',
+            heartbeat: 'https://www.soundjay.com/human/sounds/heartbeat-1.mp3',
+            lullaby: 'https://www.soundjay.com/misc/sounds/twinkle-twinkle-little-star-1.mp3',
+            nature: 'https://www.soundjay.com/nature/sounds/nature-sounds-1.mp3'
+        };
 
         function stopSound() {
-            if (currentOscillator) {
-                try { currentOscillator.stop(); } catch(e) {}
-                currentOscillator = null;
-            }
-            if (currentGain) {
-                currentGain.disconnect();
-                currentGain = null;
+            if (audioElement) {
+                audioElement.pause();
+                audioElement.src = '';
+                audioElement = null;
             }
             if (soundTimer) {
                 clearTimeout(soundTimer);
@@ -503,149 +494,33 @@
         }
 
         function playSound(type) {
-            initAudio();
             stopSound();
-            
-            // Возобновляем AudioContext если он приостановлен
-            if (audioContext.state === 'suspended') {
-                audioContext.resume();
-            }
-
             currentSound = type;
-            currentGain = audioContext.createGain();
-            currentGain.gain.value = currentVolume;
-            currentGain.connect(audioContext.destination);
 
-            const sampleRate = audioContext.sampleRate;
+            audioElement = new Audio();
+            audioElement.loop = true;
+            audioElement.volume = currentVolume;
+            audioElement.src = soundUrls[type] || '';
 
-            if (type === 'whitenoise') {
-                // Белый шум
-                const bufferSize = 2 * sampleRate;
-                const buffer = audioContext.createBuffer(1, bufferSize, sampleRate);
-                const data = buffer.getChannelData(0);
-                for (let i = 0; i < bufferSize; i++) {
-                    data[i] = Math.random() * 2 - 1;
+            audioElement.play().catch(() => {
+                // Если аудио не загрузилось — тихо игнорируем
+                stopSound();
+                if (tg?.showPopup) {
+                    tg.showPopup({ title: '⚠️ Ошибка', message: 'Не удалось загрузить звук. Проверьте интернет.', buttons: [{type: 'ok'}] });
                 }
-                const source = audioContext.createBufferSource();
-                source.buffer = buffer;
-                source.loop = true;
-                source.connect(currentGain);
-                source.start();
-                currentOscillator = source;
-            } else if (type === 'fan') {
-                // Шум вентилятора (фильтрованный белый шум)
-                const bufferSize = 2 * sampleRate;
-                const buffer = audioContext.createBuffer(1, bufferSize, sampleRate);
-                const data = buffer.getChannelData(0);
-                let lastOut = 0;
-                for (let i = 0; i < bufferSize; i++) {
-                    const white = Math.random() * 2 - 1;
-                    data[i] = (lastOut + 0.5 * white) / 1.5;
-                    lastOut = data[i];
-                }
-                const filter = audioContext.createBiquadFilter();
-                filter.type = 'lowpass';
-                filter.frequency.value = 400;
-                const source = audioContext.createBufferSource();
-                source.buffer = buffer;
-                source.loop = true;
-                source.connect(filter);
-                filter.connect(currentGain);
-                source.start();
-                currentOscillator = source;
-            } else if (type === 'rain') {
-                // Дождь (более высокие частоты + модуляция)
-                const bufferSize = 2 * sampleRate;
-                const buffer = audioContext.createBuffer(1, bufferSize, sampleRate);
-                const data = buffer.getChannelData(0);
-                for (let i = 0; i < bufferSize; i++) {
-                    data[i] = (Math.random() * 2 - 1) * (0.3 + 0.7 * Math.random());
-                }
-                const filter = audioContext.createBiquadFilter();
-                filter.type = 'bandpass';
-                filter.frequency.value = 2000;
-                filter.Q.value = 0.5;
-                const source = audioContext.createBufferSource();
-                source.buffer = buffer;
-                source.loop = true;
-                source.connect(filter);
-                filter.connect(currentGain);
-                source.start();
-                currentOscillator = source;
-            } else if (type === 'heartbeat') {
-                // Сердцебиение (ритмичный низкочастотный звук)
-                const osc = audioContext.createOscillator();
-                osc.type = 'sine';
-                osc.frequency.value = 50;
-                const heartGain = audioContext.createGain();
-                heartGain.gain.value = 0;
-                osc.connect(heartGain);
-                heartGain.connect(currentGain);
-                osc.start();
-                currentOscillator = osc;
-                
-                // Ритм сердца: тук-тук ... тук-тук
-                let beatTime = 0;
-                const beatInterval = setInterval(() => {
-                    beatTime += 0.1;
-                    const cycle = beatTime % 1.2;
-                    if (cycle < 0.1) {
-                        heartGain.gain.linearRampToValueAtTime(1, audioContext.currentTime + 0.01);
-                        heartGain.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.1);
-                    } else if (cycle > 0.2 && cycle < 0.3) {
-                        heartGain.gain.linearRampToValueAtTime(0.8, audioContext.currentTime + 0.01);
-                        heartGain.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.08);
-                    }
-                }, 100);
-                currentOscillator._beatInterval = beatInterval;
-                currentOscillator._heartGain = heartGain;
-            } else if (type === 'lullaby') {
-                // Колыбельная (простые ноты)
-                const osc = audioContext.createOscillator();
-                osc.type = 'sine';
-                const notes = [262, 294, 330, 349, 392, 349, 330, 294]; // До-Ре-Ми-Фа-Соль
-                let noteIndex = 0;
-                osc.frequency.value = notes[0];
-                osc.connect(currentGain);
-                osc.start();
-                currentOscillator = osc;
-                const melodyInterval = setInterval(() => {
-                    noteIndex = (noteIndex + 1) % notes.length;
-                    osc.frequency.linearRampToValueAtTime(notes[noteIndex], audioContext.currentTime + 0.05);
-                }, 800);
-                currentOscillator._melodyInterval = melodyInterval;
-            } else if (type === 'nature') {
-                // Природа (щебет + ветер)
-                const bufferSize = 3 * sampleRate;
-                const buffer = audioContext.createBuffer(1, bufferSize, sampleRate);
-                const data = buffer.getChannelData(0);
-                for (let i = 0; i < bufferSize; i++) {
-                    const t = i / sampleRate;
-                    data[i] = Math.sin(t * 6.28 * 200 + Math.sin(t * 0.5) * 50) * 0.3 +
-                             (Math.random() * 2 - 1) * 0.2 * (0.3 + 0.7 * Math.abs(Math.sin(t * 0.3)));
-                }
-                const filter = audioContext.createBiquadFilter();
-                filter.type = 'highpass';
-                filter.frequency.value = 300;
-                const source = audioContext.createBufferSource();
-                source.buffer = buffer;
-                source.loop = true;
-                source.connect(filter);
-                filter.connect(currentGain);
-                source.start();
-                currentOscillator = source;
-            }
+            });
 
             document.querySelectorAll('.sound-btn').forEach(b => b.classList.remove('active'));
-            document.querySelector(`[data-sound="${type}"]`).classList.add('active');
+            const btn = document.querySelector(`[data-sound="${type}"]`);
+            if (btn) btn.classList.add('active');
             document.getElementById('soundToggle').classList.add('active');
         }
 
         function setVolume(val) {
             currentVolume = val / 100;
             document.getElementById('volumeLabel').textContent = val + '%';
-            if (currentGain) {
-                currentGain.gain.value = currentVolume;
+            if (audioElement) {
+                audioElement.volume = currentVolume;
             }
         }
 
