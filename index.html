@@ -48,16 +48,18 @@
             transition: background 0.3s, color 0.3s;
         }
         .header { display: flex; align-items: center; justify-content: center; padding: 20px 0 10px; position: relative; }
+        .header-center { text-align: center; }
         .header h1 { font-size: 28px; font-weight: 700; }
-        .header .date { color: var(--text-secondary); font-size: 14px; text-align: center; }
-        .theme-toggle {
-            position: absolute; right: 0; top: 22px;
+        .header .date { color: var(--text-secondary); font-size: 14px; }
+        .header-btns { position: absolute; right: 0; top: 22px; display: flex; gap: 8px; }
+        .icon-btn {
             width: 40px; height: 40px; border-radius: 50%; border: none;
             background: var(--surface); color: var(--text);
             font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center;
             transition: all 0.2s;
         }
-        .theme-toggle:active { transform: scale(0.9); }
+        .icon-btn:active { transform: scale(0.9); }
+        .icon-btn.active { background: var(--accent); color: #fff; }
         .tabs { display: flex; gap: 4px; margin: 16px 0; }
         .tab-btn {
             flex: 1; height: 44px; border-radius: 12px; border: none;
@@ -193,16 +195,48 @@
         }
         .note-save-btn { background: var(--accent); color: #fff; }
         .note-skip-btn { background: var(--btn-ghost); color: var(--text-secondary); }
+
+        /* Панель звуков */
+        .sound-panel {
+            position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+            width: 100%; max-width: 500px; background: var(--surface);
+            border-radius: 24px 24px 0 0; padding: 24px; z-index: 1000;
+            box-shadow: 0 -4px 30px rgba(0,0,0,0.3); transition: transform 0.3s ease;
+        }
+        .sound-panel.hidden { transform: translateX(-50%) translateY(100%); }
+        .sound-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+        .sound-btn {
+            height: 70px; border-radius: 16px; border: 2px solid transparent;
+            font-size: 13px; font-weight: 600; cursor: pointer;
+            background: var(--stat-bg); color: var(--text-secondary);
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+            transition: all 0.2s;
+        }
+        .sound-btn .sound-emoji { font-size: 24px; }
+        .sound-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(232,160,191,0.1); }
+        .sound-btn:active { transform: scale(0.95); }
+        .volume-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+        .volume-row input[type=range] { flex: 1; height: 6px; accent-color: var(--accent); }
+        .volume-row span { font-size: 14px; color: var(--text-secondary); min-width: 60px; text-align: center; }
+        .timer-row { display: flex; gap: 8px; }
+        .timer-row button {
+            flex: 1; height: 36px; border-radius: 10px; border: 1px solid var(--border);
+            background: transparent; color: var(--text-secondary); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+        }
+        .timer-row button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <div style="text-align:center;">
+        <div class="header-center">
             <h1>🤱 Мама Трекер <span id="proBadge" class="pro-badge" style="display:none;">PRO</span></h1>
             <div class="date" id="todayDate"></div>
         </div>
-        <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">🌓</button>
+        <div class="header-btns">
+            <button class="icon-btn" onclick="toggleSoundPanel()" id="soundToggle" title="Белый шум">🎵</button>
+            <button class="icon-btn" onclick="toggleTheme()" id="themeBtn" title="Сменить тему">🌓</button>
+        </div>
     </div>
 
     <div id="welcomeScreen">
@@ -216,6 +250,7 @@
                 <p style="margin-top:8px;">💧 Подгузники — мокрые и грязные</p>
                 <p style="margin-top:8px;">📊 Статистика — графики за неделю</p>
                 <p style="margin-top:8px;">🔔 Напоминания — не забудешь покормить</p>
+                <p style="margin-top:8px;">🎵 Белый шум — для спокойного сна</p>
                 <p style="margin-top:8px;">📝 Заметки — записывай и редактируй</p>
                 <p style="margin-top:8px;">👑 PRO — аналитика, экспорт для врача</p>
             </div>
@@ -367,6 +402,46 @@
         </div>
     </div>
 
+    <!-- Панель белого шума -->
+    <div class="sound-panel hidden" id="soundPanel">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+            <h3 style="font-size:18px;">🎵 Белый шум</h3>
+            <button class="icon-btn" onclick="stopSound()" style="width:32px;height:32px;font-size:16px;">✕</button>
+        </div>
+        <div class="sound-grid">
+            <button class="sound-btn" onclick="playSound('whitenoise')" data-sound="whitenoise">
+                <span class="sound-emoji">🌧</span>Белый шум
+            </button>
+            <button class="sound-btn" onclick="playSound('fan')" data-sound="fan">
+                <span class="sound-emoji">💨</span>Фен
+            </button>
+            <button class="sound-btn" onclick="playSound('rain')" data-sound="rain">
+                <span class="sound-emoji">🌊</span>Дождь
+            </button>
+            <button class="sound-btn" onclick="playSound('heartbeat')" data-sound="heartbeat">
+                <span class="sound-emoji">❤️</span>Сердце
+            </button>
+            <button class="sound-btn" onclick="playSound('lullaby')" data-sound="lullaby">
+                <span class="sound-emoji">🎵</span>Колыбель
+            </button>
+            <button class="sound-btn" onclick="playSound('nature')" data-sound="nature">
+                <span class="sound-emoji">🌿</span>Природа
+            </button>
+        </div>
+        <div class="volume-row">
+            <span>🔈</span>
+            <input type="range" id="volumeSlider" min="0" max="100" value="50" oninput="setVolume(this.value)">
+            <span id="volumeLabel">50%</span>
+        </div>
+        <p style="font-size:12px; color:var(--text-secondary); margin-bottom:8px;">Автовыключение:</p>
+        <div class="timer-row">
+            <button onclick="setTimer(15)" data-timer="15">15 мин</button>
+            <button onclick="setTimer(30)" data-timer="30">30 мин</button>
+            <button onclick="setTimer(60)" data-timer="60">60 мин</button>
+            <button onclick="setTimer(0)" data-timer="0" class="active">∞</button>
+        </div>
+    </div>
+
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
         const tg = window.Telegram?.WebApp;
@@ -393,6 +468,210 @@
             applyTheme(next);
         }
         applyTheme(localStorage.getItem(THEME_KEY) || 'dark');
+
+        // === БЕЛЫЙ ШУМ ===
+        let audioContext = null;
+        let currentOscillator = null;
+        let currentGain = null;
+        let soundTimer = null;
+        let currentSound = null;
+        let currentVolume = 0.5;
+
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function stopSound() {
+            if (currentOscillator) {
+                try { currentOscillator.stop(); } catch(e) {}
+                currentOscillator = null;
+            }
+            if (currentGain) {
+                currentGain.disconnect();
+                currentGain = null;
+            }
+            if (soundTimer) {
+                clearTimeout(soundTimer);
+                soundTimer = null;
+            }
+            currentSound = null;
+            document.querySelectorAll('.sound-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('soundToggle').classList.remove('active');
+            document.getElementById('soundPanel').classList.add('hidden');
+        }
+
+        function playSound(type) {
+            initAudio();
+            stopSound();
+            
+            // Возобновляем AudioContext если он приостановлен
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+
+            currentSound = type;
+            currentGain = audioContext.createGain();
+            currentGain.gain.value = currentVolume;
+            currentGain.connect(audioContext.destination);
+
+            const sampleRate = audioContext.sampleRate;
+
+            if (type === 'whitenoise') {
+                // Белый шум
+                const bufferSize = 2 * sampleRate;
+                const buffer = audioContext.createBuffer(1, bufferSize, sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = Math.random() * 2 - 1;
+                }
+                const source = audioContext.createBufferSource();
+                source.buffer = buffer;
+                source.loop = true;
+                source.connect(currentGain);
+                source.start();
+                currentOscillator = source;
+            } else if (type === 'fan') {
+                // Шум вентилятора (фильтрованный белый шум)
+                const bufferSize = 2 * sampleRate;
+                const buffer = audioContext.createBuffer(1, bufferSize, sampleRate);
+                const data = buffer.getChannelData(0);
+                let lastOut = 0;
+                for (let i = 0; i < bufferSize; i++) {
+                    const white = Math.random() * 2 - 1;
+                    data[i] = (lastOut + 0.5 * white) / 1.5;
+                    lastOut = data[i];
+                }
+                const filter = audioContext.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.value = 400;
+                const source = audioContext.createBufferSource();
+                source.buffer = buffer;
+                source.loop = true;
+                source.connect(filter);
+                filter.connect(currentGain);
+                source.start();
+                currentOscillator = source;
+            } else if (type === 'rain') {
+                // Дождь (более высокие частоты + модуляция)
+                const bufferSize = 2 * sampleRate;
+                const buffer = audioContext.createBuffer(1, bufferSize, sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = (Math.random() * 2 - 1) * (0.3 + 0.7 * Math.random());
+                }
+                const filter = audioContext.createBiquadFilter();
+                filter.type = 'bandpass';
+                filter.frequency.value = 2000;
+                filter.Q.value = 0.5;
+                const source = audioContext.createBufferSource();
+                source.buffer = buffer;
+                source.loop = true;
+                source.connect(filter);
+                filter.connect(currentGain);
+                source.start();
+                currentOscillator = source;
+            } else if (type === 'heartbeat') {
+                // Сердцебиение (ритмичный низкочастотный звук)
+                const osc = audioContext.createOscillator();
+                osc.type = 'sine';
+                osc.frequency.value = 50;
+                const heartGain = audioContext.createGain();
+                heartGain.gain.value = 0;
+                osc.connect(heartGain);
+                heartGain.connect(currentGain);
+                osc.start();
+                currentOscillator = osc;
+                
+                // Ритм сердца: тук-тук ... тук-тук
+                let beatTime = 0;
+                const beatInterval = setInterval(() => {
+                    beatTime += 0.1;
+                    const cycle = beatTime % 1.2;
+                    if (cycle < 0.1) {
+                        heartGain.gain.linearRampToValueAtTime(1, audioContext.currentTime + 0.01);
+                        heartGain.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.1);
+                    } else if (cycle > 0.2 && cycle < 0.3) {
+                        heartGain.gain.linearRampToValueAtTime(0.8, audioContext.currentTime + 0.01);
+                        heartGain.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.08);
+                    }
+                }, 100);
+                currentOscillator._beatInterval = beatInterval;
+                currentOscillator._heartGain = heartGain;
+            } else if (type === 'lullaby') {
+                // Колыбельная (простые ноты)
+                const osc = audioContext.createOscillator();
+                osc.type = 'sine';
+                const notes = [262, 294, 330, 349, 392, 349, 330, 294]; // До-Ре-Ми-Фа-Соль
+                let noteIndex = 0;
+                osc.frequency.value = notes[0];
+                osc.connect(currentGain);
+                osc.start();
+                currentOscillator = osc;
+                const melodyInterval = setInterval(() => {
+                    noteIndex = (noteIndex + 1) % notes.length;
+                    osc.frequency.linearRampToValueAtTime(notes[noteIndex], audioContext.currentTime + 0.05);
+                }, 800);
+                currentOscillator._melodyInterval = melodyInterval;
+            } else if (type === 'nature') {
+                // Природа (щебет + ветер)
+                const bufferSize = 3 * sampleRate;
+                const buffer = audioContext.createBuffer(1, bufferSize, sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    const t = i / sampleRate;
+                    data[i] = Math.sin(t * 6.28 * 200 + Math.sin(t * 0.5) * 50) * 0.3 +
+                             (Math.random() * 2 - 1) * 0.2 * (0.3 + 0.7 * Math.abs(Math.sin(t * 0.3)));
+                }
+                const filter = audioContext.createBiquadFilter();
+                filter.type = 'highpass';
+                filter.frequency.value = 300;
+                const source = audioContext.createBufferSource();
+                source.buffer = buffer;
+                source.loop = true;
+                source.connect(filter);
+                filter.connect(currentGain);
+                source.start();
+                currentOscillator = source;
+            }
+
+            document.querySelectorAll('.sound-btn').forEach(b => b.classList.remove('active'));
+            document.querySelector(`[data-sound="${type}"]`).classList.add('active');
+            document.getElementById('soundToggle').classList.add('active');
+        }
+
+        function setVolume(val) {
+            currentVolume = val / 100;
+            document.getElementById('volumeLabel').textContent = val + '%';
+            if (currentGain) {
+                currentGain.gain.value = currentVolume;
+            }
+        }
+
+        function setTimer(minutes) {
+            if (soundTimer) {
+                clearTimeout(soundTimer);
+                soundTimer = null;
+            }
+            document.querySelectorAll('.timer-row button').forEach(b => b.classList.remove('active'));
+            document.querySelector(`[data-timer="${minutes}"]`).classList.add('active');
+            
+            if (minutes > 0) {
+                soundTimer = setTimeout(() => {
+                    stopSound();
+                }, minutes * 60 * 1000);
+            }
+        }
+
+        function toggleSoundPanel() {
+            const panel = document.getElementById('soundPanel');
+            if (!currentSound) {
+                panel.classList.toggle('hidden');
+            } else {
+                stopSound();
+            }
+        }
 
         // === ЗАМЕТКИ ===
         let pendingSave = null;
