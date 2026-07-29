@@ -711,39 +711,51 @@
             ctx.textAlign = 'center';
             ctx.fillText('Создано в Мама Трекер — @MamaFeedBot', width / 2, y);
 
-            // Открываем картинку в новом окне
+            // Пробуем автоматическое скачивание
             const dataUrl = canvas.toDataURL('image/png');
-            const imgWindow = window.open('', '_blank');
-            if (imgWindow) {
-                imgWindow.document.write(`
-                    <!DOCTYPE html>
-                    <html>
-                    <head>
-                        <meta charset="UTF-8">
-                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                        <title>Отчёт Мама Трекер</title>
-                        <style>
-                            body { margin: 0; padding: 0; background: #1a1a2e; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
-                            img { max-width: 100%; height: auto; }
-                            .hint { color: #a8a0b0; font-family: -apple-system, sans-serif; font-size: 14px; text-align: center; padding: 16px; }
-                        </style>
-                    </head>
-                    <body>
-                        <img src="${dataUrl}" alt="Отчёт Мама Трекер">
-                        <div class="hint">📸 Нажмите и удерживайте картинку, затем «Сохранить»</div>
-                    </body>
-                    </html>
-                `);
-                imgWindow.document.close();
-            }
+            const fileName = 'mama-report-' + new Date().toISOString().split('T')[0] + '.png';
 
-            if (tg?.showPopup) {
-                tg.showPopup({ 
-                    title: '✅ Готово!', 
-                    message: 'Отчёт открыт в новом окне.\nНажмите и удерживайте картинку, чтобы сохранить.', 
-                    buttons: [{type: 'ok'}] 
-                });
-            }
+            const link = document.createElement('a');
+            link.download = fileName;
+            link.href = dataUrl;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // Если не сработало — показываем картинку
+            setTimeout(() => {
+                if (tg?.showPopup) {
+                    tg.showPopup({ 
+                        title: '📸 Отчёт готов', 
+                        message: 'Если сохранение не началось — нажмите «Открыть» и удерживайте картинку для сохранения.', 
+                        buttons: [
+                            {type: 'ok', text: 'Ок'},
+                            {type: 'default', text: 'Открыть картинку'}
+                        ]
+                    }, function(btn) {
+                        if (btn === 'Открыть картинку') {
+                            const imgWindow = window.open('', '_blank');
+                            if (imgWindow) {
+                                imgWindow.document.write(`
+                                    <!DOCTYPE html><html><head>
+                                    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+                                    <title>Отчёт</title>
+                                    <style>
+                                        body { margin:0; padding:0; background:#1a1a2e; display:flex; flex-direction:column; align-items:center; min-height:100vh; }
+                                        img { max-width:100%; height:auto; }
+                                        .hint { color:#a8a0b0; font-family:-apple-system,sans-serif; font-size:14px; text-align:center; padding:16px; }
+                                    </style>
+                                    </head><body>
+                                    <img src="${dataUrl}" alt="Отчёт">
+                                    <div class="hint">📸 Нажмите и удерживайте картинку → Сохранить</div>
+                                    </body></html>
+                                `);
+                                imgWindow.document.close();
+                            }
+                        }
+                    });
+                }
+            }, 500);
         }
 
         // === НАПОМИНАНИЯ ===
@@ -783,4 +795,4 @@
         updateProUI();
     </script>
 </body>
-</html> 
+</html>
