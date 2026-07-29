@@ -9,6 +9,7 @@
             --bg: #1a1a2e;
             --surface: #16213e;
             --accent: #e8a0bf;
+            --accent-light: rgba(232,160,191,0.15);
             --pro-gold: #f0c060;
             --text: #f0e6ef;
             --text-secondary: #a8a0b0;
@@ -21,23 +22,44 @@
             --tab-bg: var(--surface);
             --input-border: rgba(255,255,255,0.1);
             --btn-ghost: rgba(255,255,255,0.05);
+            --chart-color: var(--accent);
         }
         .light-theme {
             --bg: #f5f0f3;
             --surface: #ffffff;
-            --accent: #d4899f;
-            --pro-gold: #d4a030;
             --text: #2d2d3a;
             --text-secondary: #7a7a8a;
-            --left-breast: #d4899f;
-            --right-breast: #7a9ec4;
-            --sleep: #9b7ec4;
-            --diaper: #6db88d;
             --border: rgba(0,0,0,0.06);
             --stat-bg: rgba(0,0,0,0.02);
             --tab-bg: #ffffff;
             --input-border: rgba(0,0,0,0.1);
             --btn-ghost: rgba(0,0,0,0.03);
+        }
+        /* Цветовые схемы */
+        .color-pink {
+            --accent: #e8a0bf; --accent-light: rgba(232,160,191,0.15);
+            --left-breast: #e8a0bf; --pro-gold: #f0c060;
+            --sleep: #c4a0e8; --diaper: #a0e8c4;
+        }
+        .color-blue {
+            --accent: #7eb8da; --accent-light: rgba(126,184,218,0.15);
+            --left-breast: #7eb8da; --pro-gold: #f0c060;
+            --sleep: #a0b8e8; --diaper: #7ec9a0;
+        }
+        .color-mint {
+            --accent: #7ec9a0; --accent-light: rgba(126,201,160,0.15);
+            --left-breast: #7ec9a0; --pro-gold: #d4c060;
+            --sleep: #a0c4e8; --diaper: #7ec9a0;
+        }
+        .color-lavender {
+            --accent: #b8a0e0; --accent-light: rgba(184,160,224,0.15);
+            --left-breast: #b8a0e0; --pro-gold: #e0c060;
+            --sleep: #c4a0e8; --diaper: #8ec9a0;
+        }
+        .color-peach {
+            --accent: #f0b890; --accent-light: rgba(240,184,144,0.15);
+            --left-breast: #f0b890; --pro-gold: #e0c060;
+            --sleep: #d4a8c8; --diaper: #a0d4b8;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -86,7 +108,7 @@
             font-size: 17px; font-weight: 600; cursor: pointer;
             display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s;
         }
-        .breast-btn.left { background: rgba(232,160,191,0.15); color: var(--left-breast); }
+        .breast-btn.left { background: var(--accent-light); color: var(--left-breast); }
         .breast-btn.right { background: rgba(160,196,232,0.15); color: var(--right-breast); }
         .breast-btn.selected { border-color: currentColor; }
         .action-btn {
@@ -196,24 +218,30 @@
         .note-save-btn { background: var(--accent); color: #fff; }
         .note-skip-btn { background: var(--btn-ghost); color: var(--text-secondary); }
 
-        .sound-panel {
+        .sound-panel, .theme-panel {
             position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
             width: 100%; max-width: 500px; background: var(--surface);
             border-radius: 24px 24px 0 0; padding: 24px; z-index: 1000;
             box-shadow: 0 -4px 30px rgba(0,0,0,0.3); transition: transform 0.3s ease;
         }
-        .sound-panel.hidden { transform: translateX(-50%) translateY(100%); }
-        .sound-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 16px; }
-        .sound-btn {
+        .sound-panel.hidden, .theme-panel.hidden { transform: translateX(-50%) translateY(100%); }
+        .sound-grid, .color-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+        .sound-btn, .color-btn {
             height: 70px; border-radius: 16px; border: 2px solid transparent;
             font-size: 13px; font-weight: 600; cursor: pointer;
             background: var(--stat-bg); color: var(--text-secondary);
             display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
             transition: all 0.2s;
         }
-        .sound-btn .sound-emoji { font-size: 24px; }
-        .sound-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(232,160,191,0.1); }
-        .sound-btn:active { transform: scale(0.95); }
+        .sound-btn .sound-emoji, .color-btn .color-dot { font-size: 24px; }
+        .color-dot { width: 28px; height: 28px; border-radius: 50%; }
+        .color-dot.pink { background: #e8a0bf; }
+        .color-dot.blue { background: #7eb8da; }
+        .color-dot.mint { background: #7ec9a0; }
+        .color-dot.lavender { background: #b8a0e0; }
+        .color-dot.peach { background: #f0b890; }
+        .sound-btn.active, .color-btn.active { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+        .sound-btn:active, .color-btn:active { transform: scale(0.95); }
         .volume-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
         .volume-row input[type=range] { flex: 1; height: 6px; accent-color: var(--accent); }
         .volume-row span { font-size: 14px; color: var(--text-secondary); min-width: 60px; text-align: center; }
@@ -228,7 +256,7 @@
         .growth-chart-container canvas { width: 100%; height: 100%; }
     </style>
 </head>
-<body>
+<body class="color-pink">
 
     <div class="header">
         <div class="header-center">
@@ -237,7 +265,8 @@
         </div>
         <div class="header-btns">
             <button class="icon-btn" onclick="toggleSoundPanel()" id="soundToggle" title="Белый шум">🎵</button>
-            <button class="icon-btn" onclick="toggleTheme()" id="themeBtn" title="Сменить тему">🌓</button>
+            <button class="icon-btn" onclick="toggleThemePanel()" id="themeToggle" title="Сменить тему">🎨</button>
+            <button class="icon-btn" onclick="toggleLightDark()" id="themeBtn" title="Светлая/Тёмная">🌓</button>
         </div>
     </div>
 
@@ -252,6 +281,7 @@
                 <p style="margin-top:8px;">💧 Подгузники — мокрые и грязные</p>
                 <p style="margin-top:8px;">📊 Статистика — графики за неделю</p>
                 <p style="margin-top:8px;">📏 Рост и вес — следи за развитием</p>
+                <p style="margin-top:8px;">🎨 Цветовые темы — выбери свою</p>
                 <p style="margin-top:8px;">🔔 Напоминания — не забудешь покормить</p>
                 <p style="margin-top:8px;">📝 Заметки — записывай и редактируй</p>
                 <p style="margin-top:8px;">👑 PRO — аналитика, экспорт для врача</p>
@@ -295,29 +325,11 @@
             <div id="statsDiaper" style="display:none;"><div class="card"><div class="card-title">📈 Подгузники за неделю</div><div id="diaperChart"></div></div><div class="card"><div class="card-title">📊 Средние показатели</div><div id="diaperAverages"></div></div></div>
         </div>
 
-        <!-- Рост и вес -->
         <div class="tab-content" id="tab-growth">
-            <div class="card">
-                <div class="card-title">📏 Добавить запись</div>
-                <div style="display:flex; flex-direction:column; gap:12px;">
-                    <input type="date" id="growthDate" style="height:48px; font-size:16px; text-align:left; padding-left:16px;">
-                    <input type="number" id="growthWeight" placeholder="Вес (кг)" step="0.1" min="0" max="30" style="height:56px; font-size:20px; font-weight:600; text-align:center; color:var(--text);">
-                    <input type="number" id="growthHeight" placeholder="Рост (см)" step="0.1" min="0" max="150" style="height:56px; font-size:20px; font-weight:600; text-align:center; color:var(--text);">
-                    <button class="action-btn start" style="margin:0; height:56px; font-size:18px;" onclick="addGrowth()">💾 Сохранить</button>
-                </div>
-            </div>
-            <div class="card">
-                <div class="card-title">📈 График веса</div>
-                <div class="growth-chart-container"><canvas id="weightChart"></canvas></div>
-            </div>
-            <div class="card">
-                <div class="card-title">📈 График роста</div>
-                <div class="growth-chart-container"><canvas id="heightChart"></canvas></div>
-            </div>
-            <div class="card">
-                <div class="card-title">📝 История измерений</div>
-                <div class="history-list" id="growthHistory"><div class="empty-state">Нет записей</div></div>
-            </div>
+            <div class="card"><div class="card-title">📏 Добавить запись</div><div style="display:flex; flex-direction:column; gap:12px;"><input type="date" id="growthDate" style="height:48px; font-size:16px; text-align:left; padding-left:16px;"><input type="number" id="growthWeight" placeholder="Вес (кг)" step="0.1" min="0" max="30" style="height:56px; font-size:20px; font-weight:600; text-align:center; color:var(--text);"><input type="number" id="growthHeight" placeholder="Рост (см)" step="0.1" min="0" max="150" style="height:56px; font-size:20px; font-weight:600; text-align:center; color:var(--text);"><button class="action-btn start" style="margin:0; height:56px; font-size:18px;" onclick="addGrowth()">💾 Сохранить</button></div></div>
+            <div class="card"><div class="card-title">📈 График веса</div><div class="growth-chart-container"><canvas id="weightChart"></canvas></div></div>
+            <div class="card"><div class="card-title">📈 График роста</div><div class="growth-chart-container"><canvas id="heightChart"></canvas></div></div>
+            <div class="card"><div class="card-title">📝 История измерений</div><div class="history-list" id="growthHistory"><div class="empty-state">Нет записей</div></div></div>
         </div>
 
         <div class="tab-content" id="tab-pro">
@@ -341,6 +353,17 @@
         <div class="timer-row"><button onclick="setTimer(15)" data-timer="15">15 мин</button><button onclick="setTimer(30)" data-timer="30">30 мин</button><button onclick="setTimer(60)" data-timer="60">60 мин</button><button onclick="setTimer(0)" data-timer="0" class="active">∞</button></div>
     </div>
 
+    <div class="theme-panel hidden" id="themePanel">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;"><h3 style="font-size:18px;">🎨 Выбор темы</h3><button class="icon-btn" onclick="document.getElementById('themePanel').classList.add('hidden')" style="width:32px;height:32px;font-size:16px;">✕</button></div>
+        <div class="color-grid">
+            <button class="color-btn active" onclick="setColorScheme('pink')" data-color="pink"><span class="color-dot pink"></span>🌸 Розовая</button>
+            <button class="color-btn" onclick="setColorScheme('blue')" data-color="blue"><span class="color-dot blue"></span>🌊 Голубая</button>
+            <button class="color-btn" onclick="setColorScheme('mint')" data-color="mint"><span class="color-dot mint"></span>🌿 Мятная</button>
+            <button class="color-btn" onclick="setColorScheme('lavender')" data-color="lavender"><span class="color-dot lavender"></span>💜 Лаванда</button>
+            <button class="color-btn" onclick="setColorScheme('peach')" data-color="peach"><span class="color-dot peach"></span>🍑 Персик</button>
+        </div>
+    </div>
+
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
         const tg = window.Telegram?.WebApp;
@@ -351,9 +374,43 @@
 
         // === ТЕМА ===
         const THEME_KEY = 'mama_theme';
-        function applyTheme(theme) { if (theme === 'light') { document.body.classList.add('light-theme'); document.getElementById('themeBtn').textContent = '☀️'; } else { document.body.classList.remove('light-theme'); document.getElementById('themeBtn').textContent = '🌙'; } }
-        function toggleTheme() { const c = localStorage.getItem(THEME_KEY) || 'dark'; const n = c === 'dark' ? 'light' : 'dark'; localStorage.setItem(THEME_KEY, n); applyTheme(n); }
+        const COLOR_KEY = 'mama_color';
+        const colorClasses = ['color-pink', 'color-blue', 'color-mint', 'color-lavender', 'color-peach'];
+
+        function applyTheme(theme) {
+            if (theme === 'light') {
+                document.body.classList.add('light-theme');
+                document.getElementById('themeBtn').textContent = '☀️';
+            } else {
+                document.body.classList.remove('light-theme');
+                document.getElementById('themeBtn').textContent = '🌙';
+            }
+        }
+        function toggleLightDark() {
+            const c = localStorage.getItem(THEME_KEY) || 'dark';
+            const n = c === 'dark' ? 'light' : 'dark';
+            localStorage.setItem(THEME_KEY, n);
+            applyTheme(n);
+        }
+        function setColorScheme(scheme) {
+            colorClasses.forEach(c => document.body.classList.remove(c));
+            document.body.classList.add('color-' + scheme);
+            localStorage.setItem(COLOR_KEY, scheme);
+            document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+            const btn = document.querySelector(`[data-color="${scheme}"]`);
+            if (btn) btn.classList.add('active');
+            document.getElementById('themePanel').classList.add('hidden');
+        }
+        function toggleThemePanel() {
+            document.getElementById('themePanel').classList.toggle('hidden');
+            document.getElementById('soundPanel').classList.add('hidden');
+        }
+
+        const savedColor = localStorage.getItem(COLOR_KEY) || 'pink';
+        colorClasses.forEach(c => document.body.classList.remove(c));
+        document.body.classList.add('color-' + savedColor);
         applyTheme(localStorage.getItem(THEME_KEY) || 'dark');
+        document.querySelector(`[data-color="${savedColor}"]`)?.classList.add('active');
 
         // === ЗВУКИ ===
         let audioCtx = null, soundNodes = [], soundTimer = null, currentSound = null, currentVolume = 0.5;
@@ -364,7 +421,7 @@
         function playSound(type) { initAudio(); stopAllNodes(); if (soundTimer) clearTimeout(soundTimer); currentSound = type; const masterGain = createGain(); if (type === 'whitenoise') { const buf = audioCtx.createBuffer(1, 4*audioCtx.sampleRate, audioCtx.sampleRate); const d = buf.getChannelData(0); let last = 0; for (let i=0;i<d.length;i++) { const w = Math.random()*2-1; last = last*0.7 + w*0.3; d[i] = last*0.6; } const s = audioCtx.createBufferSource(); s.buffer = buf; s.loop = true; const f = audioCtx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=3000; s.connect(f); f.connect(masterGain); s.start(); soundNodes.push(s,f); } else if (type==='fan') { const o1=audioCtx.createOscillator(); o1.type='sine'; o1.frequency.value=85; const o2=audioCtx.createOscillator(); o2.type='sine'; o2.frequency.value=87; const fg=audioCtx.createGain(); fg.gain.value=0.4; o1.connect(fg); o2.connect(fg); const ff=audioCtx.createBiquadFilter(); ff.type='lowpass'; ff.frequency.value=200; fg.connect(ff); ff.connect(masterGain); o1.start(); o2.start(); soundNodes.push(o1,o2,fg,ff); } else if (type==='rain') { const buf=audioCtx.createBuffer(1,3*audioCtx.sampleRate,audioCtx.sampleRate); const d=buf.getChannelData(0); for (let i=0;i<d.length;i++) { const t=i/audioCtx.sampleRate; d[i]=(Math.random()*2-1)*(0.3+0.7*Math.abs(Math.sin(t*0.7)))*0.5; } const s=audioCtx.createBufferSource(); s.buffer=buf; s.loop=true; const ff=audioCtx.createBiquadFilter(); ff.type='highpass'; ff.frequency.value=800; s.connect(ff); ff.connect(masterGain); s.start(); soundNodes.push(s,ff); } else if (type==='heartbeat') { const o=audioCtx.createOscillator(); o.type='sine'; o.frequency.value=45; const bg=audioCtx.createGain(); bg.gain.value=0; o.connect(bg); bg.connect(masterGain); o.start(); soundNodes.push(o,bg); let bt=0; const iv=setInterval(()=>{ bt+=0.1; const cy=bt%1.2; if(cy<0.12){bg.gain.setTargetAtTime(1.2,audioCtx.currentTime,0.02); bg.gain.setTargetAtTime(0.1,audioCtx.currentTime+0.1,0.05);} else if(cy>0.3&&cy<0.42){bg.gain.setTargetAtTime(0.9,audioCtx.currentTime,0.02); bg.gain.setTargetAtTime(0.1,audioCtx.currentTime+0.08,0.04);} },100); soundNodes._beatInterval=iv; } else if (type==='lullaby') { const notes=[262,294,330,349,392,349,330,294,262,330,392,440,392,330,294,262]; const o=audioCtx.createOscillator(); o.type='sine'; o.frequency.value=notes[0]; const lg=audioCtx.createGain(); lg.gain.value=0.5; o.connect(lg); lg.connect(masterGain); o.start(); soundNodes.push(o,lg); let ni=0; const mv=setInterval(()=>{ ni=(ni+1)%notes.length; o.frequency.setTargetAtTime(notes[ni],audioCtx.currentTime,0.1); },900); soundNodes._melody=mv; } else if (type==='nature') { const buf=audioCtx.createBuffer(1,5*audioCtx.sampleRate,audioCtx.sampleRate); const d=buf.getChannelData(0); for (let i=0;i<d.length;i++) { const t=i/audioCtx.sampleRate; d[i]=Math.sin(t*6.28*150+Math.sin(t*0.4)*60)*0.15 + (Math.sin(t*6.28*1200+Math.sin(t*2)*200)*0.08)*(Math.sin(t*1.5)>0.7?1:0) + (Math.random()*2-1)*0.1*(0.4+0.6*Math.sin(t*0.5)); } const s=audioCtx.createBufferSource(); s.buffer=buf; s.loop=true; s.connect(masterGain); s.start(); soundNodes.push(s); } document.querySelectorAll('.sound-btn').forEach(b=>b.classList.remove('active')); const btn=document.querySelector(`[data-sound="${type}"]`); if(btn) btn.classList.add('active'); document.getElementById('soundToggle').classList.add('active'); }
         function setVolume(val) { currentVolume=val/100; document.getElementById('volumeLabel').textContent=val+'%'; soundNodes.forEach(n=>{ if(n.gain&&n.gain.value!==undefined) n.gain.value=currentVolume; }); }
         function setTimer(minutes) { if(soundTimer) clearTimeout(soundTimer); document.querySelectorAll('.timer-row button').forEach(b=>b.classList.remove('active')); document.querySelector(`[data-timer="${minutes}"]`).classList.add('active'); if(minutes>0) soundTimer=setTimeout(()=>{stopSound();}, minutes*60*1000); }
-        function toggleSoundPanel() { const p=document.getElementById('soundPanel'); if(!currentSound) p.classList.toggle('hidden'); else stopSound(); }
+        function toggleSoundPanel() { document.getElementById('soundPanel').classList.toggle('hidden'); document.getElementById('themePanel').classList.add('hidden'); }
 
         // === ЗАМЕТКИ ===
         let pendingSave = null;
@@ -383,16 +440,7 @@
 
         // === НАВИГАЦИЯ ===
         let mainTab='feeding', statsSubTab='feed';
-        function switchMainTab(tab){
-            mainTab=tab;
-            const tabs=['feeding','sleep','diaper','stats','growth','pro'];
-            document.querySelectorAll('#mainApp .tab-btn').forEach((b,i)=>b.classList.toggle('active',tabs[i]===tab));
-            document.querySelectorAll('#mainApp .tab-content').forEach(c=>c.classList.remove('active'));
-            document.getElementById('tab-'+tab).classList.add('active');
-            if(tab==='stats') buildAllCharts();
-            if(tab==='growth') updateGrowthUI();
-            if(tab==='pro') updateProUI();
-        }
+        function switchMainTab(tab){mainTab=tab; const tabs=['feeding','sleep','diaper','stats','growth','pro']; document.querySelectorAll('#mainApp .tab-btn').forEach((b,i)=>b.classList.toggle('active',tabs[i]===tab)); document.querySelectorAll('#mainApp .tab-content').forEach(c=>c.classList.remove('active')); document.getElementById('tab-'+tab).classList.add('active'); if(tab==='stats') buildAllCharts(); if(tab==='growth') updateGrowthUI(); if(tab==='pro') updateProUI();}
         function switchStatsTab(tab){statsSubTab=tab; document.querySelectorAll('.sub-tab').forEach((b,i)=>b.classList.toggle('active',['feed','sleep','diaper'][i]===tab)); document.getElementById('statsFeed').style.display=tab==='feed'?'block':'none'; document.getElementById('statsSleep').style.display=tab==='sleep'?'block':'none'; document.getElementById('statsDiaper').style.display=tab==='diaper'?'block':'none';}
 
         // === ХРАНИЛИЩЕ ===
@@ -442,119 +490,7 @@
         function getGrowthRecords(){return JSON.parse(localStorage.getItem('mama-growth')||'[]').sort((a,b)=>a.date.localeCompare(b.date));}
         function addGrowth(){const date=document.getElementById('growthDate').value; const weight=parseFloat(document.getElementById('growthWeight').value); const height=parseFloat(document.getElementById('growthHeight').value); if(!date){alert('Выберите дату'); return;} if(!weight&&!height){alert('Введите вес или рост'); return;} const records=getGrowthRecords(); const existing=records.findIndex(r=>r.date===date); const entry={date,weight:weight||null,height:height||null,timestamp:Date.now()}; if(existing>=0){records[existing]=entry;}else{records.push(entry);} localStorage.setItem('mama-growth',JSON.stringify(records)); document.getElementById('growthDate').value=''; document.getElementById('growthWeight').value=''; document.getElementById('growthHeight').value=''; updateGrowthUI(); if(tg?.HapticFeedback)tg.HapticFeedback.notificationOccurred('success');}
         function deleteGrowth(index){const records=getGrowthRecords(); records.splice(index,1); localStorage.setItem('mama-growth',JSON.stringify(records)); updateGrowthUI();}
-        function drawGrowthChart(canvasId,records,field,color,unit){
-            const canvas=document.getElementById(canvasId);
-            if(!canvas||!records.length)return;
-            const valid=records.filter(r=>r[field]!=null);
-            if(valid.length<1)return;
-            
-            const ctx=canvas.getContext('2d');
-            const dpr=window.devicePixelRatio||1;
-            const rect=canvas.parentElement.getBoundingClientRect();
-            canvas.width=rect.width*dpr;
-            canvas.height=200*dpr;
-            canvas.style.width=rect.width+'px';
-            canvas.style.height='200px';
-            ctx.scale(dpr,dpr);
-            
-            const w=rect.width-40;
-            const h=160;
-            const pad={top:10,right:10,bottom:30,left:40};
-            
-            const values=valid.map(r=>r[field]);
-            const minVal=Math.floor(Math.min(...values)*0.9);
-            const maxVal=Math.ceil(Math.max(...values)*1.1);
-            const range=maxVal-minVal||1;
-            
-            ctx.clearRect(0,0,w,200);
-            
-            const surfaceColor=getComputedStyle(document.body).getPropertyValue('--surface').trim()||'#16213e';
-            ctx.fillStyle=surfaceColor;
-            ctx.fillRect(0,0,w,200);
-            
-            ctx.strokeStyle='rgba(255,255,255,0.08)';
-            ctx.lineWidth=0.5;
-            const secondaryColor=getComputedStyle(document.body).getPropertyValue('--text-secondary').trim()||'#a8a0b0';
-            for(let i=0;i<=4;i++){
-                const gy=pad.top+(h/4)*i;
-                ctx.beginPath();
-                ctx.moveTo(pad.left,gy);
-                ctx.lineTo(w-pad.right,gy);
-                ctx.stroke();
-                ctx.fillStyle=secondaryColor;
-                ctx.font='10px -apple-system, sans-serif';
-                ctx.fillText((maxVal-(range/4)*i).toFixed(1)+unit,2,gy+4);
-            }
-            
-            const cssColor=getComputedStyle(document.body).getPropertyValue(field==='weight'?'--accent':'--sleep').trim();
-            const actualColor=cssColor||(field==='weight'?'#e8a0bf':'#c4a0e8');
-            
-            if(valid.length===1){
-                const x=pad.left+(w-pad.left-pad.right)/2;
-                const y=pad.top+h-((valid[0][field]-minVal)/range)*h;
-                
-                ctx.fillStyle=actualColor;
-                ctx.beginPath();
-                ctx.arc(x,y,8,0,Math.PI*2);
-                ctx.fill();
-                
-                ctx.fillStyle='#fff';
-                ctx.font='bold 13px -apple-system, sans-serif';
-                ctx.textAlign='center';
-                ctx.fillText(valid[0][field]+unit,x,y-14);
-                
-                ctx.fillStyle=secondaryColor;
-                ctx.font='11px -apple-system, sans-serif';
-                const dateLabel=new Date(valid[0].date).toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'});
-                ctx.fillText(dateLabel,x,pad.top+h+20);
-            }else{
-                const stepX=(w-pad.left-pad.right)/(valid.length-1);
-                
-                ctx.strokeStyle=actualColor;
-                ctx.lineWidth=3;
-                ctx.lineJoin='round';
-                ctx.lineCap='round';
-                ctx.beginPath();
-                
-                valid.forEach((r,i)=>{
-                    const x=pad.left+stepX*i;
-                    const y=pad.top+h-((r[field]-minVal)/range)*h;
-                    if(i===0){
-                        ctx.moveTo(x,y);
-                    }else{
-                        ctx.lineTo(x,y);
-                    }
-                });
-                ctx.stroke();
-                
-                valid.forEach((r,i)=>{
-                    const x=pad.left+stepX*i;
-                    const y=pad.top+h-((r[field]-minVal)/range)*h;
-                    
-                    ctx.fillStyle='#fff';
-                    ctx.beginPath();
-                    ctx.arc(x,y,7,0,Math.PI*2);
-                    ctx.fill();
-                    
-                    ctx.fillStyle=actualColor;
-                    ctx.beginPath();
-                    ctx.arc(x,y,5,0,Math.PI*2);
-                    ctx.fill();
-                    
-                    ctx.fillStyle='#fff';
-                    ctx.font='bold 12px -apple-system, sans-serif';
-                    ctx.textAlign='center';
-                    ctx.fillText(r[field]+unit,x,y-14);
-                    
-                    if(i===0||i===valid.length-1){
-                        ctx.fillStyle=secondaryColor;
-                        ctx.font='10px -apple-system, sans-serif';
-                        const dateLabel=new Date(r.date).toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'});
-                        ctx.fillText(dateLabel,x,pad.top+h+18);
-                    }
-                });
-            }
-        }
+        function drawGrowthChart(canvasId,records,field,color,unit){const canvas=document.getElementById(canvasId); if(!canvas||!records.length)return; const valid=records.filter(r=>r[field]!=null); if(valid.length<1)return; const ctx=canvas.getContext('2d'); const dpr=window.devicePixelRatio||1; const rect=canvas.parentElement.getBoundingClientRect(); canvas.width=rect.width*dpr; canvas.height=200*dpr; canvas.style.width=rect.width+'px'; canvas.style.height='200px'; ctx.scale(dpr,dpr); const w=rect.width-40; const h=160; const pad={top:10,right:10,bottom:30,left:40}; const values=valid.map(r=>r[field]); const minVal=Math.floor(Math.min(...values)*0.9); const maxVal=Math.ceil(Math.max(...values)*1.1); const range=maxVal-minVal||1; ctx.clearRect(0,0,w,200); const surfaceColor=getComputedStyle(document.body).getPropertyValue('--surface').trim()||'#16213e'; ctx.fillStyle=surfaceColor; ctx.fillRect(0,0,w,200); ctx.strokeStyle='rgba(255,255,255,0.08)'; ctx.lineWidth=0.5; const secondaryColor=getComputedStyle(document.body).getPropertyValue('--text-secondary').trim()||'#a8a0b0'; for(let i=0;i<=4;i++){const gy=pad.top+(h/4)*i; ctx.beginPath(); ctx.moveTo(pad.left,gy); ctx.lineTo(w-pad.right,gy); ctx.stroke(); ctx.fillStyle=secondaryColor; ctx.font='10px -apple-system, sans-serif'; ctx.fillText((maxVal-(range/4)*i).toFixed(1)+unit,2,gy+4);} const cssColor=getComputedStyle(document.body).getPropertyValue(field==='weight'?'--accent':'--sleep').trim(); const actualColor=cssColor||(field==='weight'?'#e8a0bf':'#c4a0e8'); if(valid.length===1){const x=pad.left+(w-pad.left-pad.right)/2; const y=pad.top+h-((valid[0][field]-minVal)/range)*h; ctx.fillStyle=actualColor; ctx.beginPath(); ctx.arc(x,y,8,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#fff'; ctx.font='bold 13px -apple-system, sans-serif'; ctx.textAlign='center'; ctx.fillText(valid[0][field]+unit,x,y-14); ctx.fillStyle=secondaryColor; ctx.font='11px -apple-system, sans-serif'; const dateLabel=new Date(valid[0].date).toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'}); ctx.fillText(dateLabel,x,pad.top+h+20);}else{const stepX=(w-pad.left-pad.right)/(valid.length-1); ctx.strokeStyle=actualColor; ctx.lineWidth=3; ctx.lineJoin='round'; ctx.lineCap='round'; ctx.beginPath(); valid.forEach((r,i)=>{const x=pad.left+stepX*i; const y=pad.top+h-((r[field]-minVal)/range)*h; if(i===0){ctx.moveTo(x,y);}else{ctx.lineTo(x,y);}}); ctx.stroke(); valid.forEach((r,i)=>{const x=pad.left+stepX*i; const y=pad.top+h-((r[field]-minVal)/range)*h; ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(x,y,7,0,Math.PI*2); ctx.fill(); ctx.fillStyle=actualColor; ctx.beginPath(); ctx.arc(x,y,5,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#fff'; ctx.font='bold 12px -apple-system, sans-serif'; ctx.textAlign='center'; ctx.fillText(r[field]+unit,x,y-14); if(i===0||i===valid.length-1){ctx.fillStyle=secondaryColor; ctx.font='10px -apple-system, sans-serif'; const dateLabel=new Date(r.date).toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'}); ctx.fillText(dateLabel,x,pad.top+h+18);}});}}
         function updateGrowthUI(){const records=getGrowthRecords(); const list=document.getElementById('growthHistory'); if(!records.length){list.innerHTML='<div class="empty-state">Нет записей</div>';}else{list.innerHTML=records.map((r,i)=>{const d=new Date(r.date).toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit',year:'numeric'}); const parts=[]; if(r.weight)parts.push('⚖️ '+r.weight+' кг'); if(r.height)parts.push('📏 '+r.height+' см'); return `<div class="growth-list-item" onclick="editGrowth(${i})"><span>${d}</span><span style="font-size:13px; color:var(--text-secondary);">${parts.join(' · ')}</span><span onclick="event.stopPropagation(); deleteGrowth(${i})" style="color:#e8606e; cursor:pointer;">🗑</span></div>`;}).join('');} document.getElementById('growthDate').value=today.toISOString().split('T')[0]; setTimeout(()=>{drawGrowthChart('weightChart',records,'weight','var(--accent)',' кг'); drawGrowthChart('heightChart',records,'height','var(--sleep)',' см');},100);}
         function editGrowth(index){const records=getGrowthRecords(); const r=records[index]; if(!r)return; document.getElementById('growthDate').value=r.date; document.getElementById('growthWeight').value=r.weight||''; document.getElementById('growthHeight').value=r.height||''; records.splice(index,1); localStorage.setItem('mama-growth',JSON.stringify(records));}
 
