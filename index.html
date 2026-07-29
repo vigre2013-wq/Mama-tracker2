@@ -34,31 +34,11 @@
             --input-border: rgba(0,0,0,0.1);
             --btn-ghost: rgba(0,0,0,0.03);
         }
-        .color-pink {
-            --accent: #e8a0bf; --accent-light: rgba(232,160,191,0.15);
-            --left-breast: #e8a0bf; --pro-gold: #f0c060;
-            --sleep: #c4a0e8; --diaper: #a0e8c4;
-        }
-        .color-blue {
-            --accent: #7eb8da; --accent-light: rgba(126,184,218,0.15);
-            --left-breast: #7eb8da; --pro-gold: #f0c060;
-            --sleep: #a0b8e8; --diaper: #7ec9a0;
-        }
-        .color-mint {
-            --accent: #7ec9a0; --accent-light: rgba(126,201,160,0.15);
-            --left-breast: #7ec9a0; --pro-gold: #d4c060;
-            --sleep: #a0c4e8; --diaper: #7ec9a0;
-        }
-        .color-lavender {
-            --accent: #b8a0e0; --accent-light: rgba(184,160,224,0.15);
-            --left-breast: #b8a0e0; --pro-gold: #e0c060;
-            --sleep: #c4a0e8; --diaper: #8ec9a0;
-        }
-        .color-peach {
-            --accent: #f0b890; --accent-light: rgba(240,184,144,0.15);
-            --left-breast: #f0b890; --pro-gold: #e0c060;
-            --sleep: #d4a8c8; --diaper: #a0d4b8;
-        }
+        .color-pink { --accent: #e8a0bf; --accent-light: rgba(232,160,191,0.15); --left-breast: #e8a0bf; --pro-gold: #f0c060; --sleep: #c4a0e8; --diaper: #a0e8c4; }
+        .color-blue { --accent: #7eb8da; --accent-light: rgba(126,184,218,0.15); --left-breast: #7eb8da; --pro-gold: #f0c060; --sleep: #a0b8e8; --diaper: #7ec9a0; }
+        .color-mint { --accent: #7ec9a0; --accent-light: rgba(126,201,160,0.15); --left-breast: #7ec9a0; --pro-gold: #d4c060; --sleep: #a0c4e8; --diaper: #7ec9a0; }
+        .color-lavender { --accent: #b8a0e0; --accent-light: rgba(184,160,224,0.15); --left-breast: #b8a0e0; --pro-gold: #e0c060; --sleep: #c4a0e8; --diaper: #8ec9a0; }
+        .color-peach { --accent: #f0b890; --accent-light: rgba(240,184,144,0.15); --left-breast: #f0b890; --pro-gold: #e0c060; --sleep: #d4a8c8; --diaper: #a0d4b8; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -73,34 +53,18 @@
         .header h1 { font-size: 28px; font-weight: 700; }
         .header .date { color: var(--text-secondary); font-size: 14px; }
         .header-btns { position: absolute; right: 0; top: 0; display: flex; gap: 8px; }
-        .icon-btn {
-            width: 40px; height: 40px; border-radius: 50%; border: none;
-            background: var(--surface); color: var(--text);
-            font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center;
-            transition: all 0.2s;
-        }
+        .icon-btn { width: 40px; height: 40px; border-radius: 50%; border: none; background: var(--surface); color: var(--text); font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
         .icon-btn:active { transform: scale(0.9); }
         .icon-btn.active { background: var(--accent); color: #fff; }
         .baby-switcher { display: flex; gap: 6px; margin-top: 10px; justify-content: center; flex-wrap: wrap; }
-        .baby-chip {
-            padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border);
-            background: var(--surface); color: var(--text-secondary); font-size: 13px; font-weight: 600;
-            cursor: pointer; transition: all 0.2s; white-space: nowrap;
-        }
+        .baby-chip { padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border); background: var(--surface); color: var(--text-secondary); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
         .baby-chip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
-        .baby-chip:active { transform: scale(0.95); }
         .tabs { display: flex; gap: 4px; margin: 16px 0; flex-wrap: wrap; }
-        .tab-btn {
-            flex: 1; min-width: 44px; height: 44px; border-radius: 12px; border: none;
-            font-size: 16px; cursor: pointer; background: var(--tab-bg);
-            color: var(--text-secondary); display: flex; align-items: center;
-            justify-content: center; transition: all 0.2s;
-        }
+        .tab-btn { flex: 1; min-width: 40px; height: 44px; border-radius: 12px; border: none; font-size: 15px; cursor: pointer; background: var(--tab-bg); color: var(--text-secondary); display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
         .tab-btn.active { background: var(--accent); color: #fff; }
-        .tab-btn:active { transform: scale(0.95); }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-        .card { background: var(--surface); border-radius: 24px; padding: 24px; margin: 16px 0; transition: background 0.3s; }
+        .card { background: var(--surface); border-radius: 24px; padding: 24px; margin: 16px 0; }
         .card-title { font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px; }
         .timer-display { text-align: center; font-size: 64px; font-weight: 300; font-family: 'SF Mono', 'Menlo', monospace; margin: 16px 0 24px; letter-spacing: 2px; }
         .breast-select { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
@@ -125,8 +89,8 @@
         .diaper-btn.both { background: rgba(232,160,191,0.1); color: #d4899f; }
         .history-list { max-height: 300px; overflow-y: auto; }
         .history-item, .growth-list-item { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--border); cursor: pointer; }
-        .history-item:last-child, .growth-list-item:last-child { border-bottom: none; }
-        .history-item:active, .growth-list-item:active { opacity: 0.7; }
+        .history-item:last-child { border-bottom: none; }
+        .history-item:active { opacity: 0.7; }
         .history-duration { font-weight: 600; font-size: 15px; }
         .history-side { font-size: 12px; color: var(--text-secondary); }
         .history-note-icon { margin-left: 4px; font-size: 12px; }
@@ -171,13 +135,8 @@
         .sound-btn, .color-btn { height: 60px; border-radius: 14px; border: 2px solid transparent; font-size: 11px; font-weight: 600; cursor: pointer; background: var(--stat-bg); color: var(--text-secondary); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; transition: all 0.2s; }
         .sound-btn .sound-emoji { font-size: 20px; }
         .color-dot { width: 24px; height: 24px; border-radius: 50%; margin-bottom: 2px; }
-        .color-dot.pink { background: #e8a0bf; }
-        .color-dot.blue { background: #7eb8da; }
-        .color-dot.mint { background: #7ec9a0; }
-        .color-dot.lavender { background: #b8a0e0; }
-        .color-dot.peach { background: #f0b890; }
+        .color-dot.pink { background: #e8a0bf; } .color-dot.blue { background: #7eb8da; } .color-dot.mint { background: #7ec9a0; } .color-dot.lavender { background: #b8a0e0; } .color-dot.peach { background: #f0b890; }
         .sound-btn.active, .color-btn.active { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
-        .sound-btn:active, .color-btn:active { transform: scale(0.95); }
         .theme-toggle-row { display: flex; gap: 8px; margin-bottom: 16px; }
         .theme-toggle-row button { flex: 1; height: 44px; border-radius: 12px; border: 1px solid var(--border); background: transparent; color: var(--text-secondary); font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
         .theme-toggle-row button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
@@ -189,16 +148,25 @@
         .timer-row button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
         .growth-chart-container { position: relative; height: 200px; margin: 8px 0; }
         .growth-chart-container canvas { width: 100%; height: 100%; }
+        /* Календарь */
+        .calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; }
+        .calendar-day-header { font-size: 11px; color: var(--text-secondary); padding: 8px 0; font-weight: 600; }
+        .calendar-day { aspect-ratio: 1; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; position: relative; background: var(--stat-bg); color: var(--text-secondary); }
+        .calendar-day.today { border: 2px solid var(--accent); color: var(--accent); }
+        .calendar-day.other-month { opacity: 0.3; }
+        .calendar-day:active { transform: scale(0.9); }
+        .calendar-legend { display: flex; gap: 6px; align-items: center; justify-content: center; margin-top: 12px; font-size: 11px; color: var(--text-secondary); }
+        .legend-dot { width: 14px; height: 14px; border-radius: 4px; }
+        .month-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+        .month-nav button { background: var(--stat-bg); border: none; color: var(--text); width: 36px; height: 36px; border-radius: 10px; font-size: 18px; cursor: pointer; }
+        .month-nav span { font-size: 16px; font-weight: 700; }
     </style>
 </head>
 <body class="color-pink">
 
     <div class="header">
         <div class="header-top">
-            <div class="header-center">
-                <h1>🤱 Мама Трекер <span id="proBadge" class="pro-badge" style="display:none;">PRO</span></h1>
-                <div class="date" id="todayDate"></div>
-            </div>
+            <div class="header-center"><h1>🤱 Мама Трекер <span id="proBadge" class="pro-badge" style="display:none;">PRO</span></h1><div class="date" id="todayDate"></div></div>
             <div class="header-btns">
                 <button class="icon-btn" onclick="toggleSoundPanel()" id="soundToggle" title="Белый шум">🎵</button>
                 <button class="icon-btn" onclick="toggleThemePanel()" id="themeToggle" title="Оформление">🎨</button>
@@ -207,24 +175,7 @@
         <div class="baby-switcher" id="babySwitcher"></div>
     </div>
 
-    <div id="welcomeScreen">
-        <div class="card" style="text-align:center;">
-            <div style="font-size:60px; margin-bottom:12px;">👋</div>
-            <h2 style="margin-bottom:12px;">Привет, мама!</h2>
-            <p style="color:var(--text-secondary); font-size:15px; line-height:1.6; margin-bottom:20px;">Я помогу следить за режимом малыша:</p>
-            <div style="text-align:left; margin-bottom:20px; font-size:14px; color:var(--text-secondary);">
-                <p>👶 Несколько профилей детей</p>
-                <p style="margin-top:8px;">🍼 Кормление — таймер, левая/правая грудь</p>
-                <p style="margin-top:8px;">😴 Сон — сколько и когда спит</p>
-                <p style="margin-top:8px;">💧 Подгузники — мокрые и грязные</p>
-                <p style="margin-top:8px;">📊 Статистика — графики за неделю</p>
-                <p style="margin-top:8px;">📏 Рост и вес — следи за развитием</p>
-                <p style="margin-top:8px;">🎨 Цветовые темы — выбери свою</p>
-                <p style="margin-top:8px;">👑 PRO — аналитика, экспорт для врача</p>
-            </div>
-            <button onclick="closeWelcome()" class="welcome-btn">Понятно, начнём! 🚀</button>
-        </div>
-    </div>
+    <div id="welcomeScreen"><div class="card" style="text-align:center;"><div style="font-size:60px;">👋</div><h2>Привет, мама!</h2><p style="color:var(--text-secondary);">Я помогу следить за режимом малыша</p><button onclick="closeWelcome()" class="welcome-btn" style="margin-top:16px;">Понятно, начнём! 🚀</button></div></div>
 
     <div id="mainApp" style="display:none;">
         <div class="tabs">
@@ -233,6 +184,7 @@
             <button class="tab-btn" onclick="switchMainTab('diaper')">💧</button>
             <button class="tab-btn" onclick="switchMainTab('stats')">📊</button>
             <button class="tab-btn" onclick="switchMainTab('growth')">📏</button>
+            <button class="tab-btn" onclick="switchMainTab('calendar')">📅</button>
             <button class="tab-btn" onclick="switchMainTab('pro')">👑</button>
         </div>
 
@@ -262,15 +214,39 @@
         </div>
 
         <div class="tab-content" id="tab-growth">
-            <div class="card"><div class="card-title">📏 Добавить запись</div><div style="display:flex; flex-direction:column; gap:12px;"><input type="date" id="growthDate" style="height:48px; font-size:16px; text-align:left; padding-left:16px;"><input type="number" id="growthWeight" placeholder="Вес (кг)" step="0.1" min="0" max="30" style="height:56px; font-size:20px; font-weight:600; text-align:center; color:var(--text);"><input type="number" id="growthHeight" placeholder="Рост (см)" step="0.1" min="0" max="150" style="height:56px; font-size:20px; font-weight:600; text-align:center; color:var(--text);"><button class="action-btn start" style="margin:0; height:56px; font-size:18px;" onclick="addGrowth()">💾 Сохранить</button></div></div>
+            <div class="card"><div class="card-title">📏 Добавить запись</div><div style="display:flex; flex-direction:column; gap:12px;"><input type="date" id="growthDate" style="height:48px; font-size:16px; text-align:left; padding-left:16px;"><input type="number" id="growthWeight" placeholder="Вес (кг)" step="0.1" style="height:56px; font-size:20px; font-weight:600; text-align:center; color:var(--text);"><input type="number" id="growthHeight" placeholder="Рост (см)" step="0.1" style="height:56px; font-size:20px; font-weight:600; text-align:center; color:var(--text);"><button class="action-btn start" style="margin:0; height:56px; font-size:18px;" onclick="addGrowth()">💾 Сохранить</button></div></div>
             <div class="card"><div class="card-title">📈 График веса</div><div class="growth-chart-container"><canvas id="weightChart"></canvas></div></div>
             <div class="card"><div class="card-title">📈 График роста</div><div class="growth-chart-container"><canvas id="heightChart"></canvas></div></div>
-            <div class="card"><div class="card-title">📝 История измерений</div><div class="history-list" id="growthHistory"><div class="empty-state">Нет записей</div></div></div>
+            <div class="card"><div class="card-title">📝 История</div><div class="history-list" id="growthHistory"><div class="empty-state">Нет записей</div></div></div>
+        </div>
+
+        <div class="tab-content" id="tab-calendar">
+            <div class="card">
+                <div class="card-title">📅 Календарь кормлений</div>
+                <div class="month-nav">
+                    <button onclick="changeMonth(-1)">◀</button>
+                    <span id="monthLabel"></span>
+                    <button onclick="changeMonth(1)">▶</button>
+                </div>
+                <div class="calendar" id="calendarGrid"></div>
+                <div class="calendar-legend">
+                    <span>Меньше</span>
+                    <div class="legend-dot" style="background:rgba(232,160,191,0.15);"></div>
+                    <div class="legend-dot" style="background:rgba(232,160,191,0.4);"></div>
+                    <div class="legend-dot" style="background:rgba(232,160,191,0.7);"></div>
+                    <div class="legend-dot" style="background:#e8a0bf;"></div>
+                    <span>Больше</span>
+                </div>
+            </div>
+            <div class="card" id="dayDetail" style="display:none;">
+                <div class="card-title" id="dayDetailTitle">Детали дня</div>
+                <div id="dayDetailContent"></div>
+            </div>
         </div>
 
         <div class="tab-content" id="tab-pro">
-            <div id="proActive" style="display:none;"><div class="card pro-card" style="text-align:center;"><div style="font-size:50px;">👑</div><h2>Вы — PRO!</h2><p style="color:var(--text-secondary); margin:12px 0;">Все функции разблокированы. Спасибо за поддержку!</p><div style="text-align:left; font-size:14px; color:var(--text-secondary);"><p>✅ Расширенная аналитика</p><p>✅ Экспорт отчёта для врача</p><p>✅ История за всё время</p></div></div><div class="card"><div class="card-title">📤 Экспорт отчёта</div><button class="export-btn" onclick="exportAsImage()">📸 Скачать отчёт в PNG</button></div></div>
-            <div id="proInactive"><div class="card" style="text-align:center;"><div style="font-size:60px;">👑</div><h2>Мама PRO</h2><p style="color:var(--text-secondary); margin:12px 0; font-size:14px;">Разблокируй все возможности:</p><div style="text-align:left; margin:16px 0; font-size:14px; color:var(--text-secondary);"><p>📈 Расширенная аналитика</p><p>📸 Экспорт отчёта для врача (PNG)</p><p>📅 История за всё время</p></div><p style="color:var(--text-secondary); font-size:12px;">Оплата будет доступна позже.</p></div><div class="card" style="text-align:center;"><p style="color:var(--text-secondary); font-size:13px; margin-bottom:12px;">Тестовый код активации:</p><input type="text" id="activateCode" placeholder="Введите TEST123"><button class="activate-btn" onclick="activatePro()">🔓 Активировать PRO</button></div></div>
+            <div id="proActive" style="display:none;"><div class="card pro-card" style="text-align:center;"><div style="font-size:50px;">👑</div><h2>Вы — PRO!</h2><p style="color:var(--text-secondary);">Все функции разблокированы</p></div><div class="card"><div class="card-title">📤 Экспорт</div><button class="export-btn" onclick="exportAsImage()">📸 Скачать отчёт в PNG</button></div></div>
+            <div id="proInactive"><div class="card" style="text-align:center;"><div style="font-size:60px;">👑</div><h2>Мама PRO</h2><p style="color:var(--text-secondary);">Разблокируй все возможности</p></div><div class="card" style="text-align:center;"><input type="text" id="activateCode" placeholder="Введите TEST123"><button class="activate-btn" onclick="activatePro()">🔓 Активировать PRO</button></div></div>
         </div>
     </div>
 
@@ -292,11 +268,8 @@
     <div class="theme-panel hidden" id="themePanel">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;"><h3 style="font-size:18px;">🎨 Оформление</h3><button class="icon-btn" onclick="document.getElementById('themePanel').classList.add('hidden')" style="width:32px;height:32px;font-size:16px;">✕</button></div>
         <p style="font-size:13px; color:var(--text-secondary); margin-bottom:8px;">Режим:</p>
-        <div class="theme-toggle-row">
-            <button onclick="setThemeMode('dark')" id="btnDark">🌙 Тёмная</button>
-            <button onclick="setThemeMode('light')" id="btnLight">☀️ Светлая</button>
-        </div>
-        <p style="font-size:13px; color:var(--text-secondary); margin-bottom:8px; margin-top:12px;">Цветовая схема:</p>
+        <div class="theme-toggle-row"><button onclick="setThemeMode('dark')" id="btnDark">🌙 Тёмная</button><button onclick="setThemeMode('light')" id="btnLight">☀️ Светлая</button></div>
+        <p style="font-size:13px; color:var(--text-secondary); margin-bottom:8px; margin-top:12px;">Цвет:</p>
         <div class="color-grid">
             <button class="color-btn active" onclick="setColorScheme('pink')" data-color="pink"><span class="color-dot pink"></span>🌸</button>
             <button class="color-btn" onclick="setColorScheme('blue')" data-color="blue"><span class="color-dot blue"></span>🌊</button>
@@ -309,119 +282,40 @@
     <div class="baby-panel hidden" id="babyPanel">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;"><h3 style="font-size:18px;">👶 Управление детьми</h3><button class="icon-btn" onclick="document.getElementById('babyPanel').classList.add('hidden')" style="width:32px;height:32px;font-size:16px;">✕</button></div>
         <div id="babyList" style="display:flex; flex-direction:column; gap:8px; margin-bottom:16px;"></div>
-        <div style="display:flex; gap:8px;">
-            <input type="text" id="newBabyName" placeholder="Имя ребёнка" style="flex:1; margin-bottom:0;">
-            <button class="action-btn start" style="width:auto; margin:0; padding:0 20px; height:44px; font-size:14px;" onclick="addBaby()">➕</button>
-        </div>
+        <div style="display:flex; gap:8px;"><input type="text" id="newBabyName" placeholder="Имя ребёнка" style="flex:1; margin-bottom:0;"><button class="action-btn start" style="width:auto; margin:0; padding:0 20px; height:44px; font-size:14px;" onclick="addBaby()">➕</button></div>
     </div>
 
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
         const tg = window.Telegram?.WebApp;
         if (tg) { tg.ready(); tg.expand(); }
-
         const today = new Date();
         document.getElementById('todayDate').textContent = today.toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' });
 
         // === ДЕТИ ===
         let babies = JSON.parse(localStorage.getItem('mama_babies') || '[{"id":"0","name":"Малыш"}]');
         let currentBabyId = localStorage.getItem('mama_current_baby') || '0';
-
-        function saveBabies() {
-            localStorage.setItem('mama_babies', JSON.stringify(babies));
-            localStorage.setItem('mama_current_baby', currentBabyId);
-        }
-
-        function getBabyPrefix() {
-            return currentBabyId === '0' ? '' : '-' + currentBabyId;
-        }
-
-        function switchBaby(id) {
-            currentBabyId = id;
-            saveBabies();
-            updateBabyUI();
-            refreshAll();
-            updateGrowthUI();
-            buildAllCharts();
-        }
-
-        function addBaby() {
-            const name = document.getElementById('newBabyName').value.trim();
-            if (!name) return;
-            const id = Date.now().toString();
-            babies.push({ id, name });
-            currentBabyId = id;
-            saveBabies();
-            document.getElementById('newBabyName').value = '';
-            updateBabyUI();
-            refreshAll();
-            updateGrowthUI();
-            buildAllCharts();
-            document.getElementById('babyPanel').classList.add('hidden');
-        }
-
-        function deleteBaby(id) {
-            if (babies.length <= 1) return;
-            babies = babies.filter(b => b.id !== id);
-            if (currentBabyId === id) {
-                currentBabyId = babies[0].id;
-            }
-            saveBabies();
-            updateBabyUI();
-            refreshAll();
-            updateGrowthUI();
-            buildAllCharts();
-        }
-
+        function saveBabies() { localStorage.setItem('mama_babies', JSON.stringify(babies)); localStorage.setItem('mama_current_baby', currentBabyId); }
+        function getBabyPrefix() { return currentBabyId === '0' ? '' : '-' + currentBabyId; }
+        function switchBaby(id) { currentBabyId = id; saveBabies(); updateBabyUI(); refreshAll(); updateGrowthUI(); buildAllCharts(); updateCalendar(); }
+        function addBaby() { const name = document.getElementById('newBabyName').value.trim(); if (!name) return; const id = Date.now().toString(); babies.push({ id, name }); currentBabyId = id; saveBabies(); document.getElementById('newBabyName').value = ''; updateBabyUI(); refreshAll(); updateGrowthUI(); buildAllCharts(); updateCalendar(); document.getElementById('babyPanel').classList.add('hidden'); }
+        function deleteBaby(id) { if (babies.length <= 1) return; babies = babies.filter(b => b.id !== id); if (currentBabyId === id) currentBabyId = babies[0].id; saveBabies(); updateBabyUI(); refreshAll(); updateGrowthUI(); buildAllCharts(); updateCalendar(); }
         function updateBabyUI() {
             const switcher = document.getElementById('babySwitcher');
-            const currentBaby = babies.find(b => b.id === currentBabyId) || babies[0];
-            
-            switcher.innerHTML = babies.map(b => 
-                `<span class="baby-chip${b.id === currentBabyId ? ' active' : ''}" onclick="switchBaby('${b.id}')">${b.name}</span>`
-            ).join('') + (babies.length < 5 ? `<span class="baby-chip" onclick="document.getElementById('babyPanel').classList.toggle('hidden')" style="font-size:18px;">➕</span>` : '');
-
-            // Обновляем список в панели
+            switcher.innerHTML = babies.map(b => `<span class="baby-chip${b.id === currentBabyId ? ' active' : ''}" onclick="switchBaby('${b.id}')">${b.name}</span>`).join('') + (babies.length < 5 ? `<span class="baby-chip" onclick="document.getElementById('babyPanel').classList.toggle('hidden')" style="font-size:18px;">➕</span>` : '');
             const list = document.getElementById('babyList');
-            if (list) {
-                list.innerHTML = babies.map(b => 
-                    `<div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border);">
-                        <span>${b.name} ${b.id === currentBabyId ? '👈' : ''}</span>
-                        ${babies.length > 1 ? `<span onclick="deleteBaby('${b.id}')" style="color:#e8606e; cursor:pointer;">🗑</span>` : ''}
-                    </div>`
-                ).join('');
-            }
+            if (list) list.innerHTML = babies.map(b => `<div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border);"><span>${b.name} ${b.id === currentBabyId ? '👈' : ''}</span>${babies.length > 1 ? `<span onclick="deleteBaby('${b.id}')" style="color:#e8606e; cursor:pointer;">🗑</span>` : ''}</div>`).join('');
         }
 
         // === ТЕМА ===
-        const THEME_KEY = 'mama_theme';
-        const COLOR_KEY = 'mama_color';
+        const THEME_KEY = 'mama_theme', COLOR_KEY = 'mama_color';
         const colorClasses = ['color-pink', 'color-blue', 'color-mint', 'color-lavender', 'color-peach'];
-
-        function applyTheme(theme) {
-            if (theme === 'light') {
-                document.body.classList.add('light-theme');
-                document.getElementById('btnLight')?.classList.add('active');
-                document.getElementById('btnDark')?.classList.remove('active');
-            } else {
-                document.body.classList.remove('light-theme');
-                document.getElementById('btnDark')?.classList.add('active');
-                document.getElementById('btnLight')?.classList.remove('active');
-            }
-        }
+        function applyTheme(theme) { if (theme === 'light') { document.body.classList.add('light-theme'); document.getElementById('btnLight')?.classList.add('active'); document.getElementById('btnDark')?.classList.remove('active'); } else { document.body.classList.remove('light-theme'); document.getElementById('btnDark')?.classList.add('active'); document.getElementById('btnLight')?.classList.remove('active'); } }
         function setThemeMode(mode) { localStorage.setItem(THEME_KEY, mode); applyTheme(mode); }
-        function setColorScheme(scheme) {
-            colorClasses.forEach(c => document.body.classList.remove(c));
-            document.body.classList.add('color-' + scheme);
-            localStorage.setItem(COLOR_KEY, scheme);
-            document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
-            document.querySelector(`[data-color="${scheme}"]`)?.classList.add('active');
-        }
+        function setColorScheme(scheme) { colorClasses.forEach(c => document.body.classList.remove(c)); document.body.classList.add('color-' + scheme); localStorage.setItem(COLOR_KEY, scheme); document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active')); document.querySelector(`[data-color="${scheme}"]`)?.classList.add('active'); }
         function toggleThemePanel() { document.getElementById('themePanel').classList.toggle('hidden'); document.getElementById('soundPanel').classList.add('hidden'); }
-
         const savedColor = localStorage.getItem(COLOR_KEY) || 'pink';
-        colorClasses.forEach(c => document.body.classList.remove(c));
-        document.body.classList.add('color-' + savedColor);
+        colorClasses.forEach(c => document.body.classList.remove(c)); document.body.classList.add('color-' + savedColor);
         applyTheme(localStorage.getItem(THEME_KEY) || 'dark');
         document.querySelector(`[data-color="${savedColor}"]`)?.classList.add('active');
         updateBabyUI();
@@ -454,14 +348,130 @@
 
         // === НАВИГАЦИЯ ===
         let mainTab='feeding', statsSubTab='feed';
-        function switchMainTab(tab){mainTab=tab; const tabs=['feeding','sleep','diaper','stats','growth','pro']; document.querySelectorAll('#mainApp .tab-btn').forEach((b,i)=>b.classList.toggle('active',tabs[i]===tab)); document.querySelectorAll('#mainApp .tab-content').forEach(c=>c.classList.remove('active')); document.getElementById('tab-'+tab).classList.add('active'); if(tab==='stats') buildAllCharts(); if(tab==='growth') updateGrowthUI(); if(tab==='pro') updateProUI();}
+        function switchMainTab(tab){mainTab=tab; const tabs=['feeding','sleep','diaper','stats','growth','calendar','pro']; document.querySelectorAll('#mainApp .tab-btn').forEach((b,i)=>b.classList.toggle('active',tabs[i]===tab)); document.querySelectorAll('#mainApp .tab-content').forEach(c=>c.classList.remove('active')); document.getElementById('tab-'+tab).classList.add('active'); if(tab==='stats') buildAllCharts(); if(tab==='growth') updateGrowthUI(); if(tab==='calendar') updateCalendar(); if(tab==='pro') updateProUI();}
         function switchStatsTab(tab){statsSubTab=tab; document.querySelectorAll('.sub-tab').forEach((b,i)=>b.classList.toggle('active',['feed','sleep','diaper'][i]===tab)); document.getElementById('statsFeed').style.display=tab==='feed'?'block':'none'; document.getElementById('statsSleep').style.display=tab==='sleep'?'block':'none'; document.getElementById('statsDiaper').style.display=tab==='diaper'?'block':'none';}
 
-        // === ХРАНИЛИЩЕ (с учётом профиля) ===
+        // === ХРАНИЛИЩЕ ===
         function getKey(type,dateObj){return 'mama'+getBabyPrefix()+'-'+type+'-'+(dateObj||today).toISOString().split('T')[0];}
         function getRecords(type,dateObj){return JSON.parse(localStorage.getItem(getKey(type,dateObj))||'[]');}
         function saveRecord(type,data){const key=getKey(type); const records=JSON.parse(localStorage.getItem(key)||'[]'); records.push({...data,timestamp:Date.now()}); localStorage.setItem(key,JSON.stringify(records));}
         function getAllRecords(type){const all=[]; for(let i=0;i<30;i++){const d=new Date(); d.setDate(d.getDate()-i); all.push(...getRecords(type,d));} return all.sort((a,b)=>b.timestamp-a.timestamp);}
+
+        // === КАЛЕНДАРЬ ===
+        let calYear = today.getFullYear();
+        let calMonth = today.getMonth();
+
+        function changeMonth(delta) {
+            calMonth += delta;
+            if (calMonth < 0) { calMonth = 11; calYear--; }
+            if (calMonth > 11) { calMonth = 0; calYear++; }
+            updateCalendar();
+        }
+
+        function getFeedCountForDate(dateObj) {
+            return getRecords('feed', dateObj).length;
+        }
+
+        function updateCalendar() {
+            const months = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
+            document.getElementById('monthLabel').textContent = months[calMonth] + ' ' + calYear;
+            
+            const grid = document.getElementById('calendarGrid');
+            const days = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+            
+            let html = days.map(d => `<div class="calendar-day-header">${d}</div>`).join('');
+            
+            const firstDay = new Date(calYear, calMonth, 1);
+            const lastDay = new Date(calYear, calMonth + 1, 0);
+            let startDow = firstDay.getDay() || 7;
+            
+            // Дни предыдущего месяца
+            const prevLast = new Date(calYear, calMonth, 0).getDate();
+            for (let i = startDow - 1; i > 0; i--) {
+                html += `<div class="calendar-day other-month">${prevLast - i + 1}</div>`;
+            }
+            
+            // Находим максимум кормлений за месяц для расчёта цвета
+            let maxFeeds = 0;
+            for (let d = 1; d <= lastDay.getDate(); d++) {
+                const count = getFeedCountForDate(new Date(calYear, calMonth, d));
+                if (count > maxFeeds) maxFeeds = count;
+            }
+            if (maxFeeds === 0) maxFeeds = 1;
+            
+            // Дни текущего месяца
+            for (let d = 1; d <= lastDay.getDate(); d++) {
+                const date = new Date(calYear, calMonth, d);
+                const count = getFeedCountForDate(date);
+                const intensity = count / maxFeeds;
+                
+                let bg;
+                if (count === 0) {
+                    bg = 'var(--stat-bg)';
+                } else if (intensity < 0.25) {
+                    bg = 'rgba(232,160,191,0.15)';
+                } else if (intensity < 0.5) {
+                    bg = 'rgba(232,160,191,0.35)';
+                } else if (intensity < 0.75) {
+                    bg = 'rgba(232,160,191,0.6)';
+                } else {
+                    bg = '#e8a0bf';
+                }
+                
+                const isToday = d === today.getDate() && calMonth === today.getMonth() && calYear === today.getFullYear();
+                const todayClass = isToday ? ' today' : '';
+                
+                html += `<div class="calendar-day${todayClass}" style="background:${bg}; color:${count > 0 && intensity >= 0.75 ? '#1a1a2e' : 'var(--text-secondary)'};" onclick="showDayDetail(${d})">${d}</div>`;
+            }
+            
+            // Дни следующего месяца
+            const remaining = 7 - ((startDow - 1 + lastDay.getDate()) % 7);
+            if (remaining < 7) {
+                for (let i = 1; i <= remaining; i++) {
+                    html += `<div class="calendar-day other-month">${i}</div>`;
+                }
+            }
+            
+            grid.innerHTML = html;
+        }
+
+        function showDayDetail(day) {
+            const date = new Date(calYear, calMonth, day);
+            const dateStr = date.toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' });
+            document.getElementById('dayDetailTitle').textContent = '📅 ' + dateStr;
+            
+            const feedData = getRecords('feed', date);
+            const sleepData = getRecords('sleep', date);
+            const diaperData = getRecords('diaper', date);
+            
+            let html = '';
+            if (feedData.length > 0) {
+                html += '<p style="font-size:14px; color:var(--accent); margin-bottom:8px;">🍼 Кормления: ' + feedData.length + '</p>';
+                feedData.sort((a,b) => a.timestamp - b.timestamp).forEach(r => {
+                    const t = new Date(r.timestamp).toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit'});
+                    html += `<div style="font-size:13px; padding:4px 0; color:var(--text-secondary);">${t} — ${Math.floor(r.duration/60)} мин (${r.side==='left'?'Л':'П'})</div>`;
+                });
+            }
+            if (sleepData.length > 0) {
+                html += '<p style="font-size:14px; color:var(--sleep); margin-top:12px; margin-bottom:8px;">😴 Сон: ' + sleepData.length + '</p>';
+                sleepData.sort((a,b) => a.timestamp - b.timestamp).forEach(r => {
+                    const t = new Date(r.timestamp).toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit'});
+                    html += `<div style="font-size:13px; padding:4px 0; color:var(--text-secondary);">${t} — ${Math.floor(r.duration/60)} мин</div>`;
+                });
+            }
+            if (diaperData.length > 0) {
+                html += '<p style="font-size:14px; color:var(--diaper); margin-top:12px; margin-bottom:8px;">💧 Подгузники: ' + diaperData.length + '</p>';
+                diaperData.sort((a,b) => a.timestamp - b.timestamp).forEach(r => {
+                    const t = new Date(r.timestamp).toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit'});
+                    const types = { wet: '💦 Мокрый', dirty: '💩 Грязный', both: '💦💩 Всё', dry: '✅ Смена' };
+                    html += `<div style="font-size:13px; padding:4px 0; color:var(--text-secondary);">${t} — ${types[r.type]||r.type}</div>`;
+                });
+            }
+            if (!html) html = '<p style="color:var(--text-secondary);">Нет данных за этот день</p>';
+            
+            document.getElementById('dayDetailContent').innerHTML = html;
+            document.getElementById('dayDetail').style.display = 'block';
+        }
 
         // === КОРМЛЕНИЕ ===
         let feedSide=null, feedRunning=false, feedStart=null, feedInterval=null;
@@ -515,12 +525,7 @@
         function stopReminder(){if(reminderInterval){clearInterval(reminderInterval); reminderInterval=null;} reminderMinutes=null; document.getElementById('reminderStatus').innerHTML='';}
 
         // === ИНИЦИАЛИЗАЦИЯ ===
-        updateBabyUI();
-        updateFeedStats(); renderFeedHistory();
-        updateSleepStats(); renderSleepHistory();
-        updateDiaperStats(); renderDiaperHistory();
-        updateGrowthUI();
-        updateProUI();
+        updateBabyUI(); updateFeedStats(); renderFeedHistory(); updateSleepStats(); renderSleepHistory(); updateDiaperStats(); renderDiaperHistory(); updateGrowthUI(); updateProUI(); updateCalendar();
     </script>
 </body>
 </html>
