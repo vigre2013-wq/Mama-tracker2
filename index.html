@@ -698,11 +698,12 @@
             y += 16;
 
             drawSection('Подгузники', '💧', '#a0e8c4');
-            drawRow('Дата', 'Тип', true);
+            drawRow('Дата и время', 'Тип', true);
             diaperData.forEach(r => {
                 const d = new Date(r.timestamp).toLocaleDateString('ru-RU', {day:'2-digit', month:'2-digit'});
+                const t = new Date(r.timestamp).toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit'});
                 const types = { wet: '💦 Мокрый', dirty: '💩 Грязный', both: '💦💩 Всё', dry: '✅ Смена' };
-                drawRow(d, types[r.type] || r.type, false);
+                drawRow(d + ' ' + t, types[r.type] || r.type, false);
             });
 
             y = canvas.height - 60;
