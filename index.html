@@ -216,7 +216,7 @@
                 <p style="margin-top:8px;">💧 Подгузники — мокрые и грязные</p>
                 <p style="margin-top:8px;">📊 Статистика — графики за неделю</p>
                 <p style="margin-top:8px;">🔔 Напоминания — не забудешь покормить</p>
-                <p style="margin-top:8px;">📝 Заметки — записывай важное</p>
+                <p style="margin-top:8px;">📝 Заметки — записывай и редактируй</p>
                 <p style="margin-top:8px;">👑 PRO — аналитика, экспорт для врача</p>
             </div>
             <button onclick="closeWelcome()" class="welcome-btn">Понятно, начнём! 🚀</button>
@@ -669,7 +669,7 @@
             }).join('');
         }
 
-        // === ПОКАЗАТЬ ЗАМЕТКУ ===
+        // === ПОКАЗАТЬ И РЕДАКТИРОВАТЬ ЗАМЕТКУ ===
         function showNote(type, index) {
             const recs = type === 'feed' ? (isPro() ? getAllRecords('feed').slice(0, 50) : getRecords('feed').sort((a,b) => b.timestamp - a.timestamp))
                 : type === 'sleep' ? (isPro() ? getAllRecords('sleep').slice(0, 50) : getRecords('sleep').sort((a,b) => b.timestamp - a.timestamp))
@@ -677,16 +677,74 @@
             const record = recs[index];
             if (!record) return;
             
-            const note = record.note || 'Нет заметки';
+            const note = record.note || '';
             const t = new Date(record.timestamp).toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit'});
             const d = new Date(record.timestamp).toLocaleDateString('ru-RU', {day:'2-digit', month:'2-digit'});
             const emoji = type === 'feed' ? '🍼' : type === 'sleep' ? '😴' : '💧';
             
-            if (tg?.showPopup) {
-                tg.showPopup({ title: `${emoji} ${d} ${t}`, message: note, buttons: [{type: 'ok'}] });
-            } else {
-                alert(`${d} ${t}\n${note}`);
+            const overlay = document.createElement('div');
+            overlay.className = 'note-overlay';
+            overlay.id = 'editNoteOverlay';
+            
+            const dialog = document.createElement('div');
+            dialog.className = 'note-dialog';
+            
+            dialog.innerHTML = `
+                <h3>${emoji} ${d} ${t}</h3>
+                <p style="color:var(--text-secondary); font-size:13px; margin-bottom:8px;">${note ? 'Редактировать заметку:' : 'Добавить заметку:'}</p>
+                <textarea id="editNoteText" placeholder="Заметка...">${note}</textarea>
+                <div class="note-dialog-buttons">
+                    ${note ? '<button class="note-skip-btn" id="noteDelete" style="color:#e8606e;">🗑 Удалить</button>' : ''}
+                    <button class="note-skip-btn" id="noteClose">Закрыть</button>
+                    <button class="note-save-btn" id="noteUpdate">💾 Сохранить</button>
+                </div>
+            `;
+            
+            overlay.appendChild(dialog);
+            document.body.appendChild(overlay);
+            
+            document.getElementById('noteUpdate').onclick = function() {
+                const newNote = document.getElementById('editNoteText').value.trim();
+                const key = getKey(type, new Date(record.timestamp));
+                const allRecs = JSON.parse(localStorage.getItem(key) || '[]');
+                for (let i = allRecs.length - 1; i >= 0; i--) {
+                    if (allRecs[i].timestamp === record.timestamp) {
+                        allRecs[i].note = newNote || undefined;
+                        if (!newNote) delete allRecs[i].note;
+                        break;
+                    }
+                }
+                localStorage.setItem(key, JSON.stringify(allRecs));
+                document.body.removeChild(overlay);
+                refreshAll();
+            };
+            
+            document.getElementById('noteClose').onclick = function() {
+                document.body.removeChild(overlay);
+            };
+            
+            const deleteBtn = document.getElementById('noteDelete');
+            if (deleteBtn) {
+                deleteBtn.onclick = function() {
+                    const key = getKey(type, new Date(record.timestamp));
+                    const allRecs = JSON.parse(localStorage.getItem(key) || '[]');
+                    for (let i = allRecs.length - 1; i >= 0; i--) {
+                        if (allRecs[i].timestamp === record.timestamp) {
+                            delete allRecs[i].note;
+                            break;
+                        }
+                    }
+                    localStorage.setItem(key, JSON.stringify(allRecs));
+                    document.body.removeChild(overlay);
+                    refreshAll();
+                };
             }
+            
+            overlay.addEventListener('click', function(e) {
+                if (e.target === overlay) document.body.removeChild(overlay);
+            });
+            
+            setTimeout(() => document.getElementById('editNoteText').focus(), 100);
         }
 
         // === СТАТИСТИКА ===
