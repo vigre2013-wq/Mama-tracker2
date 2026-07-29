@@ -280,9 +280,7 @@
                 </div>
                 <div class="card">
                     <div class="card-title">📤 Экспорт отчёта</div>
-                    <button class="export-btn" onclick="exportAsImage()">📸 Скачать красивый отчёт (PNG)</button>
-                    <button class="export-btn" style="margin-top:8px; background:rgba(255,255,255,0.1); color:var(--text);" onclick="exportReport()">📋 Скопировать текст отчёта</button>
-                    <button class="export-btn" style="margin-top:8px; background:rgba(255,255,255,0.05); color:var(--text-secondary);" onclick="exportAllData()">📦 Скопировать все данные (JSON)</button>
+                    <button class="export-btn" onclick="exportAsImage()">📸 Скачать отчёт в PNG</button>
                 </div>
             </div>
             <div id="proInactive">
@@ -292,7 +290,7 @@
                     <p style="color:var(--text-secondary); margin:12px 0; font-size:14px;">Разблокируй все возможности:</p>
                     <div style="text-align:left; margin:16px 0; font-size:14px; color:var(--text-secondary);">
                         <p>📈 Расширенная аналитика</p>
-                        <p>📸 Экспорт отчёта для врача (картинка)</p>
+                        <p>📸 Экспорт отчёта для врача (PNG)</p>
                         <p>📅 История за всё время</p>
                     </div>
                     <p style="color:var(--text-secondary); font-size:12px;">Оплата будет доступна позже.</p>
@@ -604,47 +602,6 @@
         function buildAllCharts() { buildFeedChart(); buildSleepChart(); buildDiaperChart(); }
 
         // === ЭКСПОРТ ===
-        function exportReport() {
-            if (!isPro()) return;
-            const text = generateReportText();
-            navigator.clipboard.writeText(text).then(() => {
-                if (tg?.showPopup) tg.showPopup({ title: '✅ Готово!', message: 'Отчёт скопирован в буфер обмена.', buttons: [{type:'ok'}] });
-                else alert('Отчёт скопирован!');
-            });
-        }
-
-        function generateReportText() {
-            let report = '📋 ОТЧЁТ МАМА ТРЕКЕРА\n' + '═'.repeat(25) + '\n\n';
-            report += '🍼 КОРМЛЕНИЯ:\n';
-            getAllRecords('feed').slice(0, 30).forEach((r, i) => {
-                const d = new Date(r.timestamp).toLocaleDateString('ru-RU');
-                const t = new Date(r.timestamp).toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit'});
-                const min = Math.floor(r.duration/60);
-                report += `${i+1}. ${d} ${t} — ${r.side==='left'?'Левая':'Правая'} (${min} мин)\n`;
-            });
-            report += '\n😴 СОН:\n';
-            getAllRecords('sleep').slice(0, 15).forEach((r, i) => {
-                const d = new Date(r.timestamp).toLocaleDateString('ru-RU');
-                const min = Math.floor(r.duration/60);
-                report += `${i+1}. ${d} — ${min} мин\n`;
-            });
-            report += '\n💧 ПОДГУЗНИКИ:\n';
-            getAllRecords('diaper').slice(0, 15).forEach((r, i) => {
-                const d = new Date(r.timestamp).toLocaleDateString('ru-RU');
-                report += `${i+1}. ${d} — ${r.type}\n`;
-            });
-            return report;
-        }
-
-        function exportAllData() {
-            if (!isPro()) return;
-            const data = { feed: getAllRecords('feed'), sleep: getAllRecords('sleep'), diaper: getAllRecords('diaper') };
-            const text = JSON.stringify(data, null, 2);
-            navigator.clipboard.writeText(text).then(() => {
-                if (tg?.showPopup) tg.showPopup({ title: '✅ Готово!', message: 'Данные скопированы.', buttons: [{type:'ok'}] });
-            });
-        }
-
         function exportAsImage() {
             if (!isPro()) return;
 
