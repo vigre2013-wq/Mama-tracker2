@@ -632,4 +632,65 @@
             const week = getWeekData('sleep');
             const counts = week.map(r => r.length);
             const durations = week.map(r => Math.floor(r.reduce((s, f) => s + f.duration, 0) / 60));
-            buildChart('sleepChart', durations, 'var(--sleep)', v => v >= 60 ? Math.floor(v/60
+            buildChart('sleepChart', durations, 'var(--sleep)', v => v >= 60 ? Math.floor(v/60) + ' ч' : v + ' мин', 600);
+            const totalMin = durations.reduce((a,b)=>a+b,0);
+            const totalCount = counts.reduce((a,b)=>a+b,0);
+            document.getElementById('sleepAverages').innerHTML = `
+                <div class="avg-row"><span>Всего сна</span><span class="avg-value">${Math.floor(totalMin/60)} ч ${totalMin%60} мин</span></div>
+                <div class="avg-row"><span>В среднем в день</span><span class="avg-value">${Math.floor(totalMin/7/60)} ч ${Math.floor(totalMin/7)%60} мин</span></div>
+                <div class="avg-row"><span>Средняя длительность</span><span class="avg-value">${totalCount > 0 ? Math.floor(totalMin/totalCount) : 0} мин</span></div>
+            `;
+        }
+
+        function buildDiaperChart() {
+            const week = getWeekData('diaper');
+            const counts = week.map(r => r.length);
+            buildChart('diaperChart', counts, 'var(--diaper)', v => v, 20);
+            const total = counts.reduce((a,b)=>a+b,0);
+            document.getElementById('diaperAverages').innerHTML = `
+                <div class="avg-row"><span>Всего смен</span><span class="avg-value">${total}</span></div>
+                <div class="avg-row"><span>В среднем в день</span><span class="avg-value">${(total/7).toFixed(1)}</span></div>
+            `;
+        }
+
+        function buildAllCharts() {
+            buildFeedChart(); buildSleepChart(); buildDiaperChart();
+        }
+
+        // === НАПОМИНАНИЯ ===
+        let reminderInterval = null, reminderMinutes = null;
+
+        function getMinutesSinceLastFeeding() {
+            const recs = getRecords('feed');
+            if (!recs.length) return null;
+            return Math.floor((Date.now() - recs[recs.length-1].timestamp) / 60000);
+        }
+
+        function startReminder(min) {
+            stopReminder();
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission().then(p => { if (p === 'granted') startReminder(min); });
+                return;
+            }
+            reminderMinutes = min;
+            reminderInterval = setInterval(() => {
+                const m = getMinutesSinceLastFeeding();
+                if (m !== null && m >= reminderMinutes && 'Notification' in window && Notification.permission === 'granted') {
+                    new Notification('🍼 Время кормления!', { body: 'Прошло ' + m + ' минут', tag: 'feed-reminder', vibrate: [200,100,200] });
+                    stopReminder();
+                }
+            }, 30000);
+        }
+
+        function stopReminder() {
+            if (reminderInterval) { clearInterval(reminderInterval); reminderInterval = null; }
+            reminderMinutes = null;
+        }
+
+        // === ИНИЦИАЛИЗАЦИЯ ===
+        updateFeedStats(); renderFeedHistory();
+        updateSleepStats(); renderSleepHistory();
+        updateDiaperStats(); renderDiaperHistory();
+    </script>
+</body>
+</html>
