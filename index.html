@@ -22,7 +22,6 @@
             --tab-bg: var(--surface);
             --input-border: rgba(255,255,255,0.1);
             --btn-ghost: rgba(255,255,255,0.05);
-            --chart-color: var(--accent);
         }
         .light-theme {
             --bg: #f5f0f3;
@@ -35,7 +34,6 @@
             --input-border: rgba(0,0,0,0.1);
             --btn-ghost: rgba(0,0,0,0.03);
         }
-        /* Цветовые схемы */
         .color-pink {
             --accent: #e8a0bf; --accent-light: rgba(232,160,191,0.15);
             --left-breast: #e8a0bf; --pro-gold: #f0c060;
@@ -94,51 +92,30 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         .card { background: var(--surface); border-radius: 24px; padding: 24px; margin: 16px 0; transition: background 0.3s; }
-        .card-title {
-            font-size: 13px; font-weight: 600; color: var(--text-secondary);
-            margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px;
-        }
-        .timer-display {
-            text-align: center; font-size: 64px; font-weight: 300;
-            font-family: 'SF Mono', 'Menlo', monospace; margin: 16px 0 24px; letter-spacing: 2px;
-        }
+        .card-title { font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px; }
+        .timer-display { text-align: center; font-size: 64px; font-weight: 300; font-family: 'SF Mono', 'Menlo', monospace; margin: 16px 0 24px; letter-spacing: 2px; }
         .breast-select { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
-        .breast-btn {
-            height: 64px; border-radius: 20px; border: 2px solid transparent;
-            font-size: 17px; font-weight: 600; cursor: pointer;
-            display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s;
-        }
+        .breast-btn { height: 64px; border-radius: 20px; border: 2px solid transparent; font-size: 17px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s; }
         .breast-btn.left { background: var(--accent-light); color: var(--left-breast); }
         .breast-btn.right { background: rgba(160,196,232,0.15); color: var(--right-breast); }
         .breast-btn.selected { border-color: currentColor; }
-        .action-btn {
-            width: 100%; height: 60px; border-radius: 20px; border: none;
-            font-size: 18px; font-weight: 700; cursor: pointer; margin-top: 8px; transition: all 0.2s;
-        }
+        .action-btn { width: 100%; height: 60px; border-radius: 20px; border: none; font-size: 18px; font-weight: 700; cursor: pointer; margin-top: 8px; transition: all 0.2s; }
         .action-btn.start { background: var(--accent); color: #fff; }
         .action-btn.stop { background: #e8606e; color: white; }
         .action-btn.start-sleep { background: var(--sleep); color: #fff; }
         .action-btn:active { transform: scale(0.97); }
         .action-btn:disabled { opacity: 0.4; pointer-events: none; }
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .stat-item { background: var(--stat-bg); border-radius: 16px; padding: 16px; text-align: center; transition: background 0.3s; }
+        .stat-item { background: var(--stat-bg); border-radius: 16px; padding: 16px; text-align: center; }
         .stat-value { font-size: 28px; font-weight: 700; color: var(--accent); }
         .stat-label { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
         .diaper-types { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
-        .diaper-btn {
-            height: 80px; border-radius: 20px; border: 2px solid transparent;
-            font-size: 15px; font-weight: 600; cursor: pointer;
-            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
-            background: rgba(160,232,196,0.1); color: var(--diaper); transition: all 0.2s;
-        }
+        .diaper-btn { height: 80px; border-radius: 20px; border: 2px solid transparent; font-size: 15px; font-weight: 600; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; background: rgba(160,232,196,0.1); color: var(--diaper); transition: all 0.2s; }
         .diaper-btn.wet { background: rgba(160,196,232,0.1); color: #7a9ec4; }
         .diaper-btn.dirty { background: rgba(200,180,140,0.1); color: #b8a070; }
         .diaper-btn.both { background: rgba(232,160,191,0.1); color: #d4899f; }
         .history-list { max-height: 300px; overflow-y: auto; }
-        .history-item, .growth-list-item {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 14px 0; border-bottom: 1px solid var(--border); cursor: pointer; transition: border-color 0.3s;
-        }
+        .history-item, .growth-list-item { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--border); cursor: pointer; }
         .history-item:last-child, .growth-list-item:last-child { border-bottom: none; }
         .history-item:active, .growth-list-item:active { opacity: 0.7; }
         .history-duration { font-weight: 600; font-size: 15px; }
@@ -158,83 +135,33 @@
         .chart-bar { width: 100%; border-radius: 6px 6px 0 0; min-height: 4px; transition: height 0.5s ease; }
         .chart-value { font-size: 10px; color: var(--text); margin-bottom: 4px; font-weight: 600; }
         .sub-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
-        .sub-tab {
-            flex: 1; height: 36px; border-radius: 10px; border: none;
-            font-size: 13px; font-weight: 600; cursor: pointer;
-            background: var(--btn-ghost); color: var(--text-secondary); transition: all 0.2s;
-        }
+        .sub-tab { flex: 1; height: 36px; border-radius: 10px; border: none; font-size: 13px; font-weight: 600; cursor: pointer; background: var(--btn-ghost); color: var(--text-secondary); transition: all 0.2s; }
         .sub-tab.active { background: var(--accent); color: #fff; }
         .avg-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
         .avg-value { font-weight: 600; color: var(--accent); }
-        .welcome-btn {
-            width: 100%; height: 50px; border-radius: 16px; border: none;
-            background: var(--accent); color: #fff; font-size: 16px; font-weight: 700; cursor: pointer;
-        }
-        .pro-badge {
-            display: inline-block; background: linear-gradient(135deg, var(--pro-gold), #e0a030);
-            color: #fff; font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 8px; margin-left: 4px;
-        }
+        .welcome-btn { width: 100%; height: 50px; border-radius: 16px; border: none; background: var(--accent); color: #fff; font-size: 16px; font-weight: 700; cursor: pointer; }
+        .pro-badge { display: inline-block; background: linear-gradient(135deg, var(--pro-gold), #e0a030); color: #fff; font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 8px; margin-left: 4px; }
         .pro-card { background: linear-gradient(135deg, rgba(240,192,96,0.1), rgba(224,160,48,0.05)); border: 1px solid rgba(240,192,96,0.2); }
-        .export-btn {
-            width: 100%; height: 44px; border-radius: 14px; border: none;
-            background: linear-gradient(135deg, var(--pro-gold), #e0a030);
-            color: #fff; font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 12px;
-        }
-        .activate-btn {
-            width: 100%; height: 44px; border-radius: 14px; border: 1px solid var(--pro-gold);
-            background: transparent; color: var(--pro-gold); font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 8px;
-        }
-        input {
-            width: 100%; height: 44px; border-radius: 12px;
-            border: 1px solid var(--input-border); background: var(--bg);
-            color: var(--text); padding: 0 16px; font-size: 16px; text-align: center; margin-bottom: 8px;
-            transition: all 0.3s;
-        }
-        textarea {
-            width: 100%; border-radius: 12px;
-            border: 1px solid var(--input-border); background: var(--bg);
-            color: var(--text); padding: 12px 16px; font-size: 15px; resize: none; font-family: inherit;
-            transition: all 0.3s;
-        }
+        .export-btn { width: 100%; height: 44px; border-radius: 14px; border: none; background: linear-gradient(135deg, var(--pro-gold), #e0a030); color: #fff; font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 12px; }
+        .activate-btn { width: 100%; height: 44px; border-radius: 14px; border: 1px solid var(--pro-gold); background: transparent; color: var(--pro-gold); font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 8px; }
+        input { width: 100%; height: 44px; border-radius: 12px; border: 1px solid var(--input-border); background: var(--bg); color: var(--text); padding: 0 16px; font-size: 16px; text-align: center; margin-bottom: 8px; }
+        textarea { width: 100%; border-radius: 12px; border: 1px solid var(--input-border); background: var(--bg); color: var(--text); padding: 12px 16px; font-size: 15px; resize: none; font-family: inherit; }
         .pro-bar { height: 8px; border-radius: 4px; overflow: hidden; margin: 8px 0; background: var(--btn-ghost); }
         .pro-bar-fill { height: 100%; border-radius: 4px; transition: width 0.5s; }
-
-        .note-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7); z-index: 9999;
-            display: flex; align-items: center; justify-content: center; padding: 20px;
-        }
-        .note-dialog {
-            background: var(--surface); border-radius: 20px; padding: 24px;
-            width: 100%; max-width: 400px;
-        }
+        .note-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .note-dialog { background: var(--surface); border-radius: 20px; padding: 24px; width: 100%; max-width: 400px; }
         .note-dialog h3 { margin-bottom: 16px; font-size: 18px; }
         .note-dialog textarea { margin-bottom: 16px; height: 80px; }
         .note-dialog-buttons { display: flex; gap: 8px; }
-        .note-dialog-buttons button {
-            flex: 1; height: 44px; border-radius: 12px; border: none;
-            font-size: 15px; font-weight: 600; cursor: pointer;
-        }
+        .note-dialog-buttons button { flex: 1; height: 44px; border-radius: 12px; border: none; font-size: 15px; font-weight: 600; cursor: pointer; }
         .note-save-btn { background: var(--accent); color: #fff; }
         .note-skip-btn { background: var(--btn-ghost); color: var(--text-secondary); }
-
-        .sound-panel, .theme-panel {
-            position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
-            width: 100%; max-width: 500px; background: var(--surface);
-            border-radius: 24px 24px 0 0; padding: 24px; z-index: 1000;
-            box-shadow: 0 -4px 30px rgba(0,0,0,0.3); transition: transform 0.3s ease;
-        }
+        .sound-panel, .theme-panel { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 500px; background: var(--surface); border-radius: 24px 24px 0 0; padding: 24px; z-index: 1000; box-shadow: 0 -4px 30px rgba(0,0,0,0.3); transition: transform 0.3s ease; }
         .sound-panel.hidden, .theme-panel.hidden { transform: translateX(-50%) translateY(100%); }
-        .sound-grid, .color-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 16px; }
-        .sound-btn, .color-btn {
-            height: 70px; border-radius: 16px; border: 2px solid transparent;
-            font-size: 13px; font-weight: 600; cursor: pointer;
-            background: var(--stat-bg); color: var(--text-secondary);
-            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
-            transition: all 0.2s;
-        }
-        .sound-btn .sound-emoji, .color-btn .color-dot { font-size: 24px; }
-        .color-dot { width: 28px; height: 28px; border-radius: 50%; }
+        .sound-grid, .color-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 16px; }
+        .sound-btn, .color-btn { height: 60px; border-radius: 14px; border: 2px solid transparent; font-size: 11px; font-weight: 600; cursor: pointer; background: var(--stat-bg); color: var(--text-secondary); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; transition: all 0.2s; }
+        .sound-btn .sound-emoji { font-size: 20px; }
+        .color-dot { width: 24px; height: 24px; border-radius: 50%; margin-bottom: 2px; }
         .color-dot.pink { background: #e8a0bf; }
         .color-dot.blue { background: #7eb8da; }
         .color-dot.mint { background: #7ec9a0; }
@@ -242,16 +169,15 @@
         .color-dot.peach { background: #f0b890; }
         .sound-btn.active, .color-btn.active { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
         .sound-btn:active, .color-btn:active { transform: scale(0.95); }
+        .theme-toggle-row { display: flex; gap: 8px; margin-bottom: 16px; }
+        .theme-toggle-row button { flex: 1; height: 44px; border-radius: 12px; border: 1px solid var(--border); background: transparent; color: var(--text-secondary); font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .theme-toggle-row button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
         .volume-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
         .volume-row input[type=range] { flex: 1; height: 6px; accent-color: var(--accent); }
         .volume-row span { font-size: 14px; color: var(--text-secondary); min-width: 60px; text-align: center; }
         .timer-row { display: flex; gap: 8px; }
-        .timer-row button {
-            flex: 1; height: 36px; border-radius: 10px; border: 1px solid var(--border);
-            background: transparent; color: var(--text-secondary); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;
-        }
+        .timer-row button { flex: 1; height: 36px; border-radius: 10px; border: 1px solid var(--border); background: transparent; color: var(--text-secondary); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
         .timer-row button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
-
         .growth-chart-container { position: relative; height: 200px; margin: 8px 0; }
         .growth-chart-container canvas { width: 100%; height: 100%; }
     </style>
@@ -265,8 +191,7 @@
         </div>
         <div class="header-btns">
             <button class="icon-btn" onclick="toggleSoundPanel()" id="soundToggle" title="Белый шум">🎵</button>
-            <button class="icon-btn" onclick="toggleThemePanel()" id="themeToggle" title="Сменить тему">🎨</button>
-            <button class="icon-btn" onclick="toggleLightDark()" id="themeBtn" title="Светлая/Тёмная">🌓</button>
+            <button class="icon-btn" onclick="toggleThemePanel()" id="themeToggle" title="Оформление">🎨</button>
         </div>
     </div>
 
@@ -340,7 +265,7 @@
 
     <div class="sound-panel hidden" id="soundPanel">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;"><h3 style="font-size:18px;">🎵 Белый шум</h3><button class="icon-btn" onclick="stopSound()" style="width:32px;height:32px;font-size:16px;">✕</button></div>
-        <div class="sound-grid">
+        <div class="sound-grid" style="grid-template-columns: repeat(3, 1fr);">
             <button class="sound-btn" onclick="playSound('whitenoise')" data-sound="whitenoise"><span class="sound-emoji">🌧</span>Белый шум</button>
             <button class="sound-btn" onclick="playSound('fan')" data-sound="fan"><span class="sound-emoji">💨</span>Фен</button>
             <button class="sound-btn" onclick="playSound('rain')" data-sound="rain"><span class="sound-emoji">🌊</span>Дождь</button>
@@ -354,13 +279,19 @@
     </div>
 
     <div class="theme-panel hidden" id="themePanel">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;"><h3 style="font-size:18px;">🎨 Выбор темы</h3><button class="icon-btn" onclick="document.getElementById('themePanel').classList.add('hidden')" style="width:32px;height:32px;font-size:16px;">✕</button></div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;"><h3 style="font-size:18px;">🎨 Оформление</h3><button class="icon-btn" onclick="document.getElementById('themePanel').classList.add('hidden')" style="width:32px;height:32px;font-size:16px;">✕</button></div>
+        <p style="font-size:13px; color:var(--text-secondary); margin-bottom:8px;">Режим:</p>
+        <div class="theme-toggle-row">
+            <button onclick="setThemeMode('dark')" id="btnDark">🌙 Тёмная</button>
+            <button onclick="setThemeMode('light')" id="btnLight">☀️ Светлая</button>
+        </div>
+        <p style="font-size:13px; color:var(--text-secondary); margin-bottom:8px; margin-top:12px;">Цветовая схема:</p>
         <div class="color-grid">
-            <button class="color-btn active" onclick="setColorScheme('pink')" data-color="pink"><span class="color-dot pink"></span>🌸 Розовая</button>
-            <button class="color-btn" onclick="setColorScheme('blue')" data-color="blue"><span class="color-dot blue"></span>🌊 Голубая</button>
-            <button class="color-btn" onclick="setColorScheme('mint')" data-color="mint"><span class="color-dot mint"></span>🌿 Мятная</button>
-            <button class="color-btn" onclick="setColorScheme('lavender')" data-color="lavender"><span class="color-dot lavender"></span>💜 Лаванда</button>
-            <button class="color-btn" onclick="setColorScheme('peach')" data-color="peach"><span class="color-dot peach"></span>🍑 Персик</button>
+            <button class="color-btn active" onclick="setColorScheme('pink')" data-color="pink"><span class="color-dot pink"></span>🌸</button>
+            <button class="color-btn" onclick="setColorScheme('blue')" data-color="blue"><span class="color-dot blue"></span>🌊</button>
+            <button class="color-btn" onclick="setColorScheme('mint')" data-color="mint"><span class="color-dot mint"></span>🌿</button>
+            <button class="color-btn" onclick="setColorScheme('lavender')" data-color="lavender"><span class="color-dot lavender"></span>💜</button>
+            <button class="color-btn" onclick="setColorScheme('peach')" data-color="peach"><span class="color-dot peach"></span>🍑</button>
         </div>
     </div>
 
@@ -380,17 +311,17 @@
         function applyTheme(theme) {
             if (theme === 'light') {
                 document.body.classList.add('light-theme');
-                document.getElementById('themeBtn').textContent = '☀️';
+                document.getElementById('btnLight').classList.add('active');
+                document.getElementById('btnDark').classList.remove('active');
             } else {
                 document.body.classList.remove('light-theme');
-                document.getElementById('themeBtn').textContent = '🌙';
+                document.getElementById('btnDark').classList.add('active');
+                document.getElementById('btnLight').classList.remove('active');
             }
         }
-        function toggleLightDark() {
-            const c = localStorage.getItem(THEME_KEY) || 'dark';
-            const n = c === 'dark' ? 'light' : 'dark';
-            localStorage.setItem(THEME_KEY, n);
-            applyTheme(n);
+        function setThemeMode(mode) {
+            localStorage.setItem(THEME_KEY, mode);
+            applyTheme(mode);
         }
         function setColorScheme(scheme) {
             colorClasses.forEach(c => document.body.classList.remove(c));
@@ -399,7 +330,6 @@
             document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
             const btn = document.querySelector(`[data-color="${scheme}"]`);
             if (btn) btn.classList.add('active');
-            document.getElementById('themePanel').classList.add('hidden');
         }
         function toggleThemePanel() {
             document.getElementById('themePanel').classList.toggle('hidden');
