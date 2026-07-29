@@ -169,6 +169,7 @@
             font-weight: 600;
             cursor: pointer;
         }
+        .reminder-btn:active { transform: scale(0.95); }
 
         .chart-row {
             display: flex;
@@ -220,18 +221,19 @@
             font-weight: 700;
             cursor: pointer;
         }
+        .welcome-btn:active { transform: scale(0.97); }
     </style>
 </head>
 <body>
 
-    <div class="header">
+    <div class="header" id="appHeader">
         <h1>🤱 Мама Трекер</h1>
         <div class="date" id="todayDate"></div>
         <div id="cloudStatus" style="font-size:11px; color:#7ecb8a; margin-top:4px; display:none;">☁️ Данные синхронизированы</div>
     </div>
 
     <!-- Приветственный экран -->
-    <div id="welcomeScreen" style="display:none;">
+    <div id="welcomeScreen">
         <div class="card" style="text-align:center;">
             <div style="font-size:60px; margin-bottom:12px;">👋</div>
             <h2 style="margin-bottom:12px;">Привет, мама!</h2>
@@ -249,150 +251,152 @@
         </div>
     </div>
 
-    <!-- Вкладки -->
-    <div class="tabs" id="mainTabs">
-        <button class="tab-btn active" onclick="switchMainTab('feeding')">🍼 Кормление</button>
-        <button class="tab-btn" onclick="switchMainTab('sleep')">😴 Сон</button>
-        <button class="tab-btn" onclick="switchMainTab('diaper')">💧 Подгузники</button>
-        <button class="tab-btn" onclick="switchMainTab('stats')">📊 Статистика</button>
-    </div>
+    <!-- Основной интерфейс -->
+    <div id="mainApp" style="display:none;">
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchMainTab('feeding')">🍼 Кормление</button>
+            <button class="tab-btn" onclick="switchMainTab('sleep')">😴 Сон</button>
+            <button class="tab-btn" onclick="switchMainTab('diaper')">💧 Подгузники</button>
+            <button class="tab-btn" onclick="switchMainTab('stats')">📊 Статистика</button>
+        </div>
 
-    <!-- Кормление -->
-    <div class="tab-content active" id="tab-feeding">
-        <div class="card">
-            <div class="card-title">🍼 Кормление</div>
-            <div class="breast-select">
-                <button class="breast-btn left" id="btnLeft" onclick="selectSide('left')">⬅️ Левая</button>
-                <button class="breast-btn right" id="btnRight" onclick="selectSide('right')">➡️ Правая</button>
-            </div>
-            <div class="timer-display" id="feedingTimer">00:00</div>
-            <button class="action-btn start" id="feedingBtn" onclick="feedingToggle()" disabled>▶️ Начать</button>
-        </div>
-        <div class="card">
-            <div class="card-title">📊 Сегодня</div>
-            <div class="stats-grid">
-                <div class="stat-item"><div class="stat-value" id="feedCount">0</div><div class="stat-label">Кормлений</div></div>
-                <div class="stat-item"><div class="stat-value" id="feedDuration">0 мин</div><div class="stat-label">Общее время</div></div>
-            </div>
-            <div id="reminderStatus" style="text-align:center; font-size:13px; margin-top:16px; min-height:20px;"></div>
-            <div style="display:flex; gap:8px; margin-top:12px;">
-                <button onclick="startReminder(120)" class="reminder-btn" style="background:rgba(232,160,191,0.2); color:#e8a0bf;">🔔 2 ч</button>
-                <button onclick="startReminder(180)" class="reminder-btn" style="background:rgba(160,196,232,0.2); color:#a0c4e8;">🔔 3 ч</button>
-                <button onclick="stopReminder()" class="reminder-btn" style="background:rgba(255,255,255,0.05); color:#a8a0b0;">🔕</button>
-            </div>
-        </div>
-        <div class="card">
-            <div class="card-title">📝 История</div>
-            <div class="history-list" id="feedHistory"><div class="empty-state">Нет записей</div></div>
-        </div>
-    </div>
-
-    <!-- Сон -->
-    <div class="tab-content" id="tab-sleep">
-        <div class="card">
-            <div class="card-title">😴 Сон</div>
-            <div class="timer-display" id="sleepTimer">00:00</div>
-            <button class="action-btn start-sleep" id="sleepBtn" onclick="sleepToggle()">▶️ Уложить спать</button>
-        </div>
-        <div class="card">
-            <div class="card-title">📊 Сегодня</div>
-            <div class="stats-grid">
-                <div class="stat-item"><div class="stat-value" id="sleepCount">0</div><div class="stat-label">Снов</div></div>
-                <div class="stat-item"><div class="stat-value" id="sleepDuration">0 мин</div><div class="stat-label">Общее время</div></div>
-            </div>
-        </div>
-        <div class="card">
-            <div class="card-title">📝 История</div>
-            <div class="history-list" id="sleepHistory"><div class="empty-state">Нет записей</div></div>
-        </div>
-    </div>
-
-    <!-- Подгузники -->
-    <div class="tab-content" id="tab-diaper">
-        <div class="card">
-            <div class="card-title">💧 Сменить подгузник</div>
-            <div class="diaper-types">
-                <button class="diaper-btn wet" onclick="addDiaper('wet')">💦<br>Мокрый</button>
-                <button class="diaper-btn dirty" onclick="addDiaper('dirty')">💩<br>Грязный</button>
-                <button class="diaper-btn both" onclick="addDiaper('both')">💦💩<br>Всё вместе</button>
-                <button class="diaper-btn" onclick="addDiaper('dry')">✅<br>Сменили</button>
-            </div>
-        </div>
-        <div class="card">
-            <div class="card-title">📊 Сегодня</div>
-            <div class="stats-grid">
-                <div class="stat-item"><div class="stat-value" id="diaperCount">0</div><div class="stat-label">Всего смен</div></div>
-                <div class="stat-item"><div class="stat-value" id="diaperDirty">0</div><div class="stat-label">Грязных</div></div>
-            </div>
-        </div>
-        <div class="card">
-            <div class="card-title">📝 История</div>
-            <div class="history-list" id="diaperHistory"><div class="empty-state">Нет записей</div></div>
-        </div>
-    </div>
-
-    <!-- Статистика -->
-    <div class="tab-content" id="tab-stats">
-        <div class="sub-tabs">
-            <button class="sub-tab active" onclick="switchStatsTab('feed')">🍼 Кормления</button>
-            <button class="sub-tab" onclick="switchStatsTab('sleep')">😴 Сон</button>
-            <button class="sub-tab" onclick="switchStatsTab('diaper')">💧 Подгузники</button>
-        </div>
-        <div id="statsFeed">
+        <!-- Кормление -->
+        <div class="tab-content active" id="tab-feeding">
             <div class="card">
-                <div class="card-title">📈 Кормления за неделю (мин)</div>
-                <div id="feedChart"></div>
-                <div class="chart-row" style="height:auto; padding:0; margin-top:8px;">
-                    <span style="flex:1; text-align:center; font-size:11px; color:var(--text-secondary);">ПН</span>
-                    <span style="flex:1; text-align:center; font-size:11px; color:var(--text-secondary);">ВТ</span>
-                    <span style="flex:1; text-align:center; font-size:11px; color:var(--text-secondary);">СР</span>
-                    <span style="flex:1; text-align:center; font-size:11px; color:var(--text-secondary);">ЧТ</span>
-                    <span style="flex:1; text-align:center; font-size:11px; color:var(--text-secondary);">ПТ</span>
-                    <span style="flex:1; text-align:center; font-size:11px; color:var(--text-secondary);">СБ</span>
-                    <span style="flex:1; text-align:center; font-size:11px; color:var(--text-secondary);">ВС</span>
+                <div class="card-title">🍼 Кормление</div>
+                <div class="breast-select">
+                    <button class="breast-btn left" id="btnLeft" onclick="selectSide('left')">⬅️ Левая</button>
+                    <button class="breast-btn right" id="btnRight" onclick="selectSide('right')">➡️ Правая</button>
+                </div>
+                <div class="timer-display" id="feedingTimer">00:00</div>
+                <button class="action-btn start" id="feedingBtn" onclick="feedingToggle()" disabled>▶️ Начать</button>
+            </div>
+            <div class="card">
+                <div class="card-title">📊 Сегодня</div>
+                <div class="stats-grid">
+                    <div class="stat-item"><div class="stat-value" id="feedCount">0</div><div class="stat-label">Кормлений</div></div>
+                    <div class="stat-item"><div class="stat-value" id="feedDuration">0 мин</div><div class="stat-label">Общее время</div></div>
+                </div>
+                <div id="reminderStatus" style="text-align:center; font-size:13px; margin-top:16px; min-height:20px;"></div>
+                <div style="display:flex; gap:8px; margin-top:12px;">
+                    <button onclick="startReminder(120)" class="reminder-btn" style="background:rgba(232,160,191,0.2); color:#e8a0bf;">🔔 2 ч</button>
+                    <button onclick="startReminder(180)" class="reminder-btn" style="background:rgba(160,196,232,0.2); color:#a0c4e8;">🔔 3 ч</button>
+                    <button onclick="stopReminder()" class="reminder-btn" style="background:rgba(255,255,255,0.05); color:#a8a0b0;">🔕</button>
                 </div>
             </div>
             <div class="card">
-                <div class="card-title">📊 Средние показатели</div>
-                <div id="feedAverages"></div>
+                <div class="card-title">📝 История</div>
+                <div class="history-list" id="feedHistory"><div class="empty-state">Нет записей</div></div>
             </div>
         </div>
-        <div id="statsSleep" style="display:none;">
+
+        <!-- Сон -->
+        <div class="tab-content" id="tab-sleep">
             <div class="card">
-                <div class="card-title">📈 Сон за неделю (мин)</div>
-                <div id="sleepChart"></div>
-                <div class="chart-row" style="height:auto; padding:0; margin-top:8px;">
-                    <span style="flex:1; text-align:center; font-size:11px; color:var(--text-secondary);">ПН</span>
-                    <span style="flex:1; text-align:center; font-size:11px; color:var(--text-secondary);">ВТ</span>
-                    <span style="flex:1; text-align:center; font-size:11px; color:var(--text-secondary);">СР</span>
-                    <span style="flex:1; text-align:center; font-size:11px; color:var(--text-secondary);">ЧТ</span>
-                    <span style="flex:1; text-align:center; font-size:11px; color:var(--text-secondary);">ПТ</span>
-                    <span style="flex:1; text-align:center; font-size:11px; color:var(--text-secondary);">СБ</span>
-                    <span style="flex:1; text-align:center; font-size:11px; color:var(--text-secondary);">ВС</span>
+                <div class="card-title">😴 Сон</div>
+                <div class="timer-display" id="sleepTimer">00:00</div>
+                <button class="action-btn start-sleep" id="sleepBtn" onclick="sleepToggle()">▶️ Уложить спать</button>
+            </div>
+            <div class="card">
+                <div class="card-title">📊 Сегодня</div>
+                <div class="stats-grid">
+                    <div class="stat-item"><div class="stat-value" id="sleepCount">0</div><div class="stat-label">Снов</div></div>
+                    <div class="stat-item"><div class="stat-value" id="sleepDuration">0 мин</div><div class="stat-label">Общее время</div></div>
                 </div>
             </div>
             <div class="card">
-                <div class="card-title">📊 Средние показатели</div>
-                <div id="sleepAverages"></div>
+                <div class="card-title">📝 История</div>
+                <div class="history-list" id="sleepHistory"><div class="empty-state">Нет записей</div></div>
             </div>
         </div>
-        <div id="statsDiaper" style="display:none;">
+
+        <!-- Подгузники -->
+        <div class="tab-content" id="tab-diaper">
             <div class="card">
-                <div class="card-title">📈 Подгузники за неделю</div>
-                <div id="diaperChart"></div>
-                <div class="chart-row" style="height:auto; padding:0; margin-top:8px;">
-                    <span style="flex:1; text-align:center; font-size:11px; color:var(--text-secondary);">ПН</span>
-                    <span style="flex:1; text-align:center; font-size:11px; color:var(--text-secondary);">ВТ</span>
-                    <span style="flex:1; text-align:center; font-size:11px; color:var(--text-secondary);">СР</span>
-                    <span style="flex:1; text-align:center; font-size:11px; color:var(--text-secondary);">ЧТ</span>
-                    <span style="flex:1; text-align:center; font-size:11px; color:var(--text-secondary);">ПТ</span>
-                    <span style="flex:1; text-align:center; font-size:11px; color:var(--text-secondary);">СБ</span>
-                    <span style="flex:1; text-align:center; font-size:11px; color:var(--text-secondary);">ВС</span>
+                <div class="card-title">💧 Сменить подгузник</div>
+                <div class="diaper-types">
+                    <button class="diaper-btn wet" onclick="addDiaper('wet')">💦<br>Мокрый</button>
+                    <button class="diaper-btn dirty" onclick="addDiaper('dirty')">💩<br>Грязный</button>
+                    <button class="diaper-btn both" onclick="addDiaper('both')">💦💩<br>Всё вместе</button>
+                    <button class="diaper-btn" onclick="addDiaper('dry')">✅<br>Сменили</button>
                 </div>
             </div>
             <div class="card">
-                <div class="card-title">📊 Средние показатели</div>
-                <div id="diaperAverages"></div>
+                <div class="card-title">📊 Сегодня</div>
+                <div class="stats-grid">
+                    <div class="stat-item"><div class="stat-value" id="diaperCount">0</div><div class="stat-label">Всего смен</div></div>
+                    <div class="stat-item"><div class="stat-value" id="diaperDirty">0</div><div class="stat-label">Грязных</div></div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">📝 История</div>
+                <div class="history-list" id="diaperHistory"><div class="empty-state">Нет записей</div></div>
+            </div>
+        </div>
+
+        <!-- Статистика -->
+        <div class="tab-content" id="tab-stats">
+            <div class="sub-tabs">
+                <button class="sub-tab active" onclick="switchStatsTab('feed')">🍼 Кормления</button>
+                <button class="sub-tab" onclick="switchStatsTab('sleep')">😴 Сон</button>
+                <button class="sub-tab" onclick="switchStatsTab('diaper')">💧 Подгузники</button>
+            </div>
+            <div id="statsFeed">
+                <div class="card">
+                    <div class="card-title">📈 Кормления за неделю (мин)</div>
+                    <div id="feedChart"></div>
+                    <div class="chart-row" style="height:auto; padding:0; margin-top:8px;">
+                        <span style="flex:1; text-align:center; font-size:11px; color:var(--text-secondary);">ПН</span>
+                        <span style="flex:1; text-align:center; font-size:11px; color:var(--text-secondary);">ВТ</span>
+                        <span style="flex:1; text-align:center; font-size:11px; color:var(--text-secondary);">СР</span>
+                        <span style="flex:1; text-align:center; font-size:11px; color:var(--text-secondary);">ЧТ</span>
+                        <span style="flex:1; text-align:center; font-size:11px; color:var(--text-secondary);">ПТ</span>
+                        <span style="flex:1; text-align:center; font-size:11px; color:var(--text-secondary);">СБ</span>
+                        <span style="flex:1; text-align:center; font-size:11px; color:var(--text-secondary);">ВС</span>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-title">📊 Средние показатели</div>
+                    <div id="feedAverages"></div>
+                </div>
+            </div>
+            <div id="statsSleep" style="display:none;">
+                <div class="card">
+                    <div class="card-title">📈 Сон за неделю (мин)</div>
+                    <div id="sleepChart"></div>
+                    <div class="chart-row" style="height:auto; padding:0; margin-top:8px;">
+                        <span style="flex:1; text-align:center; font-size:11px; color:var(--text-secondary);">ПН</span>
+                        <span style="flex:1; text-align:center; font-size:11px; color:var(--text-secondary);">ВТ</span>
+                        <span style="flex:1; text-align:center; font-size:11px; color:var(--text-secondary);">СР</span>
+                        <span style="flex:1; text-align:center; font-size:11px; color:var(--text-secondary);">ЧТ</span>
+                        <span style="flex:1; text-align:center; font-size:11px; color:var(--text-secondary);">ПТ</span>
+                        <span style="flex:1; text-align:center; font-size:11px; color:var(--text-secondary);">СБ</span>
+                        <span style="flex:1; text-align:center; font-size:11px; color:var(--text-secondary);">ВС</span>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-title">📊 Средние показатели</div>
+                    <div id="sleepAverages"></div>
+                </div>
+            </div>
+            <div id="statsDiaper" style="display:none;">
+                <div class="card">
+                    <div class="card-title">📈 Подгузники за неделю</div>
+                    <div id="diaperChart"></div>
+                    <div class="chart-row" style="height:auto; padding:0; margin-top:8px;">
+                        <span style="flex:1; text-align:center; font-size:11px; color:var(--text-secondary);">ПН</span>
+                        <span style="flex:1; text-align:center; font-size:11px; color:var(--text-secondary);">ВТ</span>
+                        <span style="flex:1; text-align:center; font-size:11px; color:var(--text-secondary);">СР</span>
+                        <span style="flex:1; text-align:center; font-size:11px; color:var(--text-secondary);">ЧТ</span>
+                        <span style="flex:1; text-align:center; font-size:11px; color:var(--text-secondary);">ПТ</span>
+                        <span style="flex:1; text-align:center; font-size:11px; color:var(--text-secondary);">СБ</span>
+                        <span style="flex:1; text-align:center; font-size:11px; color:var(--text-secondary);">ВС</span>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-title">📊 Средние показатели</div>
+                    <div id="diaperAverages"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -410,17 +414,14 @@
         // === ПРИВЕТСТВЕННЫЙ ЭКРАН ===
         function closeWelcome() {
             document.getElementById('welcomeScreen').style.display = 'none';
-            document.getElementById('mainTabs').style.display = 'flex';
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            document.getElementById('tab-feeding').classList.add('active');
+            document.getElementById('mainApp').style.display = 'block';
             localStorage.setItem('mama-welcome-shown', 'true');
         }
 
         const welcomeShown = localStorage.getItem('mama-welcome-shown');
-        if (!welcomeShown) {
-            document.getElementById('welcomeScreen').style.display = 'block';
-            document.getElementById('mainTabs').style.display = 'none';
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        if (welcomeShown) {
+            document.getElementById('welcomeScreen').style.display = 'none';
+            document.getElementById('mainApp').style.display = 'block';
         }
 
         // === НАВИГАЦИЯ ===
@@ -429,10 +430,10 @@
 
         function switchMainTab(tab) {
             mainTab = tab;
-            document.querySelectorAll('#mainTabs .tab-btn').forEach((b, i) => {
+            document.querySelectorAll('#mainApp .tab-btn').forEach((b, i) => {
                 b.classList.toggle('active', ['feeding','sleep','diaper','stats'][i] === tab);
             });
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('#mainApp .tab-content').forEach(c => c.classList.remove('active'));
             document.getElementById('tab-' + tab).classList.add('active');
             if (tab === 'stats') buildAllCharts();
         }
@@ -673,6 +674,8 @@
                 return;
             }
             reminderMinutes = min;
+            document.getElementById('reminderStatus').innerHTML = '⏰ Напоминание: каждые ' + min + ' мин';
+            document.getElementById('reminderStatus').style.color = '#7ecb8a';
             reminderInterval = setInterval(() => {
                 const m = getMinutesSinceLastFeeding();
                 if (m !== null && m >= reminderMinutes && 'Notification' in window && Notification.permission === 'granted') {
@@ -685,6 +688,7 @@
         function stopReminder() {
             if (reminderInterval) { clearInterval(reminderInterval); reminderInterval = null; }
             reminderMinutes = null;
+            document.getElementById('reminderStatus').innerHTML = '';
         }
 
         // === ИНИЦИАЛИЗАЦИЯ ===
