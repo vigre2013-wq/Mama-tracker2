@@ -16,6 +16,30 @@
             --right-breast: #a0c4e8;
             --sleep: #c4a0e8;
             --diaper: #a0e8c4;
+            --border: rgba(255,255,255,0.05);
+            --stat-bg: rgba(255,255,255,0.03);
+            --overlay-bg: rgba(0,0,0,0.9);
+            --tab-bg: var(--surface);
+            --input-border: rgba(255,255,255,0.1);
+            --btn-ghost: rgba(255,255,255,0.05);
+        }
+        .light-theme {
+            --bg: #f5f0f3;
+            --surface: #ffffff;
+            --accent: #d4899f;
+            --pro-gold: #d4a030;
+            --text: #2d2d3a;
+            --text-secondary: #7a7a8a;
+            --left-breast: #d4899f;
+            --right-breast: #7a9ec4;
+            --sleep: #9b7ec4;
+            --diaper: #6db88d;
+            --border: rgba(0,0,0,0.06);
+            --stat-bg: rgba(0,0,0,0.02);
+            --overlay-bg: rgba(0,0,0,0.8);
+            --tab-bg: #ffffff;
+            --input-border: rgba(0,0,0,0.1);
+            --btn-ghost: rgba(0,0,0,0.03);
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -23,22 +47,31 @@
             background: var(--bg); color: var(--text);
             min-height: 100vh; padding: env(safe-area-inset-top, 20px) 20px env(safe-area-inset-bottom, 20px);
             max-width: 500px; margin: 0 auto; user-select: none; -webkit-tap-highlight-color: transparent;
+            transition: background 0.3s, color 0.3s;
         }
-        .header { text-align: center; padding: 20px 0 10px; }
+        .header { display: flex; align-items: center; justify-content: center; padding: 20px 0 10px; position: relative; }
         .header h1 { font-size: 28px; font-weight: 700; }
-        .header .date { color: var(--text-secondary); font-size: 14px; }
+        .header .date { color: var(--text-secondary); font-size: 14px; text-align: center; }
+        .theme-toggle {
+            position: absolute; right: 0; top: 22px;
+            width: 40px; height: 40px; border-radius: 50%; border: none;
+            background: var(--surface); color: var(--text);
+            font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s;
+        }
+        .theme-toggle:active { transform: scale(0.9); }
         .tabs { display: flex; gap: 4px; margin: 16px 0; }
         .tab-btn {
             flex: 1; height: 44px; border-radius: 12px; border: none;
-            font-size: 18px; cursor: pointer; background: var(--surface);
+            font-size: 18px; cursor: pointer; background: var(--tab-bg);
             color: var(--text-secondary); display: flex; align-items: center;
             justify-content: center; transition: all 0.2s;
         }
-        .tab-btn.active { background: var(--accent); color: #1a1a2e; }
+        .tab-btn.active { background: var(--accent); color: #fff; }
         .tab-btn:active { transform: scale(0.95); }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-        .card { background: var(--surface); border-radius: 24px; padding: 24px; margin: 16px 0; }
+        .card { background: var(--surface); border-radius: 24px; padding: 24px; margin: 16px 0; transition: background 0.3s; }
         .card-title {
             font-size: 13px; font-weight: 600; color: var(--text-secondary);
             margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px;
@@ -51,22 +84,22 @@
         .breast-btn {
             height: 64px; border-radius: 20px; border: 2px solid transparent;
             font-size: 17px; font-weight: 600; cursor: pointer;
-            display: flex; align-items: center; justify-content: center; gap: 8px;
+            display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s;
         }
         .breast-btn.left { background: rgba(232,160,191,0.15); color: var(--left-breast); }
         .breast-btn.right { background: rgba(160,196,232,0.15); color: var(--right-breast); }
         .breast-btn.selected { border-color: currentColor; }
         .action-btn {
             width: 100%; height: 60px; border-radius: 20px; border: none;
-            font-size: 18px; font-weight: 700; cursor: pointer; margin-top: 8px;
+            font-size: 18px; font-weight: 700; cursor: pointer; margin-top: 8px; transition: all 0.2s;
         }
-        .action-btn.start { background: var(--accent); color: #1a1a2e; }
+        .action-btn.start { background: var(--accent); color: #fff; }
         .action-btn.stop { background: #e8606e; color: white; }
-        .action-btn.start-sleep { background: var(--sleep); color: #1a1a2e; }
+        .action-btn.start-sleep { background: var(--sleep); color: #fff; }
         .action-btn:active { transform: scale(0.97); }
         .action-btn:disabled { opacity: 0.4; pointer-events: none; }
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .stat-item { background: rgba(255,255,255,0.03); border-radius: 16px; padding: 16px; text-align: center; }
+        .stat-item { background: var(--stat-bg); border-radius: 16px; padding: 16px; text-align: center; transition: background 0.3s; }
         .stat-value { font-size: 28px; font-weight: 700; color: var(--accent); }
         .stat-label { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
         .diaper-types { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
@@ -74,15 +107,15 @@
             height: 80px; border-radius: 20px; border: 2px solid transparent;
             font-size: 15px; font-weight: 600; cursor: pointer;
             display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
-            background: rgba(160,232,196,0.1); color: var(--diaper);
+            background: rgba(160,232,196,0.1); color: var(--diaper); transition: all 0.2s;
         }
-        .diaper-btn.wet { background: rgba(160,196,232,0.1); color: #a0c4e8; }
-        .diaper-btn.dirty { background: rgba(200,180,140,0.1); color: #c8b48c; }
-        .diaper-btn.both { background: rgba(232,160,191,0.1); color: #e8a0bf; }
+        .diaper-btn.wet { background: rgba(160,196,232,0.1); color: #7a9ec4; }
+        .diaper-btn.dirty { background: rgba(200,180,140,0.1); color: #b8a070; }
+        .diaper-btn.both { background: rgba(232,160,191,0.1); color: #d4899f; }
         .history-list { max-height: 300px; overflow-y: auto; }
         .history-item {
             display: flex; justify-content: space-between; align-items: center;
-            padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding: 14px 0; border-bottom: 1px solid var(--border); transition: border-color 0.3s;
         }
         .history-item:last-child { border-bottom: none; }
         .history-duration { font-weight: 600; font-size: 15px; }
@@ -91,9 +124,9 @@
         .side-dot.left { background: var(--left-breast); }
         .side-dot.right { background: var(--right-breast); }
         .side-dot.sleep { background: var(--sleep); }
-        .side-dot.wet { background: #a0c4e8; }
-        .side-dot.dirty { background: #c8b48c; }
-        .side-dot.both { background: #e8a0bf; }
+        .side-dot.wet { background: #7a9ec4; }
+        .side-dot.dirty { background: #b8a070; }
+        .side-dot.both { background: #d4899f; }
         .empty-state { text-align: center; color: var(--text-secondary); padding: 30px; font-size: 14px; }
         .reminder-btn { flex: 1; height: 44px; border-radius: 14px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; }
         .chart-row { display: flex; align-items: flex-end; gap: 6px; height: 100px; padding: 8px 0; }
@@ -104,24 +137,24 @@
         .sub-tab {
             flex: 1; height: 36px; border-radius: 10px; border: none;
             font-size: 13px; font-weight: 600; cursor: pointer;
-            background: rgba(255,255,255,0.05); color: var(--text-secondary);
+            background: var(--btn-ghost); color: var(--text-secondary); transition: all 0.2s;
         }
-        .sub-tab.active { background: var(--accent); color: #1a1a2e; }
-        .avg-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px; }
+        .sub-tab.active { background: var(--accent); color: #fff; }
+        .avg-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
         .avg-value { font-weight: 600; color: var(--accent); }
         .welcome-btn {
             width: 100%; height: 50px; border-radius: 16px; border: none;
-            background: var(--accent); color: #1a1a2e; font-size: 16px; font-weight: 700; cursor: pointer;
+            background: var(--accent); color: #fff; font-size: 16px; font-weight: 700; cursor: pointer;
         }
         .pro-badge {
             display: inline-block; background: linear-gradient(135deg, var(--pro-gold), #e0a030);
-            color: #1a1a2e; font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 8px; margin-left: 4px;
+            color: #fff; font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 8px; margin-left: 4px;
         }
         .pro-card { background: linear-gradient(135deg, rgba(240,192,96,0.1), rgba(224,160,48,0.05)); border: 1px solid rgba(240,192,96,0.2); }
         .export-btn {
             width: 100%; height: 44px; border-radius: 14px; border: none;
             background: linear-gradient(135deg, var(--pro-gold), #e0a030);
-            color: #1a1a2e; font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 12px;
+            color: #fff; font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 12px;
         }
         .activate-btn {
             width: 100%; height: 44px; border-radius: 14px; border: 1px solid var(--pro-gold);
@@ -129,18 +162,22 @@
         }
         input {
             width: 100%; height: 44px; border-radius: 12px;
-            border: 1px solid rgba(255,255,255,0.1); background: var(--bg);
+            border: 1px solid var(--input-border); background: var(--bg);
             color: var(--text); padding: 0 16px; font-size: 16px; text-align: center; margin-bottom: 8px;
+            transition: all 0.3s;
         }
-        .pro-bar { height: 8px; border-radius: 4px; overflow: hidden; margin: 8px 0; background: rgba(255,255,255,0.05); }
+        .pro-bar { height: 8px; border-radius: 4px; overflow: hidden; margin: 8px 0; background: var(--btn-ghost); }
         .pro-bar-fill { height: 100%; border-radius: 4px; transition: width 0.5s; }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h1>🤱 Мама Трекер <span id="proBadge" class="pro-badge" style="display:none;">PRO</span></h1>
-        <div class="date" id="todayDate"></div>
+        <div style="text-align:center;">
+            <h1>🤱 Мама Трекер <span id="proBadge" class="pro-badge" style="display:none;">PRO</span></h1>
+            <div class="date" id="todayDate"></div>
+        </div>
+        <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">🌓</button>
     </div>
 
     <div id="welcomeScreen">
@@ -188,9 +225,9 @@
                 </div>
                 <div id="reminderStatus" style="text-align:center; font-size:13px; margin-top:16px; min-height:20px;"></div>
                 <div style="display:flex; gap:8px; margin-top:12px;">
-                    <button onclick="startReminder(120)" class="reminder-btn" style="background:rgba(232,160,191,0.2); color:#e8a0bf;">🔔 2 ч</button>
-                    <button onclick="startReminder(180)" class="reminder-btn" style="background:rgba(160,196,232,0.2); color:#a0c4e8;">🔔 3 ч</button>
-                    <button onclick="stopReminder()" class="reminder-btn" style="background:rgba(255,255,255,0.05); color:#a8a0b0;">🔕</button>
+                    <button onclick="startReminder(120)" class="reminder-btn" style="background:rgba(232,160,191,0.2); color:var(--left-breast);">🔔 2 ч</button>
+                    <button onclick="startReminder(180)" class="reminder-btn" style="background:rgba(160,196,232,0.2); color:var(--right-breast);">🔔 3 ч</button>
+                    <button onclick="stopReminder()" class="reminder-btn" style="background:var(--btn-ghost); color:var(--text-secondary);">🔕</button>
                 </div>
             </div>
             <div class="card">
@@ -311,6 +348,28 @@
 
         const today = new Date();
         document.getElementById('todayDate').textContent = today.toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' });
+
+        // === ТЕМА ===
+        const THEME_KEY = 'mama_theme';
+        
+        function applyTheme(theme) {
+            if (theme === 'light') {
+                document.body.classList.add('light-theme');
+                document.getElementById('themeBtn').textContent = '☀️';
+            } else {
+                document.body.classList.remove('light-theme');
+                document.getElementById('themeBtn').textContent = '🌙';
+            }
+        }
+        
+        function toggleTheme() {
+            const current = localStorage.getItem(THEME_KEY) || 'dark';
+            const next = current === 'dark' ? 'light' : 'dark';
+            localStorage.setItem(THEME_KEY, next);
+            applyTheme(next);
+        }
+        
+        applyTheme(localStorage.getItem(THEME_KEY) || 'dark');
 
         // === PRO ===
         const PRO_KEY = 'mama_pro_active';
@@ -604,7 +663,7 @@
         // === ЭКСПОРТ ===
         function exportAsImage() {
             if (!isPro()) return;
-
+            const isLight = document.body.classList.contains('light-theme');
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
             const width = 800;
@@ -629,22 +688,26 @@
             canvas.width = width;
             canvas.height = height;
 
-            ctx.fillStyle = '#1a1a2e';
+            const bgColor = isLight ? '#ffffff' : '#1a1a2e';
+            const textColor = isLight ? '#2d2d3a' : '#f0e6ef';
+            const secondaryColor = isLight ? '#7a7a8a' : '#a8a0b0';
+
+            ctx.fillStyle = bgColor;
             ctx.fillRect(0, 0, width, height);
 
-            ctx.fillStyle = '#f0e6ef';
+            ctx.fillStyle = textColor;
             ctx.font = 'bold 32px -apple-system, BlinkMacSystemFont, sans-serif';
             ctx.textAlign = 'center';
             ctx.fillText('🤱 Мама Трекер — Отчёт', width / 2, y);
             y += 50;
 
             const dateStr = new Date().toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-            ctx.fillStyle = '#a8a0b0';
+            ctx.fillStyle = secondaryColor;
             ctx.font = '16px -apple-system, sans-serif';
             ctx.fillText(dateStr, width / 2, y);
             y += 30;
 
-            ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+            ctx.strokeStyle = isLight ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)';
             ctx.lineWidth = 1;
             ctx.beginPath();
             ctx.moveTo(padding, y);
@@ -661,7 +724,7 @@
             }
 
             function drawRow(text, value, isHeader) {
-                ctx.fillStyle = isHeader ? '#a8a0b0' : '#f0e6ef';
+                ctx.fillStyle = isHeader ? secondaryColor : textColor;
                 ctx.font = isHeader ? '13px -apple-system, sans-serif' : '16px -apple-system, sans-serif';
                 ctx.textAlign = 'left';
                 ctx.fillText(text, padding, y);
@@ -707,12 +770,11 @@
             });
 
             y = canvas.height - 60;
-            ctx.fillStyle = '#a8a0b0';
+            ctx.fillStyle = secondaryColor;
             ctx.font = '12px -apple-system, sans-serif';
             ctx.textAlign = 'center';
             ctx.fillText('Создано в Мама Трекер — @MamaFeedBot', width / 2, y);
 
-            // Показываем картинку в модальном окне
             const dataUrl = canvas.toDataURL('image/png');
             
             const overlay = document.createElement('div');
