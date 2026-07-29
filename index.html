@@ -280,8 +280,9 @@
                 </div>
                 <div class="card">
                     <div class="card-title">📤 Экспорт отчёта</div>
-                    <button class="export-btn" onclick="exportReport()">📋 Скопировать отчёт за неделю</button>
-                    <button class="export-btn" style="margin-top:8px; background:rgba(255,255,255,0.1); color:var(--text);" onclick="exportAllData()">📦 Скачать все данные (JSON)</button>
+                    <button class="export-btn" onclick="exportAsImage()">📸 Скачать красивый отчёт (PNG)</button>
+                    <button class="export-btn" style="margin-top:8px; background:rgba(255,255,255,0.1); color:var(--text);" onclick="exportReport()">📋 Скопировать текст отчёта</button>
+                    <button class="export-btn" style="margin-top:8px; background:rgba(255,255,255,0.05); color:var(--text-secondary);" onclick="exportAllData()">📦 Скопировать все данные (JSON)</button>
                 </div>
             </div>
             <div id="proInactive">
@@ -291,7 +292,7 @@
                     <p style="color:var(--text-secondary); margin:12px 0; font-size:14px;">Разблокируй все возможности:</p>
                     <div style="text-align:left; margin:16px 0; font-size:14px; color:var(--text-secondary);">
                         <p>📈 Расширенная аналитика</p>
-                        <p>📤 Экспорт отчёта для врача</p>
+                        <p>📸 Экспорт отчёта для врача (картинка)</p>
                         <p>📅 История за всё время</p>
                     </div>
                     <p style="color:var(--text-secondary); font-size:12px;">Оплата будет доступна позже.</p>
@@ -541,7 +542,6 @@
                 <div class="avg-row"><span>В среднем в день</span><span class="avg-value">${(counts.reduce((a,b)=>a+b,0)/7).toFixed(1)}</span></div>
                 <div class="avg-row"><span>Средняя длительность</span><span class="avg-value">${durations.reduce((a,b)=>a+b,0) > 0 ? Math.floor(durations.reduce((a,b)=>a+b,0) / counts.reduce((a,b)=>a+b,0)) : 0} мин</span></div>
             `;
-            // PRO-аналитика
             const allFeed = getAllRecords('feed');
             const leftCount = allFeed.filter(r => r.side === 'left').length;
             const rightCount = allFeed.filter(r => r.side === 'right').length;
@@ -606,6 +606,14 @@
         // === ЭКСПОРТ ===
         function exportReport() {
             if (!isPro()) return;
+            const text = generateReportText();
+            navigator.clipboard.writeText(text).then(() => {
+                if (tg?.showPopup) tg.showPopup({ title: '✅ Готово!', message: 'Отчёт скопирован в буфер обмена.', buttons: [{type:'ok'}] });
+                else alert('Отчёт скопирован!');
+            });
+        }
+
+        function generateReportText() {
             let report = '📋 ОТЧЁТ МАМА ТРЕКЕРА\n' + '═'.repeat(25) + '\n\n';
             report += '🍼 КОРМЛЕНИЯ:\n';
             getAllRecords('feed').slice(0, 30).forEach((r, i) => {
@@ -620,18 +628,146 @@
                 const min = Math.floor(r.duration/60);
                 report += `${i+1}. ${d} — ${min} мин\n`;
             });
-            navigator.clipboard.writeText(report).then(() => {
-                if (tg?.showPopup) tg.showPopup({ title: '✅ Готово!', message: 'Отчёт скопирован в буфер обмена.', buttons: [{type:'ok'}] });
-                else alert('Отчёт скопирован!');
+            report += '\n💧 ПОДГУЗНИКИ:\n';
+            getAllRecords('diaper').slice(0, 15).forEach((r, i) => {
+                const d = new Date(r.timestamp).toLocaleDateString('ru-RU');
+                report += `${i+1}. ${d} — ${r.type}\n`;
             });
+            return report;
         }
+
         function exportAllData() {
             if (!isPro()) return;
             const data = { feed: getAllRecords('feed'), sleep: getAllRecords('sleep'), diaper: getAllRecords('diaper') };
-            const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
-            const url = URL.createObjectURL(blob);
-            if (tg) tg.openLink(url);
-            else window.open(url);
+            const text = JSON.stringify(data, null, 2);
+            navigator.clipboard.writeText(text).then(() => {
+                if (tg?.showPopup) tg.showPopup({ title: '✅ Готово!', message: 'Данные скопированы.', buttons: [{type:'ok'}] });
+            });
+        }
+
+        function exportAsImage() {
+            if (!isPro()) return;
+
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const width = 800;
+            const padding = 40;
+            let y = padding;
+
+            const feedData = getAllRecords('feed').slice(0, 20);
+            const sleepData = getAllRecords('sleep').slice(0, 10);
+            const diaperData = getAllRecords('diaper').slice(0, 10);
+            const totalFeedMin = Math.floor(feedData.reduce((s,r) => s + r.duration, 0) / 60);
+            const totalSleepMin = Math.floor(sleepData.reduce((s,r) => s + r.duration, 0) / 60);
+            const leftCount = feedData.filter(r => r.side === 'left').length;
+            const rightCount = feedData.filter(r => r.side === 'right').length;
+
+            const lineHeight = 32;
+            let height = padding * 2 + lineHeight * 3;
+            height += lineHeight * (Math.min(feedData.length, 20) + 3);
+            height += lineHeight * (Math.min(sleepData.length, 10) + 3);
+            height += lineHeight * (Math.min(diaperData.length, 10) + 3);
+            height += 200;
+
+            canvas.width = width;
+            canvas.height = height;
+
+            ctx.fillStyle = '#1a1a2e';
+            ctx.fillRect(0, 0, width, height);
+
+            ctx.fillStyle = '#f0e6ef';
+            ctx.font = 'bold 32px -apple-system, BlinkMacSystemFont, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('🤱 Мама Трекер — Отчёт', width / 2, y);
+            y += 50;
+
+            const dateStr = new Date().toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+            ctx.fillStyle = '#a8a0b0';
+            ctx.font = '16px -apple-system, sans-serif';
+            ctx.fillText(dateStr, width / 2, y);
+            y += 30;
+
+            ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(padding, y);
+            ctx.lineTo(width - padding, y);
+            ctx.stroke();
+            y += 30;
+
+            function drawSection(title, emoji, color) {
+                ctx.fillStyle = color;
+                ctx.font = 'bold 20px -apple-system, sans-serif';
+                ctx.textAlign = 'left';
+                ctx.fillText(emoji + ' ' + title, padding, y);
+                y += lineHeight + 8;
+            }
+
+            function drawRow(text, value, isHeader) {
+                ctx.fillStyle = isHeader ? '#a8a0b0' : '#f0e6ef';
+                ctx.font = isHeader ? '13px -apple-system, sans-serif' : '16px -apple-system, sans-serif';
+                ctx.textAlign = 'left';
+                ctx.fillText(text, padding, y);
+                if (value) {
+                    ctx.textAlign = 'right';
+                    ctx.fillText(value, width - padding, y);
+                }
+                y += lineHeight;
+            }
+
+            drawSection('Общая сводка', '', '#f0c060');
+            drawRow('Всего кормлений', feedData.length + '', false);
+            drawRow('Общее время кормлений', totalFeedMin + ' мин', false);
+            drawRow('Левая / Правая', leftCount + ' / ' + rightCount, false);
+            drawRow('Всего сна', totalSleepMin + ' мин', false);
+            drawRow('Смен подгузников', diaperData.length + '', false);
+            y += 16;
+
+            drawSection('Кормления', '🍼', '#e8a0bf');
+            drawRow('Дата', 'Длительность', true);
+            feedData.forEach(r => {
+                const d = new Date(r.timestamp).toLocaleDateString('ru-RU', {day:'2-digit', month:'2-digit'});
+                const t = new Date(r.timestamp).toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit'});
+                drawRow(d + ' ' + t, Math.floor(r.duration/60) + ' мин (' + (r.side==='left'?'Л':'П') + ')', false);
+            });
+            y += 16;
+
+            drawSection('Сон', '😴', '#c4a0e8');
+            drawRow('Дата', 'Длительность', true);
+            sleepData.forEach(r => {
+                const d = new Date(r.timestamp).toLocaleDateString('ru-RU', {day:'2-digit', month:'2-digit'});
+                drawRow(d, Math.floor(r.duration/60) + ' мин', false);
+            });
+            y += 16;
+
+            drawSection('Подгузники', '💧', '#a0e8c4');
+            drawRow('Дата', 'Тип', true);
+            diaperData.forEach(r => {
+                const d = new Date(r.timestamp).toLocaleDateString('ru-RU', {day:'2-digit', month:'2-digit'});
+                const types = { wet: '💦 Мокрый', dirty: '💩 Грязный', both: '💦💩 Всё', dry: '✅ Смена' };
+                drawRow(d, types[r.type] || r.type, false);
+            });
+
+            y = canvas.height - 60;
+            ctx.fillStyle = '#a8a0b0';
+            ctx.font = '12px -apple-system, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('Создано в Мама Трекер — @MamaFeedBot', width / 2, y);
+
+            canvas.toBlob(function(blob) {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'mama-report-' + new Date().toISOString().split('T')[0] + '.png';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                if (tg?.showPopup) {
+                    tg.showPopup({ title: '✅ Готово!', message: 'Картинка сохранена в галерею.', buttons: [{type:'ok'}] });
+                }
+            });
         }
 
         // === НАПОМИНАНИЯ ===
