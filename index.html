@@ -60,10 +60,10 @@
         }
         .icon-btn:active { transform: scale(0.9); }
         .icon-btn.active { background: var(--accent); color: #fff; }
-        .tabs { display: flex; gap: 4px; margin: 16px 0; }
+        .tabs { display: flex; gap: 4px; margin: 16px 0; flex-wrap: wrap; }
         .tab-btn {
-            flex: 1; height: 44px; border-radius: 12px; border: none;
-            font-size: 18px; cursor: pointer; background: var(--tab-bg);
+            flex: 1; min-width: 44px; height: 44px; border-radius: 12px; border: none;
+            font-size: 16px; cursor: pointer; background: var(--tab-bg);
             color: var(--text-secondary); display: flex; align-items: center;
             justify-content: center; transition: all 0.2s;
         }
@@ -113,12 +113,12 @@
         .diaper-btn.dirty { background: rgba(200,180,140,0.1); color: #b8a070; }
         .diaper-btn.both { background: rgba(232,160,191,0.1); color: #d4899f; }
         .history-list { max-height: 300px; overflow-y: auto; }
-        .history-item {
+        .history-item, .growth-list-item {
             display: flex; justify-content: space-between; align-items: center;
             padding: 14px 0; border-bottom: 1px solid var(--border); cursor: pointer; transition: border-color 0.3s;
         }
-        .history-item:last-child { border-bottom: none; }
-        .history-item:active { opacity: 0.7; }
+        .history-item:last-child, .growth-list-item:last-child { border-bottom: none; }
+        .history-item:active, .growth-list-item:active { opacity: 0.7; }
         .history-duration { font-weight: 600; font-size: 15px; }
         .history-side { font-size: 12px; color: var(--text-secondary); }
         .history-note-icon { margin-left: 4px; font-size: 12px; }
@@ -223,6 +223,13 @@
             background: transparent; color: var(--text-secondary); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;
         }
         .timer-row button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+        .growth-form { display: flex; flex-direction: column; gap: 12px; }
+        .growth-form-row { display: flex; gap: 8px; }
+        .growth-form-row input { flex: 1; margin-bottom: 0; }
+        .growth-form-row input[type="date"] { text-align: left; }
+        .growth-chart-container { position: relative; height: 200px; margin: 8px 0; }
+        .growth-chart-container canvas { width: 100%; height: 100%; }
     </style>
 </head>
 <body>
@@ -248,8 +255,8 @@
                 <p style="margin-top:8px;">😴 Сон — сколько и когда спит</p>
                 <p style="margin-top:8px;">💧 Подгузники — мокрые и грязные</p>
                 <p style="margin-top:8px;">📊 Статистика — графики за неделю</p>
+                <p style="margin-top:8px;">📏 Рост и вес — следи за развитием</p>
                 <p style="margin-top:8px;">🔔 Напоминания — не забудешь покормить</p>
-                <p style="margin-top:8px;">🎵 Белый шум — для спокойного сна</p>
                 <p style="margin-top:8px;">📝 Заметки — записывай и редактируй</p>
                 <p style="margin-top:8px;">👑 PRO — аналитика, экспорт для врача</p>
             </div>
@@ -263,176 +270,83 @@
             <button class="tab-btn" onclick="switchMainTab('sleep')">😴</button>
             <button class="tab-btn" onclick="switchMainTab('diaper')">💧</button>
             <button class="tab-btn" onclick="switchMainTab('stats')">📊</button>
+            <button class="tab-btn" onclick="switchMainTab('growth')">📏</button>
             <button class="tab-btn" onclick="switchMainTab('pro')">👑</button>
         </div>
 
         <div class="tab-content active" id="tab-feeding">
-            <div class="card">
-                <div class="card-title">🍼 Кормление</div>
-                <div class="breast-select">
-                    <button class="breast-btn left" id="btnLeft" onclick="selectSide('left')">⬅️ Левая</button>
-                    <button class="breast-btn right" id="btnRight" onclick="selectSide('right')">➡️ Правая</button>
-                </div>
-                <div class="timer-display" id="feedingTimer">00:00</div>
-                <button class="action-btn start" id="feedingBtn" onclick="feedingToggle()" disabled>▶️ Начать</button>
-            </div>
-            <div class="card">
-                <div class="card-title">📊 Сегодня</div>
-                <div class="stats-grid">
-                    <div class="stat-item"><div class="stat-value" id="feedCount">0</div><div class="stat-label">Кормлений</div></div>
-                    <div class="stat-item"><div class="stat-value" id="feedDuration">0 мин</div><div class="stat-label">Общее время</div></div>
-                </div>
-                <div id="reminderStatus" style="text-align:center; font-size:13px; margin-top:16px; min-height:20px;"></div>
-                <div style="display:flex; gap:8px; margin-top:12px;">
-                    <button onclick="startReminder(120)" class="reminder-btn" style="background:rgba(232,160,191,0.2); color:var(--left-breast);">🔔 2 ч</button>
-                    <button onclick="startReminder(180)" class="reminder-btn" style="background:rgba(160,196,232,0.2); color:var(--right-breast);">🔔 3 ч</button>
-                    <button onclick="stopReminder()" class="reminder-btn" style="background:var(--btn-ghost); color:var(--text-secondary);">🔕</button>
-                </div>
-            </div>
-            <div class="card">
-                <div class="card-title">📝 История</div>
-                <div class="history-list" id="feedHistory"><div class="empty-state">Нет записей</div></div>
-            </div>
+            <div class="card"><div class="card-title">🍼 Кормление</div><div class="breast-select"><button class="breast-btn left" id="btnLeft" onclick="selectSide('left')">⬅️ Левая</button><button class="breast-btn right" id="btnRight" onclick="selectSide('right')">➡️ Правая</button></div><div class="timer-display" id="feedingTimer">00:00</div><button class="action-btn start" id="feedingBtn" onclick="feedingToggle()" disabled>▶️ Начать</button></div>
+            <div class="card"><div class="card-title">📊 Сегодня</div><div class="stats-grid"><div class="stat-item"><div class="stat-value" id="feedCount">0</div><div class="stat-label">Кормлений</div></div><div class="stat-item"><div class="stat-value" id="feedDuration">0 мин</div><div class="stat-label">Общее время</div></div></div><div id="reminderStatus" style="text-align:center; font-size:13px; margin-top:16px; min-height:20px;"></div><div style="display:flex; gap:8px; margin-top:12px;"><button onclick="startReminder(120)" class="reminder-btn" style="background:rgba(232,160,191,0.2); color:var(--left-breast);">🔔 2 ч</button><button onclick="startReminder(180)" class="reminder-btn" style="background:rgba(160,196,232,0.2); color:var(--right-breast);">🔔 3 ч</button><button onclick="stopReminder()" class="reminder-btn" style="background:var(--btn-ghost); color:var(--text-secondary);">🔕</button></div></div>
+            <div class="card"><div class="card-title">📝 История</div><div class="history-list" id="feedHistory"><div class="empty-state">Нет записей</div></div></div>
         </div>
 
         <div class="tab-content" id="tab-sleep">
-            <div class="card">
-                <div class="card-title">😴 Сон</div>
-                <div class="timer-display" id="sleepTimer">00:00</div>
-                <button class="action-btn start-sleep" id="sleepBtn" onclick="sleepToggle()">▶️ Уложить спать</button>
-            </div>
-            <div class="card">
-                <div class="card-title">📊 Сегодня</div>
-                <div class="stats-grid">
-                    <div class="stat-item"><div class="stat-value" id="sleepCount">0</div><div class="stat-label">Снов</div></div>
-                    <div class="stat-item"><div class="stat-value" id="sleepDuration">0 мин</div><div class="stat-label">Общее время</div></div>
-                </div>
-            </div>
-            <div class="card">
-                <div class="card-title">📝 История</div>
-                <div class="history-list" id="sleepHistory"><div class="empty-state">Нет записей</div></div>
-            </div>
+            <div class="card"><div class="card-title">😴 Сон</div><div class="timer-display" id="sleepTimer">00:00</div><button class="action-btn start-sleep" id="sleepBtn" onclick="sleepToggle()">▶️ Уложить спать</button></div>
+            <div class="card"><div class="card-title">📊 Сегодня</div><div class="stats-grid"><div class="stat-item"><div class="stat-value" id="sleepCount">0</div><div class="stat-label">Снов</div></div><div class="stat-item"><div class="stat-value" id="sleepDuration">0 мин</div><div class="stat-label">Общее время</div></div></div></div>
+            <div class="card"><div class="card-title">📝 История</div><div class="history-list" id="sleepHistory"><div class="empty-state">Нет записей</div></div></div>
         </div>
 
         <div class="tab-content" id="tab-diaper">
-            <div class="card">
-                <div class="card-title">💧 Сменить подгузник</div>
-                <div class="diaper-types">
-                    <button class="diaper-btn wet" onclick="addDiaper('wet')">💦<br>Мокрый</button>
-                    <button class="diaper-btn dirty" onclick="addDiaper('dirty')">💩<br>Грязный</button>
-                    <button class="diaper-btn both" onclick="addDiaper('both')">💦💩<br>Всё вместе</button>
-                    <button class="diaper-btn" onclick="addDiaper('dry')">✅<br>Сменили</button>
-                </div>
-            </div>
-            <div class="card">
-                <div class="card-title">📊 Сегодня</div>
-                <div class="stats-grid">
-                    <div class="stat-item"><div class="stat-value" id="diaperCount">0</div><div class="stat-label">Всего смен</div></div>
-                    <div class="stat-item"><div class="stat-value" id="diaperDirty">0</div><div class="stat-label">Грязных</div></div>
-                </div>
-            </div>
-            <div class="card">
-                <div class="card-title">📝 История</div>
-                <div class="history-list" id="diaperHistory"><div class="empty-state">Нет записей</div></div>
-            </div>
+            <div class="card"><div class="card-title">💧 Сменить подгузник</div><div class="diaper-types"><button class="diaper-btn wet" onclick="addDiaper('wet')">💦<br>Мокрый</button><button class="diaper-btn dirty" onclick="addDiaper('dirty')">💩<br>Грязный</button><button class="diaper-btn both" onclick="addDiaper('both')">💦💩<br>Всё вместе</button><button class="diaper-btn" onclick="addDiaper('dry')">✅<br>Сменили</button></div></div>
+            <div class="card"><div class="card-title">📊 Сегодня</div><div class="stats-grid"><div class="stat-item"><div class="stat-value" id="diaperCount">0</div><div class="stat-label">Всего смен</div></div><div class="stat-item"><div class="stat-value" id="diaperDirty">0</div><div class="stat-label">Грязных</div></div></div></div>
+            <div class="card"><div class="card-title">📝 История</div><div class="history-list" id="diaperHistory"><div class="empty-state">Нет записей</div></div></div>
         </div>
 
         <div class="tab-content" id="tab-stats">
-            <div class="sub-tabs">
-                <button class="sub-tab active" onclick="switchStatsTab('feed')">🍼 Кормления</button>
-                <button class="sub-tab" onclick="switchStatsTab('sleep')">😴 Сон</button>
-                <button class="sub-tab" onclick="switchStatsTab('diaper')">💧 Подгузники</button>
+            <div class="sub-tabs"><button class="sub-tab active" onclick="switchStatsTab('feed')">🍼 Кормления</button><button class="sub-tab" onclick="switchStatsTab('sleep')">😴 Сон</button><button class="sub-tab" onclick="switchStatsTab('diaper')">💧 Подгузники</button></div>
+            <div id="statsFeed"><div class="card"><div class="card-title">📈 Кормления за неделю (мин)</div><div id="feedChart"></div></div><div class="card" id="proAnalyticsFeed"><div class="card-title">👑 PRO-аналитика</div><div id="proFeedContent"></div></div><div class="card"><div class="card-title">📊 Средние показатели</div><div id="feedAverages"></div></div></div>
+            <div id="statsSleep" style="display:none;"><div class="card"><div class="card-title">📈 Сон за неделю (мин)</div><div id="sleepChart"></div></div><div class="card"><div class="card-title">📊 Средние показатели</div><div id="sleepAverages"></div></div></div>
+            <div id="statsDiaper" style="display:none;"><div class="card"><div class="card-title">📈 Подгузники за неделю</div><div id="diaperChart"></div></div><div class="card"><div class="card-title">📊 Средние показатели</div><div id="diaperAverages"></div></div></div>
+        </div>
+
+        <!-- Рост и вес -->
+        <div class="tab-content" id="tab-growth">
+            <div class="card">
+                <div class="card-title">📏 Добавить запись</div>
+                <div class="growth-form">
+                    <div class="growth-form-row">
+                        <input type="date" id="growthDate">
+                        <input type="number" id="growthWeight" placeholder="Вес (кг)" step="0.1" min="0" max="30">
+                    </div>
+                    <div class="growth-form-row">
+                        <input type="number" id="growthHeight" placeholder="Рост (см)" step="0.1" min="0" max="150">
+                        <button class="action-btn start" style="margin:0;" onclick="addGrowth()">💾 Сохранить</button>
+                    </div>
+                </div>
             </div>
-            <div id="statsFeed">
-                <div class="card"><div class="card-title">📈 Кормления за неделю (мин)</div><div id="feedChart"></div></div>
-                <div class="card" id="proAnalyticsFeed"><div class="card-title">👑 PRO-аналитика</div><div id="proFeedContent"></div></div>
-                <div class="card"><div class="card-title">📊 Средние показатели</div><div id="feedAverages"></div></div>
+            <div class="card">
+                <div class="card-title">📈 График веса</div>
+                <div class="growth-chart-container"><canvas id="weightChart"></canvas></div>
             </div>
-            <div id="statsSleep" style="display:none;">
-                <div class="card"><div class="card-title">📈 Сон за неделю (мин)</div><div id="sleepChart"></div></div>
-                <div class="card"><div class="card-title">📊 Средние показатели</div><div id="sleepAverages"></div></div>
+            <div class="card">
+                <div class="card-title">📈 График роста</div>
+                <div class="growth-chart-container"><canvas id="heightChart"></canvas></div>
             </div>
-            <div id="statsDiaper" style="display:none;">
-                <div class="card"><div class="card-title">📈 Подгузники за неделю</div><div id="diaperChart"></div></div>
-                <div class="card"><div class="card-title">📊 Средние показатели</div><div id="diaperAverages"></div></div>
+            <div class="card">
+                <div class="card-title">📝 История измерений</div>
+                <div class="history-list" id="growthHistory"><div class="empty-state">Нет записей</div></div>
             </div>
         </div>
 
         <div class="tab-content" id="tab-pro">
-            <div id="proActive" style="display:none;">
-                <div class="card pro-card" style="text-align:center;">
-                    <div style="font-size:50px;">👑</div>
-                    <h2>Вы — PRO!</h2>
-                    <p style="color:var(--text-secondary); margin:12px 0;">Все функции разблокированы. Спасибо за поддержку!</p>
-                    <div style="text-align:left; font-size:14px; color:var(--text-secondary);">
-                        <p>✅ Расширенная аналитика</p>
-                        <p>✅ Экспорт отчёта для врача</p>
-                        <p>✅ История за всё время</p>
-                    </div>
-                </div>
-                <div class="card">
-                    <div class="card-title">📤 Экспорт отчёта</div>
-                    <button class="export-btn" onclick="exportAsImage()">📸 Скачать отчёт в PNG</button>
-                </div>
-            </div>
-            <div id="proInactive">
-                <div class="card" style="text-align:center;">
-                    <div style="font-size:60px;">👑</div>
-                    <h2>Мама PRO</h2>
-                    <p style="color:var(--text-secondary); margin:12px 0; font-size:14px;">Разблокируй все возможности:</p>
-                    <div style="text-align:left; margin:16px 0; font-size:14px; color:var(--text-secondary);">
-                        <p>📈 Расширенная аналитика</p>
-                        <p>📸 Экспорт отчёта для врача (PNG)</p>
-                        <p>📅 История за всё время</p>
-                    </div>
-                    <p style="color:var(--text-secondary); font-size:12px;">Оплата будет доступна позже.</p>
-                </div>
-                <div class="card" style="text-align:center;">
-                    <p style="color:var(--text-secondary); font-size:13px; margin-bottom:12px;">Тестовый код активации:</p>
-                    <input type="text" id="activateCode" placeholder="Введите TEST123">
-                    <button class="activate-btn" onclick="activatePro()">🔓 Активировать PRO</button>
-                </div>
-            </div>
+            <div id="proActive" style="display:none;"><div class="card pro-card" style="text-align:center;"><div style="font-size:50px;">👑</div><h2>Вы — PRO!</h2><p style="color:var(--text-secondary); margin:12px 0;">Все функции разблокированы. Спасибо за поддержку!</p><div style="text-align:left; font-size:14px; color:var(--text-secondary);"><p>✅ Расширенная аналитика</p><p>✅ Экспорт отчёта для врача</p><p>✅ История за всё время</p></div></div><div class="card"><div class="card-title">📤 Экспорт отчёта</div><button class="export-btn" onclick="exportAsImage()">📸 Скачать отчёт в PNG</button></div></div>
+            <div id="proInactive"><div class="card" style="text-align:center;"><div style="font-size:60px;">👑</div><h2>Мама PRO</h2><p style="color:var(--text-secondary); margin:12px 0; font-size:14px;">Разблокируй все возможности:</p><div style="text-align:left; margin:16px 0; font-size:14px; color:var(--text-secondary);"><p>📈 Расширенная аналитика</p><p>📸 Экспорт отчёта для врача (PNG)</p><p>📅 История за всё время</p></div><p style="color:var(--text-secondary); font-size:12px;">Оплата будет доступна позже.</p></div><div class="card" style="text-align:center;"><p style="color:var(--text-secondary); font-size:13px; margin-bottom:12px;">Тестовый код активации:</p><input type="text" id="activateCode" placeholder="Введите TEST123"><button class="activate-btn" onclick="activatePro()">🔓 Активировать PRO</button></div></div>
         </div>
     </div>
 
     <div class="sound-panel hidden" id="soundPanel">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-            <h3 style="font-size:18px;">🎵 Белый шум</h3>
-            <button class="icon-btn" onclick="stopSound()" style="width:32px;height:32px;font-size:16px;">✕</button>
-        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;"><h3 style="font-size:18px;">🎵 Белый шум</h3><button class="icon-btn" onclick="stopSound()" style="width:32px;height:32px;font-size:16px;">✕</button></div>
         <div class="sound-grid">
-            <button class="sound-btn" onclick="playSound('whitenoise')" data-sound="whitenoise">
-                <span class="sound-emoji">🌧</span>Белый шум
-            </button>
-            <button class="sound-btn" onclick="playSound('fan')" data-sound="fan">
-                <span class="sound-emoji">💨</span>Фен
-            </button>
-            <button class="sound-btn" onclick="playSound('rain')" data-sound="rain">
-                <span class="sound-emoji">🌊</span>Дождь
-            </button>
-            <button class="sound-btn" onclick="playSound('heartbeat')" data-sound="heartbeat">
-                <span class="sound-emoji">❤️</span>Сердце
-            </button>
-            <button class="sound-btn" onclick="playSound('lullaby')" data-sound="lullaby">
-                <span class="sound-emoji">🎵</span>Колыбель
-            </button>
-            <button class="sound-btn" onclick="playSound('nature')" data-sound="nature">
-                <span class="sound-emoji">🌿</span>Природа
-            </button>
+            <button class="sound-btn" onclick="playSound('whitenoise')" data-sound="whitenoise"><span class="sound-emoji">🌧</span>Белый шум</button>
+            <button class="sound-btn" onclick="playSound('fan')" data-sound="fan"><span class="sound-emoji">💨</span>Фен</button>
+            <button class="sound-btn" onclick="playSound('rain')" data-sound="rain"><span class="sound-emoji">🌊</span>Дождь</button>
+            <button class="sound-btn" onclick="playSound('heartbeat')" data-sound="heartbeat"><span class="sound-emoji">❤️</span>Сердце</button>
+            <button class="sound-btn" onclick="playSound('lullaby')" data-sound="lullaby"><span class="sound-emoji">🎵</span>Колыбель</button>
+            <button class="sound-btn" onclick="playSound('nature')" data-sound="nature"><span class="sound-emoji">🌿</span>Природа</button>
         </div>
-        <div class="volume-row">
-            <span>🔈</span>
-            <input type="range" id="volumeSlider" min="0" max="100" value="50" oninput="setVolume(this.value)">
-            <span id="volumeLabel">50%</span>
-        </div>
+        <div class="volume-row"><span>🔈</span><input type="range" id="volumeSlider" min="0" max="100" value="50" oninput="setVolume(this.value)"><span id="volumeLabel">50%</span></div>
         <p style="font-size:12px; color:var(--text-secondary); margin-bottom:8px;">Автовыключение:</p>
-        <div class="timer-row">
-            <button onclick="setTimer(15)" data-timer="15">15 мин</button>
-            <button onclick="setTimer(30)" data-timer="30">30 мин</button>
-            <button onclick="setTimer(60)" data-timer="60">60 мин</button>
-            <button onclick="setTimer(0)" data-timer="0" class="active">∞</button>
-        </div>
+        <div class="timer-row"><button onclick="setTimer(15)" data-timer="15">15 мин</button><button onclick="setTimer(30)" data-timer="30">30 мин</button><button onclick="setTimer(60)" data-timer="60">60 мин</button><button onclick="setTimer(0)" data-timer="0" class="active">∞</button></div>
     </div>
 
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -445,365 +359,109 @@
 
         // === ТЕМА ===
         const THEME_KEY = 'mama_theme';
-        function applyTheme(theme) {
-            if (theme === 'light') {
-                document.body.classList.add('light-theme');
-                document.getElementById('themeBtn').textContent = '☀️';
-            } else {
-                document.body.classList.remove('light-theme');
-                document.getElementById('themeBtn').textContent = '🌙';
-            }
-        }
-        function toggleTheme() {
-            const current = localStorage.getItem(THEME_KEY) || 'dark';
-            const next = current === 'dark' ? 'light' : 'dark';
-            localStorage.setItem(THEME_KEY, next);
-            applyTheme(next);
-        }
+        function applyTheme(theme) { if (theme === 'light') { document.body.classList.add('light-theme'); document.getElementById('themeBtn').textContent = '☀️'; } else { document.body.classList.remove('light-theme'); document.getElementById('themeBtn').textContent = '🌙'; } }
+        function toggleTheme() { const c = localStorage.getItem(THEME_KEY) || 'dark'; const n = c === 'dark' ? 'light' : 'dark'; localStorage.setItem(THEME_KEY, n); applyTheme(n); }
         applyTheme(localStorage.getItem(THEME_KEY) || 'dark');
 
-        // === БЕЛЫЙ ШУМ (качественный синтезатор) ===
-        let audioCtx = null;
-        let soundNodes = [];
-        let soundTimer = null;
-        let currentSound = null;
-        let currentVolume = 0.5;
-
-        function initAudio() {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
-        }
-
-        function stopAllNodes() {
-            soundNodes.forEach(n => {
-                try { 
-                    if (n.stop) n.stop(); 
-                    if (n.disconnect) n.disconnect();
-                } catch(e) {}
-            });
-            soundNodes = [];
-        }
-
-        function stopSound() {
-            stopAllNodes();
-            if (soundTimer) { clearTimeout(soundTimer); soundTimer = null; }
-            currentSound = null;
-            document.querySelectorAll('.sound-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('soundToggle').classList.remove('active');
-            document.getElementById('soundPanel').classList.add('hidden');
-        }
-
-        function createGain() {
-            const gain = audioCtx.createGain();
-            gain.gain.value = currentVolume;
-            gain.connect(audioCtx.destination);
-            soundNodes.push(gain);
-            return gain;
-        }
-
-        function playSound(type) {
-            initAudio();
-            stopAllNodes();
-            if (soundTimer) { clearTimeout(soundTimer); soundTimer = null; }
-            currentSound = type;
-
-            const masterGain = createGain();
-
-            if (type === 'whitenoise') {
-                // Качественный белый шум со сглаживанием
-                const bufferSize = 4 * audioCtx.sampleRate;
-                const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-                const data = buffer.getChannelData(0);
-                let last = 0;
-                for (let i = 0; i < bufferSize; i++) {
-                    const white = Math.random() * 2 - 1;
-                    last = last * 0.7 + white * 0.3;
-                    data[i] = last * 0.6;
-                }
-                const source = audioCtx.createBufferSource();
-                source.buffer = buffer;
-                source.loop = true;
-                const filter = audioCtx.createBiquadFilter();
-                filter.type = 'lowpass';
-                filter.frequency.value = 3000;
-                source.connect(filter);
-                filter.connect(masterGain);
-                source.start();
-                soundNodes.push(source, filter);
-            } else if (type === 'fan') {
-                // Глубокий низкочастотный гул
-                const osc = audioCtx.createOscillator();
-                osc.type = 'sine';
-                osc.frequency.value = 85;
-                const osc2 = audioCtx.createOscillator();
-                osc2.type = 'sine';
-                osc2.frequency.value = 87;
-                const fanGain = audioCtx.createGain();
-                fanGain.gain.value = 0.4;
-                osc.connect(fanGain);
-                osc2.connect(fanGain);
-                const filter = audioCtx.createBiquadFilter();
-                filter.type = 'lowpass';
-                filter.frequency.value = 200;
-                fanGain.connect(filter);
-                filter.connect(masterGain);
-                osc.start();
-                osc2.start();
-                soundNodes.push(osc, osc2, fanGain, filter);
-            } else if (type === 'rain') {
-                // Дождь: высокочастотный шум с модуляцией
-                const bufferSize = 3 * audioCtx.sampleRate;
-                const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-                const data = buffer.getChannelData(0);
-                for (let i = 0; i < bufferSize; i++) {
-                    const t = i / audioCtx.sampleRate;
-                    const mod = 0.3 + 0.7 * Math.abs(Math.sin(t * 0.7 + Math.sin(t * 0.3) * 2));
-                    data[i] = (Math.random() * 2 - 1) * mod * 0.5;
-                }
-                const source = audioCtx.createBufferSource();
-                source.buffer = buffer;
-                source.loop = true;
-                const filter = audioCtx.createBiquadFilter();
-                filter.type = 'highpass';
-                filter.frequency.value = 800;
-                source.connect(filter);
-                filter.connect(masterGain);
-                source.start();
-                soundNodes.push(source, filter);
-            } else if (type === 'heartbeat') {
-                // Ритмичное сердцебиение
-                const osc = audioCtx.createOscillator();
-                osc.type = 'sine';
-                osc.frequency.value = 45;
-                const beatGain = audioCtx.createGain();
-                beatGain.gain.value = 0;
-                osc.connect(beatGain);
-                beatGain.connect(masterGain);
-                osc.start();
-                soundNodes.push(osc, beatGain);
-                
-                let beatTime = 0;
-                const beatInterval = setInterval(() => {
-                    beatTime += 0.1;
-                    const cycle = beatTime % 1.2;
-                    if (cycle < 0.12) {
-                        beatGain.gain.setTargetAtTime(1.2, audioCtx.currentTime, 0.02);
-                        beatGain.gain.setTargetAtTime(0.1, audioCtx.currentTime + 0.1, 0.05);
-                    } else if (cycle > 0.3 && cycle < 0.42) {
-                        beatGain.gain.setTargetAtTime(0.9, audioCtx.currentTime, 0.02);
-                        beatGain.gain.setTargetAtTime(0.1, audioCtx.currentTime + 0.08, 0.04);
-                    }
-                }, 100);
-                soundNodes._beatInterval = beatInterval;
-            } else if (type === 'lullaby') {
-                // Мягкая колыбельная
-                const notes = [262, 294, 330, 349, 392, 349, 330, 294, 262, 330, 392, 440, 392, 330, 294, 262];
-                const osc = audioCtx.createOscillator();
-                osc.type = 'sine';
-                osc.frequency.value = notes[0];
-                const lullGain = audioCtx.createGain();
-                lullGain.gain.value = 0.5;
-                osc.connect(lullGain);
-                lullGain.connect(masterGain);
-                osc.start();
-                soundNodes.push(osc, lullGain);
-                
-                let noteIdx = 0;
-                const melody = setInterval(() => {
-                    noteIdx = (noteIdx + 1) % notes.length;
-                    const freq = notes[noteIdx];
-                    osc.frequency.setTargetAtTime(freq, audioCtx.currentTime, 0.1);
-                }, 900);
-                soundNodes._melody = melody;
-            } else if (type === 'nature') {
-                // Лесные звуки
-                const bufferSize = 5 * audioCtx.sampleRate;
-                const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-                const data = buffer.getChannelData(0);
-                for (let i = 0; i < bufferSize; i++) {
-                    const t = i / audioCtx.sampleRate;
-                    const wind = Math.sin(t * 6.28 * 150 + Math.sin(t * 0.4) * 60) * 0.15;
-                    const birds = (Math.sin(t * 6.28 * 1200 + Math.sin(t * 2) * 200) * 0.08) * (Math.sin(t * 1.5) > 0.7 ? 1 : 0);
-                    const rustle = (Math.random() * 2 - 1) * 0.1 * (0.4 + 0.6 * Math.sin(t * 0.5));
-                    data[i] = wind + birds + rustle;
-                }
-                const source = audioCtx.createBufferSource();
-                source.buffer = buffer;
-                source.loop = true;
-                source.connect(masterGain);
-                source.start();
-                soundNodes.push(source);
-            }
-
-            document.querySelectorAll('.sound-btn').forEach(b => b.classList.remove('active'));
-            const btn = document.querySelector(`[data-sound="${type}"]`);
-            if (btn) btn.classList.add('active');
-            document.getElementById('soundToggle').classList.add('active');
-        }
-
-        function setVolume(val) {
-            currentVolume = val / 100;
-            document.getElementById('volumeLabel').textContent = val + '%';
-            soundNodes.forEach(n => {
-                if (n.gain && n.gain.value !== undefined) {
-                    n.gain.value = currentVolume;
-                }
-            });
-        }
-
-        function setTimer(minutes) {
-            if (soundTimer) { clearTimeout(soundTimer); soundTimer = null; }
-            document.querySelectorAll('.timer-row button').forEach(b => b.classList.remove('active'));
-            document.querySelector(`[data-timer="${minutes}"]`).classList.add('active');
-            if (minutes > 0) {
-                soundTimer = setTimeout(() => { stopSound(); }, minutes * 60 * 1000);
-            }
-        }
-
-        function toggleSoundPanel() {
-            const panel = document.getElementById('soundPanel');
-            if (!currentSound) {
-                panel.classList.toggle('hidden');
-            } else {
-                stopSound();
-            }
-        }
+        // === ЗВУКИ ===
+        let audioCtx = null, soundNodes = [], soundTimer = null, currentSound = null, currentVolume = 0.5;
+        function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if (audioCtx.state === 'suspended') audioCtx.resume(); }
+        function stopAllNodes() { soundNodes.forEach(n => { try { if (n.stop) n.stop(); if (n.disconnect) n.disconnect(); } catch(e) {} }); soundNodes = []; }
+        function stopSound() { stopAllNodes(); if (soundTimer) { clearTimeout(soundTimer); soundTimer = null; } currentSound = null; document.querySelectorAll('.sound-btn').forEach(b => b.classList.remove('active')); document.getElementById('soundToggle').classList.remove('active'); document.getElementById('soundPanel').classList.add('hidden'); }
+        function createGain() { const g = audioCtx.createGain(); g.gain.value = currentVolume; g.connect(audioCtx.destination); soundNodes.push(g); return g; }
+        function playSound(type) { initAudio(); stopAllNodes(); if (soundTimer) clearTimeout(soundTimer); currentSound = type; const masterGain = createGain(); if (type === 'whitenoise') { const buf = audioCtx.createBuffer(1, 4*audioCtx.sampleRate, audioCtx.sampleRate); const d = buf.getChannelData(0); let last = 0; for (let i=0;i<d.length;i++) { const w = Math.random()*2-1; last = last*0.7 + w*0.3; d[i] = last*0.6; } const s = audioCtx.createBufferSource(); s.buffer = buf; s.loop = true; const f = audioCtx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=3000; s.connect(f); f.connect(masterGain); s.start(); soundNodes.push(s,f); } else if (type==='fan') { const o1=audioCtx.createOscillator(); o1.type='sine'; o1.frequency.value=85; const o2=audioCtx.createOscillator(); o2.type='sine'; o2.frequency.value=87; const fg=audioCtx.createGain(); fg.gain.value=0.4; o1.connect(fg); o2.connect(fg); const ff=audioCtx.createBiquadFilter(); ff.type='lowpass'; ff.frequency.value=200; fg.connect(ff); ff.connect(masterGain); o1.start(); o2.start(); soundNodes.push(o1,o2,fg,ff); } else if (type==='rain') { const buf=audioCtx.createBuffer(1,3*audioCtx.sampleRate,audioCtx.sampleRate); const d=buf.getChannelData(0); for (let i=0;i<d.length;i++) { const t=i/audioCtx.sampleRate; d[i]=(Math.random()*2-1)*(0.3+0.7*Math.abs(Math.sin(t*0.7)))*0.5; } const s=audioCtx.createBufferSource(); s.buffer=buf; s.loop=true; const ff=audioCtx.createBiquadFilter(); ff.type='highpass'; ff.frequency.value=800; s.connect(ff); ff.connect(masterGain); s.start(); soundNodes.push(s,ff); } else if (type==='heartbeat') { const o=audioCtx.createOscillator(); o.type='sine'; o.frequency.value=45; const bg=audioCtx.createGain(); bg.gain.value=0; o.connect(bg); bg.connect(masterGain); o.start(); soundNodes.push(o,bg); let bt=0; const iv=setInterval(()=>{ bt+=0.1; const cy=bt%1.2; if(cy<0.12){bg.gain.setTargetAtTime(1.2,audioCtx.currentTime,0.02); bg.gain.setTargetAtTime(0.1,audioCtx.currentTime+0.1,0.05);} else if(cy>0.3&&cy<0.42){bg.gain.setTargetAtTime(0.9,audioCtx.currentTime,0.02); bg.gain.setTargetAtTime(0.1,audioCtx.currentTime+0.08,0.04);} },100); soundNodes._beatInterval=iv; } else if (type==='lullaby') { const notes=[262,294,330,349,392,349,330,294,262,330,392,440,392,330,294,262]; const o=audioCtx.createOscillator(); o.type='sine'; o.frequency.value=notes[0]; const lg=audioCtx.createGain(); lg.gain.value=0.5; o.connect(lg); lg.connect(masterGain); o.start(); soundNodes.push(o,lg); let ni=0; const mv=setInterval(()=>{ ni=(ni+1)%notes.length; o.frequency.setTargetAtTime(notes[ni],audioCtx.currentTime,0.1); },900); soundNodes._melody=mv; } else if (type==='nature') { const buf=audioCtx.createBuffer(1,5*audioCtx.sampleRate,audioCtx.sampleRate); const d=buf.getChannelData(0); for (let i=0;i<d.length;i++) { const t=i/audioCtx.sampleRate; d[i]=Math.sin(t*6.28*150+Math.sin(t*0.4)*60)*0.15 + (Math.sin(t*6.28*1200+Math.sin(t*2)*200)*0.08)*(Math.sin(t*1.5)>0.7?1:0) + (Math.random()*2-1)*0.1*(0.4+0.6*Math.sin(t*0.5)); } const s=audioCtx.createBufferSource(); s.buffer=buf; s.loop=true; s.connect(masterGain); s.start(); soundNodes.push(s); } document.querySelectorAll('.sound-btn').forEach(b=>b.classList.remove('active')); const btn=document.querySelector(`[data-sound="${type}"]`); if(btn) btn.classList.add('active'); document.getElementById('soundToggle').classList.add('active'); }
+        function setVolume(val) { currentVolume=val/100; document.getElementById('volumeLabel').textContent=val+'%'; soundNodes.forEach(n=>{ if(n.gain&&n.gain.value!==undefined) n.gain.value=currentVolume; }); }
+        function setTimer(minutes) { if(soundTimer) clearTimeout(soundTimer); document.querySelectorAll('.timer-row button').forEach(b=>b.classList.remove('active')); document.querySelector(`[data-timer="${minutes}"]`).classList.add('active'); if(minutes>0) soundTimer=setTimeout(()=>{stopSound();}, minutes*60*1000); }
+        function toggleSoundPanel() { const p=document.getElementById('soundPanel'); if(!currentSound) p.classList.toggle('hidden'); else stopSound(); }
 
         // === ЗАМЕТКИ ===
         let pendingSave = null;
-
-        function showNoteDialog(type, data) {
-            pendingSave = { type, data };
-            const overlay = document.createElement('div');
-            overlay.className = 'note-overlay';
-            const dialog = document.createElement('div');
-            dialog.className = 'note-dialog';
-            const emoji = type === 'feed' ? '🍼' : type === 'sleep' ? '😴' : '💧';
-            const title = type === 'feed' ? 'Кормление' : type === 'sleep' ? 'Сон' : 'Подгузник';
-            dialog.innerHTML = `
-                <h3>${emoji} ${title} сохранено!</h3>
-                <p style="color:var(--text-secondary); font-size:14px; margin-bottom:12px;">Добавить заметку?</p>
-                <textarea id="noteText" placeholder="Например: малыш капризничал..."></textarea>
-                <div class="note-dialog-buttons">
-                    <button class="note-skip-btn" id="noteSkip">Пропустить</button>
-                    <button class="note-save-btn" id="noteSave">💾 Сохранить</button>
-                </div>`;
-            overlay.appendChild(dialog);
-            document.body.appendChild(overlay);
-            document.getElementById('noteSave').onclick = () => {
-                const note = document.getElementById('noteText').value.trim();
-                if (pendingSave) { pendingSave.data.note = note; saveRecord(pendingSave.type, pendingSave.data); refreshAll(); }
-                document.body.removeChild(overlay); pendingSave = null;
-            };
-            document.getElementById('noteSkip').onclick = () => {
-                if (pendingSave) { saveRecord(pendingSave.type, pendingSave.data); refreshAll(); }
-                document.body.removeChild(overlay); pendingSave = null;
-            };
-            overlay.addEventListener('click', e => { if (e.target === overlay) { if (pendingSave) { saveRecord(pendingSave.type, pendingSave.data); refreshAll(); } document.body.removeChild(overlay); pendingSave = null; }});
-            setTimeout(() => document.getElementById('noteText').focus(), 100);
-        }
-
+        function showNoteDialog(type, data) { pendingSave={type,data}; const overlay=document.createElement('div'); overlay.className='note-overlay'; const dialog=document.createElement('div'); dialog.className='note-dialog'; const emoji=type==='feed'?'🍼':type==='sleep'?'😴':'💧'; const title=type==='feed'?'Кормление':type==='sleep'?'Сон':'Подгузник'; dialog.innerHTML=`<h3>${emoji} ${title} сохранено!</h3><p style="color:var(--text-secondary); font-size:14px; margin-bottom:12px;">Добавить заметку?</p><textarea id="noteText" placeholder="Например: малыш капризничал..."></textarea><div class="note-dialog-buttons"><button class="note-skip-btn" id="noteSkip">Пропустить</button><button class="note-save-btn" id="noteSave">💾 Сохранить</button></div>`; overlay.appendChild(dialog); document.body.appendChild(overlay); document.getElementById('noteSave').onclick=()=>{ const note=document.getElementById('noteText').value.trim(); if(pendingSave){pendingSave.data.note=note; saveRecord(pendingSave.type,pendingSave.data); refreshAll();} document.body.removeChild(overlay); pendingSave=null; }; document.getElementById('noteSkip').onclick=()=>{ if(pendingSave){saveRecord(pendingSave.type,pendingSave.data); refreshAll();} document.body.removeChild(overlay); pendingSave=null; }; overlay.addEventListener('click',e=>{ if(e.target===overlay){if(pendingSave){saveRecord(pendingSave.type,pendingSave.data); refreshAll();} document.body.removeChild(overlay); pendingSave=null;}}); setTimeout(()=>document.getElementById('noteText').focus(),100); }
         function refreshAll() { updateFeedStats(); renderFeedHistory(); updateSleepStats(); renderSleepHistory(); updateDiaperStats(); renderDiaperHistory(); }
 
         // === PRO ===
-        const PRO_KEY = 'mama_pro_active';
-        const SECRET_CODES = ['MAMA2024', 'PRO-MAMA', 'MOM-PRO', 'TEST123'];
-        function isPro() { return localStorage.getItem(PRO_KEY) === 'true'; }
-        function updateProUI() {
-            if (isPro()) {
-                document.getElementById('proBadge').style.display = 'inline-block';
-                document.getElementById('proActive').style.display = 'block';
-                document.getElementById('proInactive').style.display = 'none';
-            } else {
-                document.getElementById('proBadge').style.display = 'none';
-                document.getElementById('proActive').style.display = 'none';
-                document.getElementById('proInactive').style.display = 'block';
-            }
-            buildAllCharts();
-        }
-        function activatePro() {
-            const code = document.getElementById('activateCode').value.trim().toUpperCase();
-            if (SECRET_CODES.includes(code)) { localStorage.setItem(PRO_KEY, 'true'); updateProUI(); if (tg?.showPopup) tg.showPopup({ title: '🎉 PRO активирован!', message: 'Все функции разблокированы!', buttons: [{type: 'ok'}] }); else alert('PRO активирован!'); }
-            else { if (tg?.showPopup) tg.showPopup({ title: '❌ Неверный код', message: 'Попробуйте TEST123', buttons: [{type: 'ok'}] }); else alert('Неверный код.'); }
-        }
+        const PRO_KEY='mama_pro_active'; const SECRET_CODES=['MAMA2024','PRO-MAMA','MOM-PRO','TEST123'];
+        function isPro(){return localStorage.getItem(PRO_KEY)==='true';}
+        function updateProUI(){if(isPro()){document.getElementById('proBadge').style.display='inline-block'; document.getElementById('proActive').style.display='block'; document.getElementById('proInactive').style.display='none';}else{document.getElementById('proBadge').style.display='none'; document.getElementById('proActive').style.display='none'; document.getElementById('proInactive').style.display='block';} buildAllCharts();}
+        function activatePro(){const code=document.getElementById('activateCode').value.trim().toUpperCase(); if(SECRET_CODES.includes(code)){localStorage.setItem(PRO_KEY,'true'); updateProUI(); if(tg?.showPopup) tg.showPopup({title:'🎉 PRO активирован!',message:'Все функции разблокированы!',buttons:[{type:'ok'}]}); else alert('PRO активирован!');}else{if(tg?.showPopup) tg.showPopup({title:'❌ Неверный код',message:'Попробуйте TEST123',buttons:[{type:'ok'}]}); else alert('Неверный код.');}}
 
         // === ПРИВЕТСТВЕННЫЙ ЭКРАН ===
-        function closeWelcome() { document.getElementById('welcomeScreen').style.display = 'none'; document.getElementById('mainApp').style.display = 'block'; localStorage.setItem('mama-welcome-shown', 'true'); }
-        if (localStorage.getItem('mama-welcome-shown')) { document.getElementById('welcomeScreen').style.display = 'none'; document.getElementById('mainApp').style.display = 'block'; }
+        function closeWelcome(){document.getElementById('welcomeScreen').style.display='none'; document.getElementById('mainApp').style.display='block'; localStorage.setItem('mama-welcome-shown','true');}
+        if(localStorage.getItem('mama-welcome-shown')){document.getElementById('welcomeScreen').style.display='none'; document.getElementById('mainApp').style.display='block';}
 
         // === НАВИГАЦИЯ ===
-        let mainTab = 'feeding', statsSubTab = 'feed';
-        function switchMainTab(tab) {
-            mainTab = tab;
-            document.querySelectorAll('#mainApp .tab-btn').forEach((b, i) => b.classList.toggle('active', ['feeding','sleep','diaper','stats','pro'][i] === tab));
-            document.querySelectorAll('#mainApp .tab-content').forEach(c => c.classList.remove('active'));
-            document.getElementById('tab-' + tab).classList.add('active');
-            if (tab === 'stats') buildAllCharts();
-            if (tab === 'pro') updateProUI();
+        let mainTab='feeding', statsSubTab='feed';
+        function switchMainTab(tab){
+            mainTab=tab;
+            const tabs=['feeding','sleep','diaper','stats','growth','pro'];
+            document.querySelectorAll('#mainApp .tab-btn').forEach((b,i)=>b.classList.toggle('active',tabs[i]===tab));
+            document.querySelectorAll('#mainApp .tab-content').forEach(c=>c.classList.remove('active'));
+            document.getElementById('tab-'+tab).classList.add('active');
+            if(tab==='stats') buildAllCharts();
+            if(tab==='growth') updateGrowthUI();
+            if(tab==='pro') updateProUI();
         }
-        function switchStatsTab(tab) {
-            statsSubTab = tab;
-            document.querySelectorAll('.sub-tab').forEach((b, i) => b.classList.toggle('active', ['feed','sleep','diaper'][i] === tab));
-            document.getElementById('statsFeed').style.display = tab === 'feed' ? 'block' : 'none';
-            document.getElementById('statsSleep').style.display = tab === 'sleep' ? 'block' : 'none';
-            document.getElementById('statsDiaper').style.display = tab === 'diaper' ? 'block' : 'none';
-        }
+        function switchStatsTab(tab){statsSubTab=tab; document.querySelectorAll('.sub-tab').forEach((b,i)=>b.classList.toggle('active',['feed','sleep','diaper'][i]===tab)); document.getElementById('statsFeed').style.display=tab==='feed'?'block':'none'; document.getElementById('statsSleep').style.display=tab==='sleep'?'block':'none'; document.getElementById('statsDiaper').style.display=tab==='diaper'?'block':'none';}
 
         // === ХРАНИЛИЩЕ ===
-        function getKey(type, dateObj) { return 'mama-' + type + '-' + (dateObj || today).toISOString().split('T')[0]; }
-        function getRecords(type, dateObj) { return JSON.parse(localStorage.getItem(getKey(type, dateObj)) || '[]'); }
-        function saveRecord(type, data) { const key = getKey(type); const records = JSON.parse(localStorage.getItem(key) || '[]'); records.push({ ...data, timestamp: Date.now() }); localStorage.setItem(key, JSON.stringify(records)); }
-        function getAllRecords(type) { const all = []; for (let i = 0; i < 30; i++) { const d = new Date(); d.setDate(d.getDate() - i); all.push(...getRecords(type, d)); } return all.sort((a, b) => b.timestamp - a.timestamp); }
+        function getKey(type,dateObj){return 'mama-'+type+'-'+(dateObj||today).toISOString().split('T')[0];}
+        function getRecords(type,dateObj){return JSON.parse(localStorage.getItem(getKey(type,dateObj))||'[]');}
+        function saveRecord(type,data){const key=getKey(type); const records=JSON.parse(localStorage.getItem(key)||'[]'); records.push({...data,timestamp:Date.now()}); localStorage.setItem(key,JSON.stringify(records));}
+        function getAllRecords(type){const all=[]; for(let i=0;i<30;i++){const d=new Date(); d.setDate(d.getDate()-i); all.push(...getRecords(type,d));} return all.sort((a,b)=>b.timestamp-a.timestamp);}
 
         // === КОРМЛЕНИЕ ===
-        let feedSide = null, feedRunning = false, feedStart = null, feedInterval = null;
-        function selectSide(side) { if (feedRunning) return; feedSide = side; document.getElementById('btnLeft').classList.toggle('selected', side === 'left'); document.getElementById('btnRight').classList.toggle('selected', side === 'right'); document.getElementById('feedingBtn').disabled = false; }
-        function feedingToggle() { feedRunning ? stopFeeding() : startFeeding(); }
-        function startFeeding() { if (!feedSide) return; feedRunning = true; feedStart = Date.now(); document.getElementById('feedingBtn').textContent = '⏹ Завершить'; document.getElementById('feedingBtn').className = 'action-btn stop'; feedInterval = setInterval(() => { const e = Math.floor((Date.now() - feedStart) / 1000); document.getElementById('feedingTimer').textContent = String(Math.floor(e/60)).padStart(2,'0') + ':' + String(e%60).padStart(2,'0'); }, 200); }
-        function stopFeeding() { feedRunning = false; clearInterval(feedInterval); const dur = Math.floor((Date.now() - feedStart) / 1000); document.getElementById('feedingTimer').textContent = '00:00'; document.getElementById('feedingBtn').textContent = '▶️ Начать'; document.getElementById('feedingBtn').className = 'action-btn start'; document.getElementById('feedingBtn').disabled = true; if (dur >= 5) { showNoteDialog('feed', { side: feedSide, duration: dur }); } }
-        function updateFeedStats() { const recs = getRecords('feed'); document.getElementById('feedCount').textContent = recs.length; const min = Math.floor(recs.reduce((s,r) => s + r.duration, 0) / 60); document.getElementById('feedDuration').textContent = min < 60 ? min + ' мин' : Math.floor(min/60) + ' ч ' + (min%60) + ' мин'; }
-        function renderFeedHistory() { const recs = isPro() ? getAllRecords('feed').slice(0, 50) : getRecords('feed').sort((a,b) => b.timestamp - a.timestamp); const list = document.getElementById('feedHistory'); if (!recs.length) { list.innerHTML = '<div class="empty-state">Нет записей</div>'; return; } list.innerHTML = recs.map((r, i) => { const t = new Date(r.timestamp).toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit'}); const d = new Date(r.timestamp).toLocaleDateString('ru-RU', {day:'2-digit', month:'2-digit'}); const min = Math.floor(r.duration/60), sec = r.duration%60; const datePrefix = isPro() ? '<span style="font-size:10px; color:var(--text-secondary);">' + d + ' </span>' : ''; const noteIcon = r.note ? '<span class="history-note-icon">📝</span>' : ''; return `<div class="history-item" onclick="showNote('feed', ${i})">${datePrefix}<span>${t}</span><span class="history-duration">${min}:${String(sec).padStart(2,'0')}${noteIcon}</span><span class="history-side"><span class="side-dot ${r.side}"></span>${r.side==='left'?'Левая':'Правая'}</span></div>`; }).join(''); }
+        let feedSide=null, feedRunning=false, feedStart=null, feedInterval=null;
+        function selectSide(side){if(feedRunning)return; feedSide=side; document.getElementById('btnLeft').classList.toggle('selected',side==='left'); document.getElementById('btnRight').classList.toggle('selected',side==='right'); document.getElementById('feedingBtn').disabled=false;}
+        function feedingToggle(){feedRunning?stopFeeding():startFeeding();}
+        function startFeeding(){if(!feedSide)return; feedRunning=true; feedStart=Date.now(); document.getElementById('feedingBtn').textContent='⏹ Завершить'; document.getElementById('feedingBtn').className='action-btn stop'; feedInterval=setInterval(()=>{const e=Math.floor((Date.now()-feedStart)/1000); document.getElementById('feedingTimer').textContent=String(Math.floor(e/60)).padStart(2,'0')+':'+String(e%60).padStart(2,'0');},200);}
+        function stopFeeding(){feedRunning=false; clearInterval(feedInterval); const dur=Math.floor((Date.now()-feedStart)/1000); document.getElementById('feedingTimer').textContent='00:00'; document.getElementById('feedingBtn').textContent='▶️ Начать'; document.getElementById('feedingBtn').className='action-btn start'; document.getElementById('feedingBtn').disabled=true; if(dur>=5){showNoteDialog('feed',{side:feedSide,duration:dur});}}
+        function updateFeedStats(){const recs=getRecords('feed'); document.getElementById('feedCount').textContent=recs.length; const min=Math.floor(recs.reduce((s,r)=>s+r.duration,0)/60); document.getElementById('feedDuration').textContent=min<60?min+' мин':Math.floor(min/60)+' ч '+(min%60)+' мин';}
+        function renderFeedHistory(){const recs=isPro()?getAllRecords('feed').slice(0,50):getRecords('feed').sort((a,b)=>b.timestamp-a.timestamp); const list=document.getElementById('feedHistory'); if(!recs.length){list.innerHTML='<div class="empty-state">Нет записей</div>'; return;} list.innerHTML=recs.map((r,i)=>{const t=new Date(r.timestamp).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}); const d=new Date(r.timestamp).toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'}); const min=Math.floor(r.duration/60),sec=r.duration%60; const dp=isPro()?'<span style="font-size:10px; color:var(--text-secondary);">'+d+' </span>':''; const ni=r.note?'<span class="history-note-icon">📝</span>':''; return `<div class="history-item" onclick="showNote('feed',${i})">${dp}<span>${t}</span><span class="history-duration">${min}:${String(sec).padStart(2,'0')}${ni}</span><span class="history-side"><span class="side-dot ${r.side}"></span>${r.side==='left'?'Левая':'Правая'}</span></div>`;}).join('');}
 
         // === СОН ===
-        let sleepRunning = false, sleepStart = null, sleepInterval = null;
-        function sleepToggle() { sleepRunning ? stopSleep() : startSleep(); }
-        function startSleep() { sleepRunning = true; sleepStart = Date.now(); document.getElementById('sleepBtn').textContent = '⏹ Проснулся'; document.getElementById('sleepBtn').className = 'action-btn stop'; sleepInterval = setInterval(() => { const e = Math.floor((Date.now() - sleepStart) / 1000); document.getElementById('sleepTimer').textContent = String(Math.floor(e/60)).padStart(2,'0') + ':' + String(e%60).padStart(2,'0'); }, 200); }
-        function stopSleep() { sleepRunning = false; clearInterval(sleepInterval); const dur = Math.floor((Date.now() - sleepStart) / 1000); document.getElementById('sleepTimer').textContent = '00:00'; document.getElementById('sleepBtn').textContent = '▶️ Уложить спать'; document.getElementById('sleepBtn').className = 'action-btn start-sleep'; if (dur >= 60) { showNoteDialog('sleep', { duration: dur }); } }
-        function updateSleepStats() { const recs = getRecords('sleep'); document.getElementById('sleepCount').textContent = recs.length; const min = Math.floor(recs.reduce((s,r) => s + r.duration, 0) / 60); document.getElementById('sleepDuration').textContent = min < 60 ? min + ' мин' : Math.floor(min/60) + ' ч ' + (min%60) + ' мин'; }
-        function renderSleepHistory() { const recs = isPro() ? getAllRecords('sleep').slice(0, 50) : getRecords('sleep').sort((a,b) => b.timestamp - a.timestamp); const list = document.getElementById('sleepHistory'); if (!recs.length) { list.innerHTML = '<div class="empty-state">Нет записей</div>'; return; } list.innerHTML = recs.map((r, i) => { const t = new Date(r.timestamp).toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit'}); const d = new Date(r.timestamp).toLocaleDateString('ru-RU', {day:'2-digit', month:'2-digit'}); const min = Math.floor(r.duration/60); const durStr = Math.floor(min/60) > 0 ? Math.floor(min/60) + ' ч ' + (min%60) + ' мин' : min + ' мин'; const datePrefix = isPro() ? '<span style="font-size:10px; color:var(--text-secondary);">' + d + ' </span>' : ''; const noteIcon = r.note ? '<span class="history-note-icon">📝</span>' : ''; return `<div class="history-item" onclick="showNote('sleep', ${i})">${datePrefix}<span>${t}</span><span class="history-duration">${durStr}${noteIcon}</span><span class="history-side"><span class="side-dot sleep"></span>Сон</span></div>`; }).join(''); }
+        let sleepRunning=false, sleepStart=null, sleepInterval=null;
+        function sleepToggle(){sleepRunning?stopSleep():startSleep();}
+        function startSleep(){sleepRunning=true; sleepStart=Date.now(); document.getElementById('sleepBtn').textContent='⏹ Проснулся'; document.getElementById('sleepBtn').className='action-btn stop'; sleepInterval=setInterval(()=>{const e=Math.floor((Date.now()-sleepStart)/1000); document.getElementById('sleepTimer').textContent=String(Math.floor(e/60)).padStart(2,'0')+':'+String(e%60).padStart(2,'0');},200);}
+        function stopSleep(){sleepRunning=false; clearInterval(sleepInterval); const dur=Math.floor((Date.now()-sleepStart)/1000); document.getElementById('sleepTimer').textContent='00:00'; document.getElementById('sleepBtn').textContent='▶️ Уложить спать'; document.getElementById('sleepBtn').className='action-btn start-sleep'; if(dur>=60){showNoteDialog('sleep',{duration:dur});}}
+        function updateSleepStats(){const recs=getRecords('sleep'); document.getElementById('sleepCount').textContent=recs.length; const min=Math.floor(recs.reduce((s,r)=>s+r.duration,0)/60); document.getElementById('sleepDuration').textContent=min<60?min+' мин':Math.floor(min/60)+' ч '+(min%60)+' мин';}
+        function renderSleepHistory(){const recs=isPro()?getAllRecords('sleep').slice(0,50):getRecords('sleep').sort((a,b)=>b.timestamp-a.timestamp); const list=document.getElementById('sleepHistory'); if(!recs.length){list.innerHTML='<div class="empty-state">Нет записей</div>'; return;} list.innerHTML=recs.map((r,i)=>{const t=new Date(r.timestamp).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}); const d=new Date(r.timestamp).toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'}); const min=Math.floor(r.duration/60); const durStr=Math.floor(min/60)>0?Math.floor(min/60)+' ч '+(min%60)+' мин':min+' мин'; const dp=isPro()?'<span style="font-size:10px; color:var(--text-secondary);">'+d+' </span>':''; const ni=r.note?'<span class="history-note-icon">📝</span>':''; return `<div class="history-item" onclick="showNote('sleep',${i})">${dp}<span>${t}</span><span class="history-duration">${durStr}${ni}</span><span class="history-side"><span class="side-dot sleep"></span>Сон</span></div>`;}).join('');}
 
         // === ПОДГУЗНИКИ ===
-        function addDiaper(type) { showNoteDialog('diaper', { type }); }
-        function updateDiaperStats() { const recs = getRecords('diaper'); document.getElementById('diaperCount').textContent = recs.length; document.getElementById('diaperDirty').textContent = recs.filter(r => r.type === 'dirty' || r.type === 'both').length; }
-        function renderDiaperHistory() { const recs = getRecords('diaper').sort((a,b) => b.timestamp - a.timestamp); const list = document.getElementById('diaperHistory'); if (!recs.length) { list.innerHTML = '<div class="empty-state">Нет записей</div>'; return; } const labels = { wet: '💦 Мокрый', dirty: '💩 Грязный', both: '💦💩 Всё вместе', dry: '✅ Сменили' }; const dots = { wet: 'wet', dirty: 'dirty', both: 'both', dry: 'sleep' }; list.innerHTML = recs.map((r, i) => { const t = new Date(r.timestamp).toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit'}); const noteIcon = r.note ? '<span class="history-note-icon">📝</span>' : ''; return `<div class="history-item" onclick="showNote('diaper', ${i})"><span>${t}${noteIcon}</span><span class="history-side"><span class="side-dot ${dots[r.type]}"></span>${labels[r.type]}</span></div>`; }).join(''); }
+        function addDiaper(type){showNoteDialog('diaper',{type});}
+        function updateDiaperStats(){const recs=getRecords('diaper'); document.getElementById('diaperCount').textContent=recs.length; document.getElementById('diaperDirty').textContent=recs.filter(r=>r.type==='dirty'||r.type==='both').length;}
+        function renderDiaperHistory(){const recs=getRecords('diaper').sort((a,b)=>b.timestamp-a.timestamp); const list=document.getElementById('diaperHistory'); if(!recs.length){list.innerHTML='<div class="empty-state">Нет записей</div>'; return;} const labels={wet:'💦 Мокрый',dirty:'💩 Грязный',both:'💦💩 Всё вместе',dry:'✅ Сменили'}; const dots={wet:'wet',dirty:'dirty',both:'both',dry:'sleep'}; list.innerHTML=recs.map((r,i)=>{const t=new Date(r.timestamp).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}); const ni=r.note?'<span class="history-note-icon">📝</span>':''; return `<div class="history-item" onclick="showNote('diaper',${i})"><span>${t}${ni}</span><span class="history-side"><span class="side-dot ${dots[r.type]}"></span>${labels[r.type]}</span></div>`;}).join('');}
 
         // === ЗАМЕТКА ===
-        function showNote(type, index) { const recs = type === 'feed' ? (isPro() ? getAllRecords('feed').slice(0, 50) : getRecords('feed').sort((a,b) => b.timestamp - a.timestamp)) : type === 'sleep' ? (isPro() ? getAllRecords('sleep').slice(0, 50) : getRecords('sleep').sort((a,b) => b.timestamp - a.timestamp)) : getRecords('diaper').sort((a,b) => b.timestamp - a.timestamp); const record = recs[index]; if (!record) return; const note = record.note || ''; const t = new Date(record.timestamp).toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit'}); const d = new Date(record.timestamp).toLocaleDateString('ru-RU', {day:'2-digit', month:'2-digit'}); const emoji = type === 'feed' ? '🍼' : type === 'sleep' ? '😴' : '💧'; const overlay = document.createElement('div'); overlay.className = 'note-overlay'; const dialog = document.createElement('div'); dialog.className = 'note-dialog'; dialog.innerHTML = `<h3>${emoji} ${d} ${t}</h3><p style="color:var(--text-secondary); font-size:13px; margin-bottom:8px;">${note ? 'Редактировать заметку:' : 'Добавить заметку:'}</p><textarea id="editNoteText" placeholder="Заметка...">${note}</textarea><div class="note-dialog-buttons">${note ? '<button class="note-skip-btn" id="noteDelete" style="color:#e8606e;">🗑 Удалить</button>' : ''}<button class="note-skip-btn" id="noteClose">Закрыть</button><button class="note-save-btn" id="noteUpdate">💾 Сохранить</button></div>`; overlay.appendChild(dialog); document.body.appendChild(overlay); document.getElementById('noteUpdate').onclick = () => { const nn = document.getElementById('editNoteText').value.trim(); const key = getKey(type, new Date(record.timestamp)); const all = JSON.parse(localStorage.getItem(key) || '[]'); for (let i = all.length-1; i>=0; i--) { if (all[i].timestamp === record.timestamp) { all[i].note = nn || undefined; if (!nn) delete all[i].note; break; } } localStorage.setItem(key, JSON.stringify(all)); document.body.removeChild(overlay); refreshAll(); }; document.getElementById('noteClose').onclick = () => document.body.removeChild(overlay); const del = document.getElementById('noteDelete'); if (del) del.onclick = () => { const key = getKey(type, new Date(record.timestamp)); const all = JSON.parse(localStorage.getItem(key) || '[]'); for (let i = all.length-1; i>=0; i--) { if (all[i].timestamp === record.timestamp) { delete all[i].note; break; } } localStorage.setItem(key, JSON.stringify(all)); document.body.removeChild(overlay); refreshAll(); }; overlay.addEventListener('click', e => { if (e.target === overlay) document.body.removeChild(overlay); }); setTimeout(() => document.getElementById('editNoteText').focus(), 100); }
+        function showNote(type,index){const recs=type==='feed'?(isPro()?getAllRecords('feed').slice(0,50):getRecords('feed').sort((a,b)=>b.timestamp-a.timestamp)):type==='sleep'?(isPro()?getAllRecords('sleep').slice(0,50):getRecords('sleep').sort((a,b)=>b.timestamp-a.timestamp)):getRecords('diaper').sort((a,b)=>b.timestamp-a.timestamp); const record=recs[index]; if(!record)return; const note=record.note||''; const t=new Date(record.timestamp).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}); const d=new Date(record.timestamp).toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'}); const emoji=type==='feed'?'🍼':type==='sleep'?'😴':'💧'; const overlay=document.createElement('div'); overlay.className='note-overlay'; const dialog=document.createElement('div'); dialog.className='note-dialog'; dialog.innerHTML=`<h3>${emoji} ${d} ${t}</h3><p style="color:var(--text-secondary); font-size:13px; margin-bottom:8px;">${note?'Редактировать заметку:':'Добавить заметку:'}</p><textarea id="editNoteText" placeholder="Заметка...">${note}</textarea><div class="note-dialog-buttons">${note?'<button class="note-skip-btn" id="noteDelete" style="color:#e8606e;">🗑 Удалить</button>':''}<button class="note-skip-btn" id="noteClose">Закрыть</button><button class="note-save-btn" id="noteUpdate">💾 Сохранить</button></div>`; overlay.appendChild(dialog); document.body.appendChild(overlay); document.getElementById('noteUpdate').onclick=()=>{const nn=document.getElementById('editNoteText').value.trim(); const key=getKey(type,new Date(record.timestamp)); const all=JSON.parse(localStorage.getItem(key)||'[]'); for(let i=all.length-1;i>=0;i--){if(all[i].timestamp===record.timestamp){all[i].note=nn||undefined; if(!nn)delete all[i].note; break;}} localStorage.setItem(key,JSON.stringify(all)); document.body.removeChild(overlay); refreshAll();}; document.getElementById('noteClose').onclick=()=>document.body.removeChild(overlay); const del=document.getElementById('noteDelete'); if(del)del.onclick=()=>{const key=getKey(type,new Date(record.timestamp)); const all=JSON.parse(localStorage.getItem(key)||'[]'); for(let i=all.length-1;i>=0;i--){if(all[i].timestamp===record.timestamp){delete all[i].note; break;}} localStorage.setItem(key,JSON.stringify(all)); document.body.removeChild(overlay); refreshAll();}; overlay.addEventListener('click',e=>{if(e.target===overlay)document.body.removeChild(overlay);}); setTimeout(()=>document.getElementById('editNoteText').focus(),100);}
 
         // === СТАТИСТИКА ===
-        function getWeekData(type) { const days = []; for (let i = 6; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); days.push(getRecords(type, d)); } return days; }
-        function buildChart(containerId, data, color, labelFn, maxVal) { const container = document.getElementById(containerId); if (!container) return; const max = maxVal || Math.max(...data.map(d => d), 1); container.innerHTML = '<div class="chart-row">' + data.map((val, i) => { const h = max > 0 ? Math.max((val / max) * 90, 4) : 4; return `<div class="chart-bar-wrapper"><div class="chart-value">${labelFn(val)}</div><div class="chart-bar" style="height:${h}px; background:${i===6?color:color+'88'};"></div></div>`; }).join('') + '</div>'; }
-        function buildFeedChart() { const week = getWeekData('feed'); const counts = week.map(r => r.length); const durations = week.map(r => Math.floor(r.reduce((s,f) => s + f.duration, 0) / 60)); buildChart('feedChart', durations, 'var(--accent)', v => v + ' мин', 120); document.getElementById('feedAverages').innerHTML = `<div class="avg-row"><span>Всего кормлений</span><span class="avg-value">${counts.reduce((a,b)=>a+b,0)}</span></div><div class="avg-row"><span>В среднем в день</span><span class="avg-value">${(counts.reduce((a,b)=>a+b,0)/7).toFixed(1)}</span></div><div class="avg-row"><span>Средняя длительность</span><span class="avg-value">${durations.reduce((a,b)=>a+b,0) > 0 ? Math.floor(durations.reduce((a,b)=>a+b,0) / counts.reduce((a,b)=>a+b,0)) : 0} мин</span></div>`; const allFeed = getAllRecords('feed'); const leftCount = allFeed.filter(r => r.side === 'left').length; const rightCount = allFeed.filter(r => r.side === 'right').length; const total = leftCount + rightCount || 1; if (isPro()) { document.getElementById('proFeedContent').innerHTML = `<p style="font-size:13px; color:var(--text-secondary); margin-bottom:8px;">Соотношение груди (за 30 дней)</p><div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;"><span style="font-size:12px; width:50px;">⬅️ Левая</span><div class="pro-bar" style="flex:1;"><div class="pro-bar-fill" style="width:${Math.round(leftCount/total*100)}%; background:var(--left-breast);"></div></div><span style="font-size:12px; width:40px;">${Math.round(leftCount/total*100)}%</span></div><div style="display:flex; align-items:center; gap:8px;"><span style="font-size:12px; width:50px;">➡️ Правая</span><div class="pro-bar" style="flex:1;"><div class="pro-bar-fill" style="width:${Math.round(rightCount/total*100)}%; background:var(--right-breast);"></div></div><span style="font-size:12px; width:40px;">${Math.round(rightCount/total*100)}%</span></div><p style="font-size:13px; color:var(--text-secondary); margin-top:12px; margin-bottom:8px;">Средний интервал между кормлениями</p><p style="font-size:24px; font-weight:700; color:var(--accent);">${calcAvgInterval(allFeed)}</p>`; } else { document.getElementById('proFeedContent').innerHTML = '<p style="text-align:center; color:var(--text-secondary);">🔒 Доступно в PRO-версии</p>'; } }
-        function calcAvgInterval(feedings) { if (feedings.length < 2) return '—'; const sorted = feedings.sort((a,b) => a.timestamp - b.timestamp); let totalGap = 0, gaps = 0; for (let i = 1; i < sorted.length; i++) { const gap = sorted[i].timestamp - sorted[i-1].timestamp; if (gap < 6 * 60 * 60 * 1000) { totalGap += gap; gaps++; } } if (gaps === 0) return '—'; const avgMin = Math.floor(totalGap / gaps / 60000); return avgMin < 60 ? avgMin + ' мин' : Math.floor(avgMin/60) + ' ч ' + (avgMin%60) + ' мин'; }
-        function buildSleepChart() { const week = getWeekData('sleep'); const counts = week.map(r => r.length); const durations = week.map(r => Math.floor(r.reduce((s,f) => s + f.duration, 0) / 60)); buildChart('sleepChart', durations, 'var(--sleep)', v => v >= 60 ? Math.floor(v/60) + ' ч' : v + ' мин', 600); const totalMin = durations.reduce((a,b)=>a+b,0); const totalCount = counts.reduce((a,b)=>a+b,0); document.getElementById('sleepAverages').innerHTML = `<div class="avg-row"><span>Всего сна</span><span class="avg-value">${Math.floor(totalMin/60)} ч ${totalMin%60} мин</span></div><div class="avg-row"><span>В среднем в день</span><span class="avg-value">${Math.floor(totalMin/7/60)} ч ${Math.floor(totalMin/7)%60} мин</span></div><div class="avg-row"><span>Средняя длительность</span><span class="avg-value">${totalCount > 0 ? Math.floor(totalMin/totalCount) : 0} мин</span></div>`; }
-        function buildDiaperChart() { const week = getWeekData('diaper'); const counts = week.map(r => r.length); buildChart('diaperChart', counts, 'var(--diaper)', v => v, 20); const total = counts.reduce((a,b)=>a+b,0); document.getElementById('diaperAverages').innerHTML = `<div class="avg-row"><span>Всего смен</span><span class="avg-value">${total}</span></div><div class="avg-row"><span>В среднем в день</span><span class="avg-value">${(total/7).toFixed(1)}</span></div>`; }
-        function buildAllCharts() { buildFeedChart(); buildSleepChart(); buildDiaperChart(); }
+        function getWeekData(type){const days=[]; for(let i=6;i>=0;i--){const d=new Date(); d.setDate(d.getDate()-i); days.push(getRecords(type,d));} return days;}
+        function buildChart(containerId,data,color,labelFn,maxVal){const container=document.getElementById(containerId); if(!container)return; const max=maxVal||Math.max(...data.map(d=>d),1); container.innerHTML='<div class="chart-row">'+data.map((val,i)=>{const h=max>0?Math.max((val/max)*90,4):4; return `<div class="chart-bar-wrapper"><div class="chart-value">${labelFn(val)}</div><div class="chart-bar" style="height:${h}px; background:${i===6?color:color+'88'};"></div></div>`;}).join('')+'</div>';}
+        function buildFeedChart(){const week=getWeekData('feed'); const counts=week.map(r=>r.length); const durations=week.map(r=>Math.floor(r.reduce((s,f)=>s+f.duration,0)/60)); buildChart('feedChart',durations,'var(--accent)',v=>v+' мин',120); document.getElementById('feedAverages').innerHTML=`<div class="avg-row"><span>Всего кормлений</span><span class="avg-value">${counts.reduce((a,b)=>a+b,0)}</span></div><div class="avg-row"><span>В среднем в день</span><span class="avg-value">${(counts.reduce((a,b)=>a+b,0)/7).toFixed(1)}</span></div><div class="avg-row"><span>Средняя длительность</span><span class="avg-value">${durations.reduce((a,b)=>a+b,0)>0?Math.floor(durations.reduce((a,b)=>a+b,0)/counts.reduce((a,b)=>a+b,0)):0} мин</span></div>`; const allFeed=getAllRecords('feed'); const leftCount=allFeed.filter(r=>r.side==='left').length; const rightCount=allFeed.filter(r=>r.side==='right').length; const total=leftCount+rightCount||1; if(isPro()){document.getElementById('proFeedContent').innerHTML=`<p style="font-size:13px; color:var(--text-secondary); margin-bottom:8px;">Соотношение груди (за 30 дней)</p><div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;"><span style="font-size:12px; width:50px;">⬅️ Левая</span><div class="pro-bar" style="flex:1;"><div class="pro-bar-fill" style="width:${Math.round(leftCount/total*100)}%; background:var(--left-breast);"></div></div><span style="font-size:12px; width:40px;">${Math.round(leftCount/total*100)}%</span></div><div style="display:flex; align-items:center; gap:8px;"><span style="font-size:12px; width:50px;">➡️ Правая</span><div class="pro-bar" style="flex:1;"><div class="pro-bar-fill" style="width:${Math.round(rightCount/total*100)}%; background:var(--right-breast);"></div></div><span style="font-size:12px; width:40px;">${Math.round(rightCount/total*100)}%</span></div><p style="font-size:13px; color:var(--text-secondary); margin-top:12px; margin-bottom:8px;">Средний интервал между кормлениями</p><p style="font-size:24px; font-weight:700; color:var(--accent);">${calcAvgInterval(allFeed)}</p>`;}else{document.getElementById('proFeedContent').innerHTML='<p style="text-align:center; color:var(--text-secondary);">🔒 Доступно в PRO-версии</p>';}}
+        function calcAvgInterval(feedings){if(feedings.length<2)return'—'; const sorted=feedings.sort((a,b)=>a.timestamp-b.timestamp); let totalGap=0,gaps=0; for(let i=1;i<sorted.length;i++){const gap=sorted[i].timestamp-sorted[i-1].timestamp; if(gap<6*60*60*1000){totalGap+=gap; gaps++;}} if(gaps===0)return'—'; const avgMin=Math.floor(totalGap/gaps/60000); return avgMin<60?avgMin+' мин':Math.floor(avgMin/60)+' ч '+(avgMin%60)+' мин';}
+        function buildSleepChart(){const week=getWeekData('sleep'); const counts=week.map(r=>r.length); const durations=week.map(r=>Math.floor(r.reduce((s,f)=>s+f.duration,0)/60)); buildChart('sleepChart',durations,'var(--sleep)',v=>v>=60?Math.floor(v/60)+' ч':v+' мин',600); const totalMin=durations.reduce((a,b)=>a+b,0); const totalCount=counts.reduce((a,b)=>a+b,0); document.getElementById('sleepAverages').innerHTML=`<div class="avg-row"><span>Всего сна</span><span class="avg-value">${Math.floor(totalMin/60)} ч ${totalMin%60} мин</span></div><div class="avg-row"><span>В среднем в день</span><span class="avg-value">${Math.floor(totalMin/7/60)} ч ${Math.floor(totalMin/7)%60} мин</span></div><div class="avg-row"><span>Средняя длительность</span><span class="avg-value">${totalCount>0?Math.floor(totalMin/totalCount):0} мин</span></div>`;}
+        function buildDiaperChart(){const week=getWeekData('diaper'); const counts=week.map(r=>r.length); buildChart('diaperChart',counts,'var(--diaper)',v=>v,20); const total=counts.reduce((a,b)=>a+b,0); document.getElementById('diaperAverages').innerHTML=`<div class="avg-row"><span>Всего смен</span><span class="avg-value">${total}</span></div><div class="avg-row"><span>В среднем в день</span><span class="avg-value">${(total/7).toFixed(1)}</span></div>`;}
+        function buildAllCharts(){buildFeedChart(); buildSleepChart(); buildDiaperChart();}
 
         // === ЭКСПОРТ ===
-        function exportAsImage() { if (!isPro()) return; const isLight = document.body.classList.contains('light-theme'); const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d'); const width = 800; const padding = 40; let y = padding; const feedData = getAllRecords('feed').slice(0, 20); const sleepData = getAllRecords('sleep').slice(0, 10); const diaperData = getAllRecords('diaper').slice(0, 10); const totalFeedMin = Math.floor(feedData.reduce((s,r) => s + r.duration, 0) / 60); const totalSleepMin = Math.floor(sleepData.reduce((s,r) => s + r.duration, 0) / 60); const leftCount = feedData.filter(r => r.side === 'left').length; const rightCount = feedData.filter(r => r.side === 'right').length; const lineHeight = 32; let height = padding * 2 + lineHeight * 3; height += lineHeight * (Math.min(feedData.length, 20) + 3); height += lineHeight * (Math.min(sleepData.length, 10) + 3); height += lineHeight * (Math.min(diaperData.length, 10) + 3); height += 200; canvas.width = width; canvas.height = height; const bgColor = isLight ? '#ffffff' : '#1a1a2e'; const textColor = isLight ? '#2d2d3a' : '#f0e6ef'; const secondaryColor = isLight ? '#7a7a8a' : '#a8a0b0'; ctx.fillStyle = bgColor; ctx.fillRect(0, 0, width, height); ctx.fillStyle = textColor; ctx.font = 'bold 32px -apple-system, BlinkMacSystemFont, sans-serif'; ctx.textAlign = 'center'; ctx.fillText('🤱 Мама Трекер — Отчёт', width / 2, y); y += 50; const dateStr = new Date().toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }); ctx.fillStyle = secondaryColor; ctx.font = '16px -apple-system, sans-serif'; ctx.fillText(dateStr, width / 2, y); y += 30; ctx.strokeStyle = isLight ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(padding, y); ctx.lineTo(width - padding, y); ctx.stroke(); y += 30; function drawSection(title, emoji, color) { ctx.fillStyle = color; ctx.font = 'bold 20px -apple-system, sans-serif'; ctx.textAlign = 'left'; ctx.fillText(emoji + ' ' + title, padding, y); y += lineHeight + 8; } function drawRow(text, value, isHeader) { ctx.fillStyle = isHeader ? secondaryColor : textColor; ctx.font = isHeader ? '13px -apple-system, sans-serif' : '16px -apple-system, sans-serif'; ctx.textAlign = 'left'; ctx.fillText(text, padding, y); if (value) { ctx.textAlign = 'right'; ctx.fillText(value, width - padding, y); } y += lineHeight; } drawSection('Общая сводка', '', '#f0c060'); drawRow('Всего кормлений', feedData.length + '', false); drawRow('Общее время кормлений', totalFeedMin + ' мин', false); drawRow('Левая / Правая', leftCount + ' / ' + rightCount, false); drawRow('Всего сна', totalSleepMin + ' мин', false); drawRow('Смен подгузников', diaperData.length + '', false); y += 16; drawSection('Кормления', '🍼', '#e8a0bf'); drawRow('Дата', 'Длительность', true); feedData.forEach(r => { const d = new Date(r.timestamp).toLocaleDateString('ru-RU', {day:'2-digit', month:'2-digit'}); const t = new Date(r.timestamp).toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit'}); drawRow(d + ' ' + t, Math.floor(r.duration/60) + ' мин (' + (r.side==='left'?'Л':'П') + ')', false); }); y += 16; drawSection('Сон', '😴', '#c4a0e8'); drawRow('Дата', 'Длительность', true); sleepData.forEach(r => { const d = new Date(r.timestamp).toLocaleDateString('ru-RU', {day:'2-digit', month:'2-digit'}); drawRow(d, Math.floor(r.duration/60) + ' мин', false); }); y += 16; drawSection('Подгузники', '💧', '#a0e8c4'); drawRow('Дата и время', 'Тип', true); diaperData.forEach(r => { const d = new Date(r.timestamp).toLocaleDateString('ru-RU', {day:'2-digit', month:'2-digit'}); const t = new Date(r.timestamp).toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit'}); const types = { wet: '💦 Мокрый', dirty: '💩 Грязный', both: '💦💩 Всё', dry: '✅ Смена' }; drawRow(d + ' ' + t, types[r.type] || r.type, false); }); y = canvas.height - 60; ctx.fillStyle = secondaryColor; ctx.font = '12px -apple-system, sans-serif'; ctx.textAlign = 'center'; ctx.fillText('Создано в Мама Трекер — @MamaFeedBot', width / 2, y); const dataUrl = canvas.toDataURL('image/png'); const overlay = document.createElement('div'); overlay.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px;'; const img = document.createElement('img'); img.src = dataUrl; img.style.cssText = 'max-width:100%; max-height:80vh; border-radius:12px;'; const hint = document.createElement('p'); hint.textContent = '📸 Нажмите и удерживайте картинку, чтобы сохранить'; hint.style.cssText = 'color:#a8a0b0; font-family:-apple-system,sans-serif; font-size:14px; text-align:center; margin-top:16px;'; const closeBtn = document.createElement('button'); closeBtn.textContent = '✕ Закрыть'; closeBtn.style.cssText = 'margin-top:12px; padding:12px 30px; border-radius:12px; border:none; background:rgba(255,255,255,0.1); color:white; font-size:16px; cursor:pointer;'; closeBtn.onclick = () => document.body.removeChild(overlay); overlay.appendChild(img); overlay.appendChild(hint); overlay.appendChild(closeBtn); document.body.appendChild(overlay); overlay.addEventListener('click', e => { if (e.target === overlay) document.body.removeChild(overlay); }); }
+        function exportAsImage(){if(!isPro())return; const isLight=document.body.classList.contains('light-theme'); const canvas=document.createElement('canvas'); const ctx=canvas.getContext('2d'); const width=800; const padding=40; let y=padding; const feedData=getAllRecords('feed').slice(0,20); const sleepData=getAllRecords('sleep').slice(0,10); const diaperData=getAllRecords('diaper').slice(0,10); const totalFeedMin=Math.floor(feedData.reduce((s,r)=>s+r.duration,0)/60); const totalSleepMin=Math.floor(sleepData.reduce((s,r)=>s+r.duration,0)/60); const leftCount=feedData.filter(r=>r.side==='left').length; const rightCount=feedData.filter(r=>r.side==='right').length; const lineHeight=32; let height=padding*2+lineHeight*3; height+=lineHeight*(Math.min(feedData.length,20)+3); height+=lineHeight*(Math.min(sleepData.length,10)+3); height+=lineHeight*(Math.min(diaperData.length,10)+3); height+=200; canvas.width=width; canvas.height=height; const bgColor=isLight?'#ffffff':'#1a1a2e'; const textColor=isLight?'#2d2d3a':'#f0e6ef'; const secondaryColor=isLight?'#7a7a8a':'#a8a0b0'; ctx.fillStyle=bgColor; ctx.fillRect(0,0,width,height); ctx.fillStyle=textColor; ctx.font='bold 32px -apple-system, BlinkMacSystemFont, sans-serif'; ctx.textAlign='center'; ctx.fillText('🤱 Мама Трекер — Отчёт',width/2,y); y+=50; const dateStr=new Date().toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long',year:'numeric'}); ctx.fillStyle=secondaryColor; ctx.font='16px -apple-system, sans-serif'; ctx.fillText(dateStr,width/2,y); y+=30; ctx.strokeStyle=isLight?'rgba(0,0,0,0.1)':'rgba(255,255,255,0.1)'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(padding,y); ctx.lineTo(width-padding,y); ctx.stroke(); y+=30; function drawSection(title,emoji,color){ctx.fillStyle=color; ctx.font='bold 20px -apple-system, sans-serif'; ctx.textAlign='left'; ctx.fillText(emoji+' '+title,padding,y); y+=lineHeight+8;} function drawRow(text,value,isHeader){ctx.fillStyle=isHeader?secondaryColor:textColor; ctx.font=isHeader?'13px -apple-system, sans-serif':'16px -apple-system, sans-serif'; ctx.textAlign='left'; ctx.fillText(text,padding,y); if(value){ctx.textAlign='right'; ctx.fillText(value,width-padding,y);} y+=lineHeight;} drawSection('Общая сводка','','#f0c060'); drawRow('Всего кормлений',feedData.length+'',false); drawRow('Общее время кормлений',totalFeedMin+' мин',false); drawRow('Левая / Правая',leftCount+' / '+rightCount,false); drawRow('Всего сна',totalSleepMin+' мин',false); drawRow('Смен подгузников',diaperData.length+'',false); y+=16; drawSection('Кормления','🍼','#e8a0bf'); drawRow('Дата','Длительность',true); feedData.forEach(r=>{const d=new Date(r.timestamp).toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'}); const t=new Date(r.timestamp).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}); drawRow(d+' '+t,Math.floor(r.duration/60)+' мин ('+(r.side==='left'?'Л':'П')+')',false);}); y+=16; drawSection('Сон','😴','#c4a0e8'); drawRow('Дата','Длительность',true); sleepData.forEach(r=>{const d=new Date(r.timestamp).toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'}); drawRow(d,Math.floor(r.duration/60)+' мин',false);}); y+=16; drawSection('Подгузники','💧','#a0e8c4'); drawRow('Дата и время','Тип',true); diaperData.forEach(r=>{const d=new Date(r.timestamp).toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'}); const t=new Date(r.timestamp).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}); const types={wet:'💦 Мокрый',dirty:'💩 Грязный',both:'💦💩 Всё',dry:'✅ Смена'}; drawRow(d+' '+t,types[r.type]||r.type,false);}); y=canvas.height-60; ctx.fillStyle=secondaryColor; ctx.font='12px -apple-system, sans-serif'; ctx.textAlign='center'; ctx.fillText('Создано в Мама Трекер — @MamaFeedBot',width/2,y); const dataUrl=canvas.toDataURL('image/png'); const overlay=document.createElement('div'); overlay.style.cssText='position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px;'; const img=document.createElement('img'); img.src=dataUrl; img.style.cssText='max-width:100%; max-height:80vh; border-radius:12px;'; const hint=document.createElement('p'); hint.textContent='📸 Нажмите и удерживайте картинку, чтобы сохранить'; hint.style.cssText='color:#a8a0b0; font-family:-apple-system,sans-serif; font-size:14px; text-align:center; margin-top:16px;'; const closeBtn=document.createElement('button'); closeBtn.textContent='✕ Закрыть'; closeBtn.style.cssText='margin-top:12px; padding:12px 30px; border-radius:12px; border:none; background:rgba(255,255,255,0.1); color:white; font-size:16px; cursor:pointer;'; closeBtn.onclick=()=>document.body.removeChild(overlay); overlay.appendChild(img); overlay.appendChild(hint); overlay.appendChild(closeBtn); document.body.appendChild(overlay); overlay.addEventListener('click',e=>{if(e.target===overlay)document.body.removeChild(overlay);});}
+
+        // === РОСТ И ВЕС ===
+        function getGrowthRecords(){return JSON.parse(localStorage.getItem('mama-growth')||'[]').sort((a,b)=>a.date.localeCompare(b.date));}
+        function addGrowth(){const date=document.getElementById('growthDate').value; const weight=parseFloat(document.getElementById('growthWeight').value); const height=parseFloat(document.getElementById('growthHeight').value); if(!date){alert('Выберите дату'); return;} if(!weight&&!height){alert('Введите вес или рост'); return;} const records=getGrowthRecords(); const existing=records.findIndex(r=>r.date===date); const entry={date,weight:weight||null,height:height||null,timestamp:Date.now()}; if(existing>=0){records[existing]=entry;}else{records.push(entry);} localStorage.setItem('mama-growth',JSON.stringify(records)); document.getElementById('growthDate').value=''; document.getElementById('growthWeight').value=''; document.getElementById('growthHeight').value=''; updateGrowthUI(); if(tg?.HapticFeedback)tg.HapticFeedback.notificationOccurred('success');}
+        function deleteGrowth(index){const records=getGrowthRecords(); records.splice(index,1); localStorage.setItem('mama-growth',JSON.stringify(records)); updateGrowthUI();}
+        function drawGrowthChart(canvasId,records,field,color,unit){const canvas=document.getElementById(canvasId); if(!canvas||!records.length)return; const valid=records.filter(r=>r[field]!=null); if(valid.length<1)return; const ctx=canvas.getContext('2d'); const dpr=window.devicePixelRatio||1; const rect=canvas.parentElement.getBoundingClientRect(); canvas.width=rect.width*dpr; canvas.height=200*dpr; canvas.style.width=rect.width+'px'; canvas.style.height='200px'; ctx.scale(dpr,dpr); const w=rect.width-40; const h=160; const pad={top:10,right:10,bottom:30,left:40}; const values=valid.map(r=>r[field]); const minVal=Math.floor(Math.min(...values)*0.9); const maxVal=Math.ceil(Math.max(...values)*1.1); const range=maxVal-minVal||1; ctx.fillStyle=getComputedStyle(document.body).getPropertyValue('--surface').trim()||'#16213e'; ctx.fillRect(0,0,w,200); ctx.strokeStyle='rgba(255,255,255,0.05)'; ctx.lineWidth=0.5; for(let i=0;i<=4;i++){const y=pad.top+(h/4)*i; ctx.beginPath(); ctx.moveTo(pad.left,y); ctx.lineTo(w-pad.right,y); ctx.stroke(); ctx.fillStyle=getComputedStyle(document.body).getPropertyValue('--text-secondary').trim()||'#a8a0b0'; ctx.font='10px -apple-system, sans-serif'; ctx.fillText((maxVal-(range/4)*i).toFixed(1)+unit,2,y+4);} if(valid.length===1){const x=w/2; const y=pad.top+h-((valid[0][field]-minVal)/range)*h; ctx.fillStyle=color; ctx.beginPath(); ctx.arc(x,y,8,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#fff'; ctx.font='bold 12px -apple-system, sans-serif'; ctx.textAlign='center'; ctx.fillText(valid[0][field]+unit,x,y-12); ctx.fillStyle=getComputedStyle(document.body).getPropertyValue('--text-secondary').trim()||'#a8a0b0'; ctx.font='11px -apple-system, sans-serif'; ctx.fillText(new Date(valid[0].date).toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'}),x,pad.top+h+20);}else{const stepX=(w-pad.left-pad.right)/(valid.length-1); ctx.strokeStyle=color; ctx.lineWidth=2; ctx.beginPath(); valid.forEach((r,i)=>{const x=pad.left+stepX*i; const y=pad.top+h-((r[field]-minVal)/range)*h; if(i===0)ctx.moveTo(x,y); else ctx.lineTo(x,y);}); ctx.stroke(); valid.forEach((r,i)=>{const x=pad.left+stepX*i; const y=pad.top+h-((r[field]-minVal)/range)*h; ctx.fillStyle=color; ctx.beginPath(); ctx.arc(x,y,5,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#fff'; ctx.font='bold 11px -apple-system, sans-serif'; ctx.textAlign='center'; ctx.fillText(r[field]+unit,x,y-10); if(i===0||i===valid.length-1){ctx.fillStyle=getComputedStyle(document.body).getPropertyValue('--text-secondary').trim()||'#a8a0b0'; ctx.font='10px -apple-system, sans-serif'; ctx.fillText(new Date(r.date).toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'}),x,pad.top+h+18);}});}}
+        function updateGrowthUI(){const records=getGrowthRecords(); const list=document.getElementById('growthHistory'); if(!records.length){list.innerHTML='<div class="empty-state">Нет записей</div>';}else{list.innerHTML=records.map((r,i)=>{const d=new Date(r.date).toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit',year:'numeric'}); const parts=[]; if(r.weight)parts.push('⚖️ '+r.weight+' кг'); if(r.height)parts.push('📏 '+r.height+' см'); return `<div class="growth-list-item" onclick="editGrowth(${i})"><span>${d}</span><span style="font-size:13px; color:var(--text-secondary);">${parts.join(' · ')}</span><span onclick="event.stopPropagation(); deleteGrowth(${i})" style="color:#e8606e; cursor:pointer;">🗑</span></div>`;}).join('');} document.getElementById('growthDate').value=today.toISOString().split('T')[0]; setTimeout(()=>{drawGrowthChart('weightChart',records,'weight','var(--accent)',' кг'); drawGrowthChart('heightChart',records,'height','var(--sleep)',' см');},100);}
+        function editGrowth(index){const records=getGrowthRecords(); const r=records[index]; if(!r)return; document.getElementById('growthDate').value=r.date; document.getElementById('growthWeight').value=r.weight||''; document.getElementById('growthHeight').value=r.height||''; records.splice(index,1); localStorage.setItem('mama-growth',JSON.stringify(records));}
 
         // === НАПОМИНАНИЯ ===
-        let reminderInterval = null, reminderMinutes = null;
-        function getMinutesSinceLastFeeding() { const recs = getRecords('feed'); if (!recs.length) return null; return Math.floor((Date.now() - recs[recs.length-1].timestamp) / 60000); }
-        function startReminder(min) { stopReminder(); if ('Notification' in window && Notification.permission === 'default') { Notification.requestPermission().then(p => { if (p === 'granted') startReminder(min); }); return; } reminderMinutes = min; document.getElementById('reminderStatus').innerHTML = '⏰ Каждые ' + min + ' мин'; document.getElementById('reminderStatus').style.color = '#7ecb8a'; reminderInterval = setInterval(() => { const m = getMinutesSinceLastFeeding(); if (m !== null && m >= reminderMinutes && 'Notification' in window && Notification.permission === 'granted') { new Notification('🍼 Время кормления!', { body: 'Прошло ' + m + ' минут', tag: 'feed-reminder', vibrate: [200,100,200] }); stopReminder(); } }, 30000); }
-        function stopReminder() { if (reminderInterval) { clearInterval(reminderInterval); reminderInterval = null; } reminderMinutes = null; document.getElementById('reminderStatus').innerHTML = ''; }
+        let reminderInterval=null, reminderMinutes=null;
+        function getMinutesSinceLastFeeding(){const recs=getRecords('feed'); if(!recs.length)return null; return Math.floor((Date.now()-recs[recs.length-1].timestamp)/60000);}
+        function startReminder(min){stopReminder(); if('Notification' in window&&Notification.permission==='default'){Notification.requestPermission().then(p=>{if(p==='granted')startReminder(min);}); return;} reminderMinutes=min; document.getElementById('reminderStatus').innerHTML='⏰ Каждые '+min+' мин'; document.getElementById('reminderStatus').style.color='#7ecb8a'; reminderInterval=setInterval(()=>{const m=getMinutesSinceLastFeeding(); if(m!==null&&m>=reminderMinutes&&'Notification' in window&&Notification.permission==='granted'){new Notification('🍼 Время кормления!',{body:'Прошло '+m+' минут',tag:'feed-reminder',vibrate:[200,100,200]}); stopReminder();}},30000);}
+        function stopReminder(){if(reminderInterval){clearInterval(reminderInterval); reminderInterval=null;} reminderMinutes=null; document.getElementById('reminderStatus').innerHTML='';}
 
         // === ИНИЦИАЛИЗАЦИЯ ===
-        updateFeedStats(); renderFeedHistory(); updateSleepStats(); renderSleepHistory(); updateDiaperStats(); renderDiaperHistory(); updateProUI();
+        updateFeedStats(); renderFeedHistory(); updateSleepStats(); renderSleepHistory(); updateDiaperStats(); renderDiaperHistory(); updateGrowthUI(); updateProUI();
     </script>
 </body>
 </html>
