@@ -11,7 +11,6 @@
             --accent: #e8a0bf;
             --text: #f0e6ef;
             --text-secondary: #a8a0b0;
-            --success: #7ecb8a;
             --left-breast: #e8a0bf;
             --right-breast: #a0c4e8;
             --sleep: #c4a0e8;
@@ -33,7 +32,6 @@
         .header h1 { font-size: 28px; font-weight: 700; }
         .header .date { color: var(--text-secondary); font-size: 14px; }
 
-        /* Вкладки */
         .tabs {
             display: flex;
             gap: 6px;
@@ -118,7 +116,6 @@
         .stat-value { font-size: 28px; font-weight: 700; color: var(--accent); }
         .stat-label { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
 
-        /* Подгузники */
         .diaper-types { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
         .diaper-btn {
             height: 80px;
@@ -173,8 +170,6 @@
             cursor: pointer;
         }
 
-        /* Графики */
-        .chart-container { margin: 8px 0; }
         .chart-row {
             display: flex;
             align-items: flex-end;
@@ -189,7 +184,6 @@
             min-height: 4px;
             transition: height 0.5s ease;
         }
-        .chart-label { font-size: 10px; color: var(--text-secondary); margin-top: 6px; }
         .chart-value { font-size: 10px; color: var(--text); margin-bottom: 4px; font-weight: 600; }
 
         .sub-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
@@ -214,6 +208,18 @@
             font-size: 14px;
         }
         .avg-value { font-weight: 600; color: var(--accent); }
+
+        .welcome-btn {
+            width: 100%;
+            height: 50px;
+            border-radius: 16px;
+            border: none;
+            background: var(--accent);
+            color: #1a1a2e;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -221,17 +227,37 @@
     <div class="header">
         <h1>🤱 Мама Трекер</h1>
         <div class="date" id="todayDate"></div>
+        <div id="cloudStatus" style="font-size:11px; color:#7ecb8a; margin-top:4px; display:none;">☁️ Данные синхронизированы</div>
     </div>
 
-    <!-- Главные вкладки -->
-    <div class="tabs">
+    <!-- Приветственный экран -->
+    <div id="welcomeScreen" style="display:none;">
+        <div class="card" style="text-align:center;">
+            <div style="font-size:60px; margin-bottom:12px;">👋</div>
+            <h2 style="margin-bottom:12px;">Привет, мама!</h2>
+            <p style="color:var(--text-secondary); font-size:15px; line-height:1.6; margin-bottom:20px;">
+                Я помогу следить за режимом малыша:
+            </p>
+            <div style="text-align:left; margin-bottom:20px; font-size:14px; color:var(--text-secondary);">
+                <p>🍼 <b>Кормление</b> — таймер, левая/правая грудь</p>
+                <p style="margin-top:8px;">😴 <b>Сон</b> — сколько и когда спит</p>
+                <p style="margin-top:8px;">💧 <b>Подгузники</b> — мокрые и грязные</p>
+                <p style="margin-top:8px;">📊 <b>Статистика</b> — графики за неделю</p>
+                <p style="margin-top:8px;">🔔 <b>Напоминания</b> — не забудешь покормить</p>
+            </div>
+            <button onclick="closeWelcome()" class="welcome-btn">Понятно, начнём! 🚀</button>
+        </div>
+    </div>
+
+    <!-- Вкладки -->
+    <div class="tabs" id="mainTabs">
         <button class="tab-btn active" onclick="switchMainTab('feeding')">🍼 Кормление</button>
         <button class="tab-btn" onclick="switchMainTab('sleep')">😴 Сон</button>
         <button class="tab-btn" onclick="switchMainTab('diaper')">💧 Подгузники</button>
         <button class="tab-btn" onclick="switchMainTab('stats')">📊 Статистика</button>
     </div>
 
-    <!-- === ВКЛАДКА: КОРМЛЕНИЕ === -->
+    <!-- Кормление -->
     <div class="tab-content active" id="tab-feeding">
         <div class="card">
             <div class="card-title">🍼 Кормление</div>
@@ -261,7 +287,7 @@
         </div>
     </div>
 
-    <!-- === ВКЛАДКА: СОН === -->
+    <!-- Сон -->
     <div class="tab-content" id="tab-sleep">
         <div class="card">
             <div class="card-title">😴 Сон</div>
@@ -281,7 +307,7 @@
         </div>
     </div>
 
-    <!-- === ВКЛАДКА: ПОДГУЗНИКИ === -->
+    <!-- Подгузники -->
     <div class="tab-content" id="tab-diaper">
         <div class="card">
             <div class="card-title">💧 Сменить подгузник</div>
@@ -305,7 +331,7 @@
         </div>
     </div>
 
-    <!-- === ВКЛАДКА: СТАТИСТИКА === -->
+    <!-- Статистика -->
     <div class="tab-content" id="tab-stats">
         <div class="sub-tabs">
             <button class="sub-tab active" onclick="switchStatsTab('feed')">🍼 Кормления</button>
@@ -314,16 +340,16 @@
         </div>
         <div id="statsFeed">
             <div class="card">
-                <div class="card-title">📈 Кормления за неделю</div>
-                <div class="chart-container" id="feedChart"></div>
+                <div class="card-title">📈 Кормления за неделю (мин)</div>
+                <div id="feedChart"></div>
                 <div class="chart-row" style="height:auto; padding:0; margin-top:8px;">
-                    <span style="font-size:11px; color:var(--text-secondary);">ПН</span>
-                    <span style="font-size:11px; color:var(--text-secondary);">ВТ</span>
-                    <span style="font-size:11px; color:var(--text-secondary);">СР</span>
-                    <span style="font-size:11px; color:var(--text-secondary);">ЧТ</span>
-                    <span style="font-size:11px; color:var(--text-secondary);">ПТ</span>
-                    <span style="font-size:11px; color:var(--text-secondary);">СБ</span>
-                    <span style="font-size:11px; color:var(--text-secondary);">ВС</span>
+                    <span style="flex:1; text-align:center; font-size:11px; color:var(--text-secondary);">ПН</span>
+                    <span style="flex:1; text-align:center; font-size:11px; color:var(--text-secondary);">ВТ</span>
+                    <span style="flex:1; text-align:center; font-size:11px; color:var(--text-secondary);">СР</span>
+                    <span style="flex:1; text-align:center; font-size:11px; color:var(--text-secondary);">ЧТ</span>
+                    <span style="flex:1; text-align:center; font-size:11px; color:var(--text-secondary);">ПТ</span>
+                    <span style="flex:1; text-align:center; font-size:11px; color:var(--text-secondary);">СБ</span>
+                    <span style="flex:1; text-align:center; font-size:11px; color:var(--text-secondary);">ВС</span>
                 </div>
             </div>
             <div class="card">
@@ -333,16 +359,16 @@
         </div>
         <div id="statsSleep" style="display:none;">
             <div class="card">
-                <div class="card-title">📈 Сон за неделю</div>
-                <div class="chart-container" id="sleepChart"></div>
+                <div class="card-title">📈 Сон за неделю (мин)</div>
+                <div id="sleepChart"></div>
                 <div class="chart-row" style="height:auto; padding:0; margin-top:8px;">
-                    <span style="font-size:11px; color:var(--text-secondary);">ПН</span>
-                    <span style="font-size:11px; color:var(--text-secondary);">ВТ</span>
-                    <span style="font-size:11px; color:var(--text-secondary);">СР</span>
-                    <span style="font-size:11px; color:var(--text-secondary);">ЧТ</span>
-                    <span style="font-size:11px; color:var(--text-secondary);">ПТ</span>
-                    <span style="font-size:11px; color:var(--text-secondary);">СБ</span>
-                    <span style="font-size:11px; color:var(--text-secondary);">ВС</span>
+                    <span style="flex:1; text-align:center; font-size:11px; color:var(--text-secondary);">ПН</span>
+                    <span style="flex:1; text-align:center; font-size:11px; color:var(--text-secondary);">ВТ</span>
+                    <span style="flex:1; text-align:center; font-size:11px; color:var(--text-secondary);">СР</span>
+                    <span style="flex:1; text-align:center; font-size:11px; color:var(--text-secondary);">ЧТ</span>
+                    <span style="flex:1; text-align:center; font-size:11px; color:var(--text-secondary);">ПТ</span>
+                    <span style="flex:1; text-align:center; font-size:11px; color:var(--text-secondary);">СБ</span>
+                    <span style="flex:1; text-align:center; font-size:11px; color:var(--text-secondary);">ВС</span>
                 </div>
             </div>
             <div class="card">
@@ -353,15 +379,15 @@
         <div id="statsDiaper" style="display:none;">
             <div class="card">
                 <div class="card-title">📈 Подгузники за неделю</div>
-                <div class="chart-container" id="diaperChart"></div>
+                <div id="diaperChart"></div>
                 <div class="chart-row" style="height:auto; padding:0; margin-top:8px;">
-                    <span style="font-size:11px; color:var(--text-secondary);">ПН</span>
-                    <span style="font-size:11px; color:var(--text-secondary);">ВТ</span>
-                    <span style="font-size:11px; color:var(--text-secondary);">СР</span>
-                    <span style="font-size:11px; color:var(--text-secondary);">ЧТ</span>
-                    <span style="font-size:11px; color:var(--text-secondary);">ПТ</span>
-                    <span style="font-size:11px; color:var(--text-secondary);">СБ</span>
-                    <span style="font-size:11px; color:var(--text-secondary);">ВС</span>
+                    <span style="flex:1; text-align:center; font-size:11px; color:var(--text-secondary);">ПН</span>
+                    <span style="flex:1; text-align:center; font-size:11px; color:var(--text-secondary);">ВТ</span>
+                    <span style="flex:1; text-align:center; font-size:11px; color:var(--text-secondary);">СР</span>
+                    <span style="flex:1; text-align:center; font-size:11px; color:var(--text-secondary);">ЧТ</span>
+                    <span style="flex:1; text-align:center; font-size:11px; color:var(--text-secondary);">ПТ</span>
+                    <span style="flex:1; text-align:center; font-size:11px; color:var(--text-secondary);">СБ</span>
+                    <span style="flex:1; text-align:center; font-size:11px; color:var(--text-secondary);">ВС</span>
                 </div>
             </div>
             <div class="card">
@@ -381,13 +407,29 @@
             weekday: 'long', day: 'numeric', month: 'long'
         });
 
+        // === ПРИВЕТСТВЕННЫЙ ЭКРАН ===
+        function closeWelcome() {
+            document.getElementById('welcomeScreen').style.display = 'none';
+            document.getElementById('mainTabs').style.display = 'flex';
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.getElementById('tab-feeding').classList.add('active');
+            localStorage.setItem('mama-welcome-shown', 'true');
+        }
+
+        const welcomeShown = localStorage.getItem('mama-welcome-shown');
+        if (!welcomeShown) {
+            document.getElementById('welcomeScreen').style.display = 'block';
+            document.getElementById('mainTabs').style.display = 'none';
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        }
+
         // === НАВИГАЦИЯ ===
         let mainTab = 'feeding';
         let statsSubTab = 'feed';
 
         function switchMainTab(tab) {
             mainTab = tab;
-            document.querySelectorAll('.tabs .tab-btn').forEach((b, i) => {
+            document.querySelectorAll('#mainTabs .tab-btn').forEach((b, i) => {
                 b.classList.toggle('active', ['feeding','sleep','diaper','stats'][i] === tab);
             });
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
@@ -549,7 +591,7 @@
             }).join('');
         }
 
-        // === СТАТИСТИКА ЗА НЕДЕЛЮ ===
+        // === СТАТИСТИКА ===
         function getWeekData(type) {
             const days = [];
             for (let i = 6; i >= 0; i--) {
@@ -590,70 +632,4 @@
             const week = getWeekData('sleep');
             const counts = week.map(r => r.length);
             const durations = week.map(r => Math.floor(r.reduce((s, f) => s + f.duration, 0) / 60));
-            buildChart('sleepChart', durations, 'var(--sleep)', v => {
-                if (v >= 60) return Math.floor(v/60) + ' ч';
-                return v + ' мин';
-            }, 600);
-            const totalMin = durations.reduce((a,b)=>a+b,0);
-            const totalCount = counts.reduce((a,b)=>a+b,0);
-            document.getElementById('sleepAverages').innerHTML = `
-                <div class="avg-row"><span>Всего сна</span><span class="avg-value">${Math.floor(totalMin/60)} ч ${totalMin%60} мин</span></div>
-                <div class="avg-row"><span>В среднем в день</span><span class="avg-value">${Math.floor(totalMin/7/60)} ч ${Math.floor(totalMin/7)%60} мин</span></div>
-                <div class="avg-row"><span>Средняя длительность</span><span class="avg-value">${totalCount > 0 ? Math.floor(totalMin/totalCount) : 0} мин</span></div>
-            `;
-        }
-
-        function buildDiaperChart() {
-            const week = getWeekData('diaper');
-            const counts = week.map(r => r.length);
-            buildChart('diaperChart', counts, 'var(--diaper)', v => v, 20);
-            const total = counts.reduce((a,b)=>a+b,0);
-            document.getElementById('diaperAverages').innerHTML = `
-                <div class="avg-row"><span>Всего смен</span><span class="avg-value">${total}</span></div>
-                <div class="avg-row"><span>В среднем в день</span><span class="avg-value">${(total/7).toFixed(1)}</span></div>
-            `;
-        }
-
-        function buildAllCharts() {
-            buildFeedChart();
-            buildSleepChart();
-            buildDiaperChart();
-        }
-
-        // === НАПОМИНАНИЯ ===
-        let reminderInterval = null, reminderMinutes = null;
-
-        function getMinutesSinceLastFeeding() {
-            const recs = getRecords('feed');
-            if (!recs.length) return null;
-            return Math.floor((Date.now() - recs[recs.length-1].timestamp) / 60000);
-        }
-
-        function startReminder(min) {
-            stopReminder();
-            if ('Notification' in window && Notification.permission === 'default') {
-                Notification.requestPermission().then(p => { if (p === 'granted') startReminder(min); });
-                return;
-            }
-            reminderMinutes = min;
-            reminderInterval = setInterval(() => {
-                const m = getMinutesSinceLastFeeding();
-                if (m !== null && m >= reminderMinutes && 'Notification' in window && Notification.permission === 'granted') {
-                    new Notification('🍼 Время кормления!', { body: 'Прошло ' + m + ' минут', tag: 'feed-reminder', vibrate: [200,100,200] });
-                    stopReminder();
-                }
-            }, 30000);
-        }
-
-        function stopReminder() {
-            if (reminderInterval) { clearInterval(reminderInterval); reminderInterval = null; }
-            reminderMinutes = null;
-        }
-
-        // === ИНИЦИАЛИЗАЦИЯ ===
-        updateFeedStats(); renderFeedHistory();
-        updateSleepStats(); renderSleepHistory();
-        updateDiaperStats(); renderDiaperHistory();
-    </script>
-</body>
-</html>
+            buildChart('sleepChart', durations, 'var(--sleep)', v => v >= 60 ? Math.floor(v/60
