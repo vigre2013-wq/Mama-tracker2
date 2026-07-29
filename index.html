@@ -148,11 +148,11 @@
         .timer-row button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
         .growth-chart-container { position: relative; height: 200px; margin: 8px 0; }
         .growth-chart-container canvas { width: 100%; height: 100%; }
-        /* Календарь */
         .calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; }
         .calendar-day-header { font-size: 11px; color: var(--text-secondary); padding: 8px 0; font-weight: 600; }
         .calendar-day { aspect-ratio: 1; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; position: relative; background: var(--stat-bg); color: var(--text-secondary); }
         .calendar-day.today { border: 2px solid var(--accent); color: var(--accent); }
+        .calendar-day.selected { border: 2px solid #fff; box-shadow: 0 0 0 1px var(--accent); }
         .calendar-day.other-month { opacity: 0.3; }
         .calendar-day:active { transform: scale(0.9); }
         .calendar-legend { display: flex; gap: 6px; align-items: center; justify-content: center; margin-top: 12px; font-size: 11px; color: var(--text-secondary); }
@@ -385,13 +385,11 @@
             const lastDay = new Date(calYear, calMonth + 1, 0);
             let startDow = firstDay.getDay() || 7;
             
-            // Дни предыдущего месяца
             const prevLast = new Date(calYear, calMonth, 0).getDate();
             for (let i = startDow - 1; i > 0; i--) {
                 html += `<div class="calendar-day other-month">${prevLast - i + 1}</div>`;
             }
             
-            // Находим максимум кормлений за месяц для расчёта цвета
             let maxFeeds = 0;
             for (let d = 1; d <= lastDay.getDate(); d++) {
                 const count = getFeedCountForDate(new Date(calYear, calMonth, d));
@@ -399,24 +397,17 @@
             }
             if (maxFeeds === 0) maxFeeds = 1;
             
-            // Дни текущего месяца
             for (let d = 1; d <= lastDay.getDate(); d++) {
                 const date = new Date(calYear, calMonth, d);
                 const count = getFeedCountForDate(date);
                 const intensity = count / maxFeeds;
                 
                 let bg;
-                if (count === 0) {
-                    bg = 'var(--stat-bg)';
-                } else if (intensity < 0.25) {
-                    bg = 'rgba(232,160,191,0.15)';
-                } else if (intensity < 0.5) {
-                    bg = 'rgba(232,160,191,0.35)';
-                } else if (intensity < 0.75) {
-                    bg = 'rgba(232,160,191,0.6)';
-                } else {
-                    bg = '#e8a0bf';
-                }
+                if (count === 0) { bg = 'var(--stat-bg)'; }
+                else if (intensity < 0.25) { bg = 'rgba(232,160,191,0.15)'; }
+                else if (intensity < 0.5) { bg = 'rgba(232,160,191,0.35)'; }
+                else if (intensity < 0.75) { bg = 'rgba(232,160,191,0.6)'; }
+                else { bg = '#e8a0bf'; }
                 
                 const isToday = d === today.getDate() && calMonth === today.getMonth() && calYear === today.getFullYear();
                 const todayClass = isToday ? ' today' : '';
@@ -424,7 +415,6 @@
                 html += `<div class="calendar-day${todayClass}" style="background:${bg}; color:${count > 0 && intensity >= 0.75 ? '#1a1a2e' : 'var(--text-secondary)'};" onclick="showDayDetail(${d})">${d}</div>`;
             }
             
-            // Дни следующего месяца
             const remaining = 7 - ((startDow - 1 + lastDay.getDate()) % 7);
             if (remaining < 7) {
                 for (let i = 1; i <= remaining; i++) {
@@ -436,6 +426,16 @@
         }
 
         function showDayDetail(day) {
+            // Убираем выделение с предыдущего дня
+            document.querySelectorAll('.calendar-day.selected').forEach(el => el.classList.remove('selected'));
+            
+            // Выделяем текущий день
+            const allDays = document.querySelectorAll('.calendar-day:not(.other-month)');
+            if (allDays.length > 0) {
+                const dayEl = allDays[day - 1];
+                if (dayEl) dayEl.classList.add('selected');
+            }
+            
             const date = new Date(calYear, calMonth, day);
             const dateStr = date.toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' });
             document.getElementById('dayDetailTitle').textContent = '📅 ' + dateStr;
