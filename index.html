@@ -99,7 +99,7 @@
         .pro-bar { height: 8px; border-radius: 4px; overflow: hidden; margin: 8px 0; background: var(--btn-ghost); }
         .pro-bar-fill { height: 100%; border-radius: 4px; transition: width 0.5s; }
         .note-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .note-dialog { background: var(--surface); border-radius: 20px; padding: 24px; width: 100%; max-width: 400px; }
+        .note-dialog { background: var(--surface); border-radius: 20px; padding: 24px; width: 100%; max-width: 400px; max-height: 90vh; overflow-y: auto; }
         .note-dialog h3 { margin-bottom: 16px; font-size: 18px; }
         .note-dialog textarea { margin-bottom: 8px; height: 60px; }
         .note-templates { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
@@ -150,8 +150,6 @@
         .summary-info .title { font-size: 15px; font-weight: 600; }
         .summary-info .detail { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
         .summary-value { font-size: 22px; font-weight: 700; color: var(--accent); text-align: right; }
-
-        /* Трекер настроения */
         .mood-grid { display: flex; gap: 8px; justify-content: space-between; margin-bottom: 16px; }
         .mood-btn { flex: 1; aspect-ratio: 1; border-radius: 20px; border: 2px solid transparent; font-size: 36px; cursor: pointer; background: var(--stat-bg); transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
         .mood-btn:active { transform: scale(0.9); }
@@ -189,81 +187,48 @@
             <button class="tab-btn" onclick="switchMainTab('pro')">👑</button>
         </div>
 
-        <!-- Кормление -->
         <div class="tab-content active" id="tab-feeding">
             <div class="card"><div class="card-title">🍼 Кормление</div><div class="breast-select"><button class="breast-btn left" id="btnLeft" onclick="selectSide('left')">⬅️ Левая</button><button class="breast-btn right" id="btnRight" onclick="selectSide('right')">➡️ Правая</button></div><div class="timer-display" id="feedingTimer">00:00</div><button class="action-btn start" id="feedingBtn" onclick="feedingToggle()" disabled>▶️ Начать</button></div>
             <div class="card"><div class="card-title">📊 Сегодня</div><div class="stats-grid"><div class="stat-item"><div class="stat-value" id="feedCount">0</div><div class="stat-label">Кормлений</div></div><div class="stat-item"><div class="stat-value" id="feedDuration">0 мин</div><div class="stat-label">Общее время</div></div></div><div id="reminderStatus" style="text-align:center; font-size:13px; margin-top:16px; min-height:20px;"></div><div style="display:flex; gap:8px; margin-top:12px;"><button onclick="startReminder(120)" class="reminder-btn" style="background:rgba(232,160,191,0.2); color:var(--left-breast);">🔔 2 ч</button><button onclick="startReminder(180)" class="reminder-btn" style="background:rgba(160,196,232,0.2); color:var(--right-breast);">🔔 3 ч</button><button onclick="stopReminder()" class="reminder-btn" style="background:var(--btn-ghost); color:var(--text-secondary);">🔕</button></div></div>
             <div class="card"><div class="card-title">📝 История</div><div class="history-list" id="feedHistory"><div class="empty-state">Нет записей</div></div></div>
         </div>
-
-        <!-- Сон -->
         <div class="tab-content" id="tab-sleep">
             <div class="card"><div class="card-title">😴 Сон</div><div class="timer-display" id="sleepTimer">00:00</div><button class="action-btn start-sleep" id="sleepBtn" onclick="sleepToggle()">▶️ Уложить спать</button></div>
             <div class="card"><div class="card-title">📊 Сегодня</div><div class="stats-grid"><div class="stat-item"><div class="stat-value" id="sleepCount">0</div><div class="stat-label">Снов</div></div><div class="stat-item"><div class="stat-value" id="sleepDuration">0 мин</div><div class="stat-label">Общее время</div></div></div></div>
             <div class="card"><div class="card-title">📝 История</div><div class="history-list" id="sleepHistory"><div class="empty-state">Нет записей</div></div></div>
         </div>
-
-        <!-- Подгузники -->
         <div class="tab-content" id="tab-diaper">
             <div class="card"><div class="card-title">💧 Сменить подгузник</div><div class="diaper-types"><button class="diaper-btn wet" onclick="addDiaper('wet')">💦<br>Мокрый</button><button class="diaper-btn dirty" onclick="addDiaper('dirty')">💩<br>Грязный</button><button class="diaper-btn both" onclick="addDiaper('both')">💦💩<br>Всё вместе</button><button class="diaper-btn" onclick="addDiaper('dry')">✅<br>Сменили</button></div></div>
             <div class="card"><div class="card-title">📊 Сегодня</div><div class="stats-grid"><div class="stat-item"><div class="stat-value" id="diaperCount">0</div><div class="stat-label">Всего смен</div></div><div class="stat-item"><div class="stat-value" id="diaperDirty">0</div><div class="stat-label">Грязных</div></div></div></div>
             <div class="card"><div class="card-title">📝 История</div><div class="history-list" id="diaperHistory"><div class="empty-state">Нет записей</div></div></div>
         </div>
-
-        <!-- Статистика -->
         <div class="tab-content" id="tab-stats">
             <div class="sub-tabs"><button class="sub-tab active" onclick="switchStatsTab('feed')">🍼 Кормления</button><button class="sub-tab" onclick="switchStatsTab('sleep')">😴 Сон</button><button class="sub-tab" onclick="switchStatsTab('diaper')">💧 Подгузники</button></div>
             <div id="statsFeed"><div class="card"><div class="card-title">📈 Кормления за неделю (мин)</div><div id="feedChart"></div></div><div class="card" id="proAnalyticsFeed"><div class="card-title">👑 PRO-аналитика</div><div id="proFeedContent"></div></div><div class="card"><div class="card-title">📊 Средние показатели</div><div id="feedAverages"></div></div></div>
             <div id="statsSleep" style="display:none;"><div class="card"><div class="card-title">📈 Сон за неделю (мин)</div><div id="sleepChart"></div></div><div class="card"><div class="card-title">📊 Средние показатели</div><div id="sleepAverages"></div></div></div>
             <div id="statsDiaper" style="display:none;"><div class="card"><div class="card-title">📈 Подгузники за неделю</div><div id="diaperChart"></div></div><div class="card"><div class="card-title">📊 Средние показатели</div><div id="diaperAverages"></div></div></div>
         </div>
-
-        <!-- Рост/вес -->
         <div class="tab-content" id="tab-growth">
             <div class="card"><div class="card-title">📏 Добавить запись</div><div style="display:flex; flex-direction:column; gap:12px;"><input type="date" id="growthDate" style="height:48px; font-size:16px; text-align:left; padding-left:16px;" onchange="updateGrowthComparison()"><input type="number" id="growthWeight" placeholder="Вес (кг)" step="0.1" style="height:56px; font-size:20px; font-weight:600; text-align:center; color:var(--text);" oninput="updateGrowthComparison()"><input type="number" id="growthHeight" placeholder="Рост (см)" step="0.1" style="height:56px; font-size:20px; font-weight:600; text-align:center; color:var(--text);" oninput="updateGrowthComparison()"><div id="growthComparison" style="text-align:center; min-height:20px; font-size:13px; line-height:1.6;"></div><button class="action-btn start" style="margin:0; height:56px; font-size:18px;" onclick="addGrowth()">💾 Сохранить</button></div></div>
             <div class="card"><div class="card-title">📈 График веса</div><div class="growth-chart-container"><canvas id="weightChart"></canvas></div></div>
             <div class="card"><div class="card-title">📈 График роста</div><div class="growth-chart-container"><canvas id="heightChart"></canvas></div></div>
             <div class="card"><div class="card-title">📝 История</div><div class="history-list" id="growthHistory"><div class="empty-state">Нет записей</div></div></div>
         </div>
-
-        <!-- Календарь -->
         <div class="tab-content" id="tab-calendar">
             <div class="card"><div class="card-title">📅 Календарь кормлений</div><div class="month-nav"><button onclick="changeMonth(-1)">◀</button><span id="monthLabel"></span><button onclick="changeMonth(1)">▶</button></div><div class="calendar" id="calendarGrid"></div><div class="calendar-legend"><span>Меньше</span><div class="legend-dot" style="background:rgba(232,160,191,0.15);"></div><div class="legend-dot" style="background:rgba(232,160,191,0.4);"></div><div class="legend-dot" style="background:rgba(232,160,191,0.7);"></div><div class="legend-dot" style="background:#e8a0bf;"></div><span>Больше</span></div></div>
             <div class="card" id="dayDetail" style="display:none;"><div class="card-title" id="dayDetailTitle">Детали дня</div><div id="dayDetailContent"></div></div>
         </div>
-
-        <!-- Настроение -->
         <div class="tab-content" id="tab-mood">
-            <div class="card">
-                <div class="card-title">💖 Как вы себя чувствуете?</div>
-                <div class="mood-grid">
-                    <button class="mood-btn" onclick="saveMood('great')" title="Отлично">😊</button>
-                    <button class="mood-btn" onclick="saveMood('good')" title="Хорошо">😀</button>
-                    <button class="mood-btn" onclick="saveMood('okay')" title="Нормально">😐</button>
-                    <button class="mood-btn" onclick="saveMood('tired')" title="Устала">😔</button>
-                    <button class="mood-btn" onclick="saveMood('bad')" title="Плохо">😢</button>
-                </div>
-                <div id="moodTodayLabel" style="text-align:center; font-size:14px; color:var(--text-secondary); min-height:20px;"></div>
-            </div>
-            <div class="card">
-                <div class="card-title">📊 За неделю</div>
-                <div id="moodWeekStats" style="text-align:center; font-size:32px; padding:12px 0;"></div>
-                <div style="text-align:center; font-size:13px; color:var(--text-secondary);" id="moodWeekLabel"></div>
-            </div>
-            <div class="card">
-                <div class="card-title">📝 История</div>
-                <div class="history-list" id="moodHistory"><div class="empty-state">Нет записей</div></div>
-            </div>
+            <div class="card"><div class="card-title">💖 Как вы себя чувствуете?</div><div class="mood-grid"><button class="mood-btn" onclick="saveMood('great')" title="Отлично">😊</button><button class="mood-btn" onclick="saveMood('good')" title="Хорошо">😀</button><button class="mood-btn" onclick="saveMood('okay')" title="Нормально">😐</button><button class="mood-btn" onclick="saveMood('tired')" title="Устала">😔</button><button class="mood-btn" onclick="saveMood('bad')" title="Плохо">😢</button></div><div id="moodTodayLabel" style="text-align:center; font-size:14px; color:var(--text-secondary); min-height:20px;"></div></div>
+            <div class="card"><div class="card-title">📊 За неделю</div><div id="moodWeekStats" style="text-align:center; font-size:32px; padding:12px 0;"></div><div style="text-align:center; font-size:13px; color:var(--text-secondary);" id="moodWeekLabel"></div></div>
+            <div class="card"><div class="card-title">📝 История</div><div class="history-list" id="moodHistory"><div class="empty-state">Нет записей</div></div></div>
         </div>
-
-        <!-- PRO -->
         <div class="tab-content" id="tab-pro">
             <div id="proActive" style="display:none;"><div class="card pro-card" style="text-align:center;"><div style="font-size:50px;">👑</div><h2>Вы — PRO!</h2><p style="color:var(--text-secondary);">Все функции разблокированы</p></div><div class="card"><div class="card-title">📤 Экспорт</div><button class="export-btn" onclick="exportAsImage()">📸 Скачать отчёт в PNG</button></div></div>
             <div id="proInactive"><div class="card" style="text-align:center;"><div style="font-size:60px;">👑</div><h2>Мама PRO</h2><p style="color:var(--text-secondary);">Разблокируй все возможности</p></div><div class="card" style="text-align:center;"><input type="text" id="activateCode" placeholder="Введите TEST123"><button class="activate-btn" onclick="activatePro()">🔓 Активировать PRO</button></div></div>
         </div>
     </div>
 
-    <!-- Панели -->
     <div class="settings-panel hidden" id="settingsPanel">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;"><h3 style="font-size:18px;">⚙️ Настройки</h3><button class="icon-btn" onclick="document.getElementById('settingsPanel').classList.add('hidden')" style="width:32px;height:32px;font-size:16px;">✕</button></div>
         <div class="settings-grid">
@@ -317,111 +282,29 @@
         document.getElementById('todayDate').textContent = today.toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' });
 
         // === ТРЕКЕР НАСТРОЕНИЯ ===
-        const moodLabels = {
-            great: { emoji: '😊', text: 'Отлично', color: '#7ecb8a' },
-            good: { emoji: '😀', text: 'Хорошо', color: '#a0c4e8' },
-            okay: { emoji: '😐', text: 'Нормально', color: '#d4c060' },
-            tired: { emoji: '😔', text: 'Устала', color: '#e8a080' },
-            bad: { emoji: '😢', text: 'Плохо', color: '#e8606e' }
-        };
-
+        const moodLabels = { great: { emoji: '😊', text: 'Отлично' }, good: { emoji: '😀', text: 'Хорошо' }, okay: { emoji: '😐', text: 'Нормально' }, tired: { emoji: '😔', text: 'Устала' }, bad: { emoji: '😢', text: 'Плохо' } };
         function getMoodKey() { return 'mama-mood-' + today.toISOString().split('T')[0]; }
-        function getAllMoodRecords() {
-            const all = [];
-            for (let i = 0; i < 30; i++) {
-                const d = new Date(); d.setDate(d.getDate() - i);
-                const key = 'mama-mood-' + d.toISOString().split('T')[0];
-                const val = localStorage.getItem(key);
-                if (val) all.push({ date: d.toISOString().split('T')[0], mood: val });
-            }
-            return all.sort((a,b) => b.date.localeCompare(a.date));
-        }
-
-        function saveMood(mood) {
-            localStorage.setItem(getMoodKey(), mood);
-            updateMoodUI();
-            if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-        }
-
+        function getAllMoodRecords() { const all = []; for (let i = 0; i < 30; i++) { const d = new Date(); d.setDate(d.getDate() - i); const key = 'mama-mood-' + d.toISOString().split('T')[0]; const val = localStorage.getItem(key); if (val) all.push({ date: d.toISOString().split('T')[0], mood: val }); } return all.sort((a,b) => b.date.localeCompare(a.date)); }
+        function saveMood(mood) { localStorage.setItem(getMoodKey(), mood); updateMoodUI(); if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success'); }
         function updateMoodUI() {
             const todayMood = localStorage.getItem(getMoodKey());
             const label = document.getElementById('moodTodayLabel');
-            if (todayMood && moodLabels[todayMood]) {
-                label.innerHTML = `Сегодня: ${moodLabels[todayMood].emoji} ${moodLabels[todayMood].text}`;
-            } else {
-                label.innerHTML = 'Выберите настроение';
-            }
-
-            // История
+            if (todayMood && moodLabels[todayMood]) { label.innerHTML = `Сегодня: ${moodLabels[todayMood].emoji} ${moodLabels[todayMood].text}`; } else { label.innerHTML = 'Выберите настроение'; }
             const allMoods = getAllMoodRecords();
             const historyList = document.getElementById('moodHistory');
-            if (allMoods.length === 0) {
-                historyList.innerHTML = '<div class="empty-state">Нет записей</div>';
-            } else {
-                historyList.innerHTML = allMoods.map(r => {
-                    const m = moodLabels[r.mood] || { emoji: '❓', text: 'Неизвестно' };
-                    const d = new Date(r.date);
-                    const dateStr = d.toLocaleDateString('ru-RU', { weekday: 'short', day: 'numeric', month: 'short' });
-                    return `<div class="mood-history-item">
-                        <span class="mood-emoji-big">${m.emoji}</span>
-                        <span class="mood-label">${m.text}</span>
-                        <span class="mood-date" style="margin-left:auto;">${dateStr}</span>
-                    </div>`;
-                }).join('');
-            }
-
-            // Статистика за неделю
-            const weekMoods = allMoods.filter(r => {
-                const d = new Date(r.date);
-                const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate() - 7);
-                return d >= weekAgo;
-            });
-            const statsDiv = document.getElementById('moodWeekStats');
-            const labelDiv = document.getElementById('moodWeekLabel');
-            if (weekMoods.length === 0) {
-                statsDiv.innerHTML = '—';
-                labelDiv.textContent = 'Нет данных за неделю';
-            } else {
-                // Считаем преобладающее настроение
-                const counts = {};
-                weekMoods.forEach(r => { counts[r.mood] = (counts[r.mood] || 0) + 1; });
-                const topMood = Object.entries(counts).sort((a,b) => b[1] - a[1])[0];
-                const m = moodLabels[topMood[0]];
-                statsDiv.innerHTML = `${m.emoji} ${m.text}`;
-                labelDiv.textContent = `Чаще всего за 7 дней (${topMood[1]} из ${weekMoods.length})`;
-            }
+            if (allMoods.length === 0) { historyList.innerHTML = '<div class="empty-state">Нет записей</div>'; } else { historyList.innerHTML = allMoods.map(r => { const m = moodLabels[r.mood] || { emoji: '❓', text: 'Неизвестно' }; const d = new Date(r.date); const dateStr = d.toLocaleDateString('ru-RU', { weekday: 'short', day: 'numeric', month: 'short' }); return `<div class="mood-history-item"><span class="mood-emoji-big">${m.emoji}</span><span class="mood-label">${m.text}</span><span class="mood-date" style="margin-left:auto;">${dateStr}</span></div>`; }).join(''); }
+            const weekMoods = allMoods.filter(r => { const d = new Date(r.date); const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate() - 7); return d >= weekAgo; });
+            const statsDiv = document.getElementById('moodWeekStats'), labelDiv = document.getElementById('moodWeekLabel');
+            if (weekMoods.length === 0) { statsDiv.innerHTML = '—'; labelDiv.textContent = 'Нет данных за неделю'; } else { const counts = {}; weekMoods.forEach(r => { counts[r.mood] = (counts[r.mood] || 0) + 1; }); const topMood = Object.entries(counts).sort((a,b) => b[1] - a[1])[0]; const m = moodLabels[topMood[0]]; statsDiv.innerHTML = `${m.emoji} ${m.text}`; labelDiv.textContent = `Чаще всего за 7 дней (${topMood[1]} из ${weekMoods.length})`; }
         }
 
         // === ШАБЛОНЫ ЗАМЕТОК ===
-        const NOTE_TEMPLATES = [
-            { emoji: '😋', text: 'Хорошо покушал' },
-            { emoji: '😔', text: 'Много срыгнул' },
-            { emoji: '💤', text: 'Заснул сразу' },
-            { emoji: '😢', text: 'Капризничал' },
-            { emoji: '🌡', text: 'Температура' },
-            { emoji: '💊', text: 'Лекарство' }
-        ];
-
-        function addTemplateToNote(textareaId, templateText) {
-            const textarea = document.getElementById(textareaId);
-            if (!textarea) return;
-            const current = textarea.value.trim();
-            textarea.value = current ? current + '; ' + templateText : templateText;
-            textarea.focus();
-        }
-
-        function renderTemplates(textareaId) {
-            return NOTE_TEMPLATES.map(t => 
-                `<span class="note-template" onclick="addTemplateToNote('${textareaId}', '${t.text}')">${t.emoji} ${t.text}</span>`
-            ).join('');
-        }
+        const NOTE_TEMPLATES = [ { emoji: '😋', text: 'Хорошо покушал' }, { emoji: '😔', text: 'Много срыгнул' }, { emoji: '💤', text: 'Заснул сразу' }, { emoji: '😢', text: 'Капризничал' }, { emoji: '🌡', text: 'Температура' }, { emoji: '💊', text: 'Лекарство' } ];
+        function addTemplateToNote(textareaId, templateText) { const textarea = document.getElementById(textareaId); if (!textarea) return; const current = textarea.value.trim(); textarea.value = current ? current + '; ' + templateText : templateText; textarea.focus(); }
+        function renderTemplates(textareaId) { return NOTE_TEMPLATES.map(t => `<span class="note-template" onclick="addTemplateToNote('${textareaId}', '${t.text}')">${t.emoji} ${t.text}</span>`).join(''); }
 
         // === ПАНЕЛЬ НАСТРОЕК ===
-        function toggleSettingsPanel() {
-            document.getElementById('settingsPanel').classList.toggle('hidden');
-            document.getElementById('soundPanel').classList.add('hidden');
-            document.getElementById('themePanel').classList.add('hidden');
-        }
+        function toggleSettingsPanel() { document.getElementById('settingsPanel').classList.toggle('hidden'); document.getElementById('soundPanel').classList.add('hidden'); document.getElementById('themePanel').classList.add('hidden'); }
 
         // === ИТОГИ ДНЯ ===
         function showDaySummary() {
@@ -437,7 +320,6 @@
             if (lastGrowth) { const parts = []; if (lastGrowth.weight) parts.push('⚖️ ' + lastGrowth.weight + ' кг'); if (lastGrowth.height) parts.push('📏 ' + lastGrowth.height + ' см'); growthText = parts.join(' · '); }
             const feedTimeStr = totalFeedMin < 60 ? totalFeedMin + ' мин' : Math.floor(totalFeedMin/60) + ' ч ' + (totalFeedMin%60) + ' мин';
             const sleepTimeStr = totalSleepMin < 60 ? totalSleepMin + ' мин' : Math.floor(totalSleepMin/60) + ' ч ' + (totalSleepMin%60) + ' мин';
-            
             const overlay = document.createElement('div'); overlay.className = 'note-overlay';
             const dialog = document.createElement('div'); dialog.className = 'note-dialog';
             dialog.innerHTML = `<h3>📝 Итоги дня</h3><p style="color:var(--text-secondary); font-size:13px; margin-bottom:16px;">${babyName} · ${today.toLocaleDateString('ru-RU', {day:'numeric', month:'long'})}</p>
@@ -450,10 +332,7 @@
                 <div class="note-dialog-buttons" style="margin-top:16px;"><button class="note-skip-btn" id="summaryClose">Закрыть</button><button class="note-save-btn" id="summaryShare">📤 Поделиться</button></div>`;
             overlay.appendChild(dialog); document.body.appendChild(overlay);
             document.getElementById('summaryClose').onclick = () => document.body.removeChild(overlay);
-            document.getElementById('summaryShare').onclick = () => {
-                const text = `📝 Итоги дня — ${babyName}\n${today.toLocaleDateString('ru-RU', {day:'numeric', month:'long'})}\n\n🍼 Кормлений: ${feedData.length} (${feedTimeStr})\n😴 Сна: ${sleepData.length} (${sleepTimeStr})\n💧 Подгузников: ${diaperData.length}\n${growthText ? '📏 ' + growthText + '\n' : ''}${todayMood ? '💖 Настроение: ' + moodLabels[todayMood].emoji + '\n' : ''}\nСоздано в Мама Трекер`;
-                navigator.clipboard.writeText(text).then(() => { if (tg?.showPopup) tg.showPopup({ title: '✅ Скопировано!', message: 'Итоги дня скопированы!', buttons: [{type:'ok'}] }); else alert('Итоги скопированы!'); });
-            };
+            document.getElementById('summaryShare').onclick = () => { const text = `📝 Итоги дня — ${babyName}\n${today.toLocaleDateString('ru-RU', {day:'numeric', month:'long'})}\n\n🍼 Кормлений: ${feedData.length} (${feedTimeStr})\n😴 Сна: ${sleepData.length} (${sleepTimeStr})\n💧 Подгузников: ${diaperData.length}\n${growthText ? '📏 ' + growthText + '\n' : ''}${todayMood ? '💖 Настроение: ' + moodLabels[todayMood].emoji + '\n' : ''}\nСоздано в Мама Трекер`; navigator.clipboard.writeText(text).then(() => { if (tg?.showPopup) tg.showPopup({ title: '✅ Скопировано!', message: 'Итоги дня скопированы!', buttons: [{type:'ok'}] }); else alert('Итоги скопированы!'); }); };
             overlay.addEventListener('click', e => { if (e.target === overlay) document.body.removeChild(overlay); });
         }
 
@@ -464,14 +343,9 @@
             dialog.innerHTML = `<h3>💬 Обратная связь</h3><p style="color:var(--text-secondary); font-size:13px; margin-bottom:12px;">Напишите ваше сообщение:</p><textarea id="feedbackMsg" placeholder="Ваше сообщение..." style="height:100px; margin-bottom:12px;"></textarea><div class="note-dialog-buttons"><button class="note-skip-btn" id="feedbackClose">Закрыть</button><button class="note-save-btn" id="feedbackSend">📨 Отправить</button></div>`;
             overlay.appendChild(dialog); document.body.appendChild(overlay);
             document.getElementById('feedbackSend').onclick = async function() {
-                const text = document.getElementById('feedbackMsg').value.trim();
-                if (!text) { alert('Напишите сообщение'); return; }
+                const text = document.getElementById('feedbackMsg').value.trim(); if (!text) { alert('Напишите сообщение'); return; }
                 const btn = document.getElementById('feedbackSend'); btn.textContent = '⏳ Отправка...'; btn.disabled = true;
-                try {
-                    const r = await fetch('https://formspree.io/f/xojgbrjj', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({message:text, date:new Date().toLocaleString('ru-RU'), app:'Мама Трекер'}) });
-                    if (r.ok) { document.body.removeChild(overlay); if (tg?.showPopup) tg.showPopup({title:'✅ Спасибо!', message:'Сообщение отправлено!', buttons:[{type:'ok'}]}); else alert('Спасибо!'); }
-                    else { btn.textContent = '📨 Отправить'; btn.disabled = false; alert('Ошибка отправки.'); }
-                } catch(e) { btn.textContent = '📨 Отправить'; btn.disabled = false; alert('Ошибка отправки.'); }
+                try { const r = await fetch('https://formspree.io/f/xojgbrjj', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({message:text, date:new Date().toLocaleString('ru-RU'), app:'Мама Трекер'}) }); if (r.ok) { document.body.removeChild(overlay); if (tg?.showPopup) tg.showPopup({title:'✅ Спасибо!', message:'Сообщение отправлено!', buttons:[{type:'ok'}]}); else alert('Спасибо!'); } else { btn.textContent = '📨 Отправить'; btn.disabled = false; alert('Ошибка отправки.'); } } catch(e) { btn.textContent = '📨 Отправить'; btn.disabled = false; alert('Ошибка отправки.'); }
             };
             document.getElementById('feedbackClose').onclick = () => document.body.removeChild(overlay);
             overlay.addEventListener('click', e => { if (e.target === overlay) document.body.removeChild(overlay); });
@@ -479,17 +353,7 @@
         }
 
         // === КОНФЕТТИ ===
-        function spawnConfetti(x, y) {
-            const emojis = ['🎉','✨','🌟','💖','🎊','🥳','💫','🌸','💗','🎀','💝','🌺','🎈','💐','🎵'];
-            for (let i=0;i<40;i++) {
-                const piece = document.createElement('div'); piece.textContent = emojis[Math.floor(Math.random()*emojis.length)];
-                piece.style.cssText = `position:fixed; left:${x}px; top:${y}px; z-index:10000; pointer-events:none; font-size:${18+Math.random()*28}px; transition:none; opacity:0; transform:translate(0,0) rotate(0deg) scale(0);`;
-                document.body.appendChild(piece);
-                const duration=1.5+Math.random()*1.5, delay=Math.random()*0.5, spreadX=(Math.random()-0.5)*350, spreadY=-(100+Math.random()*400), rotation=(Math.random()-0.5)*1080;
-                requestAnimationFrame(()=>{requestAnimationFrame(()=>{piece.style.transition=`all ${duration}s ease-out ${delay}s`; piece.style.transform=`translate(${spreadX*2}px, ${spreadY+600}px) rotate(${rotation}deg) scale(1)`; piece.style.opacity='1';});});
-                setTimeout(()=>{piece.style.transition='opacity 0.8s ease-in'; piece.style.opacity='0'; setTimeout(()=>piece.remove(),800);},(duration+delay)*1000-400);
-            }
-        }
+        function spawnConfetti(x, y) { const emojis = ['🎉','✨','🌟','💖','🎊','🥳','💫','🌸','💗','🎀','💝','🌺','🎈','💐','🎵']; for (let i=0;i<40;i++) { const piece = document.createElement('div'); piece.textContent = emojis[Math.floor(Math.random()*emojis.length)]; piece.style.cssText = `position:fixed; left:${x}px; top:${y}px; z-index:10000; pointer-events:none; font-size:${18+Math.random()*28}px; transition:none; opacity:0; transform:translate(0,0) rotate(0deg) scale(0);`; document.body.appendChild(piece); const duration=1.5+Math.random()*1.5, delay=Math.random()*0.5, spreadX=(Math.random()-0.5)*350, spreadY=-(100+Math.random()*400), rotation=(Math.random()-0.5)*1080; requestAnimationFrame(()=>{requestAnimationFrame(()=>{piece.style.transition=`all ${duration}s ease-out ${delay}s`; piece.style.transform=`translate(${spreadX*2}px, ${spreadY+600}px) rotate(${rotation}deg) scale(1)`; piece.style.opacity='1';});}); setTimeout(()=>{piece.style.transition='opacity 0.8s ease-in'; piece.style.opacity='0'; setTimeout(()=>piece.remove(),800);},(duration+delay)*1000-400); } }
 
         // === ДЕТИ ===
         let babies = JSON.parse(localStorage.getItem('mama_babies') || '[{"id":"0","name":"Малыш"}]');
@@ -499,12 +363,7 @@
         function switchBaby(id) { currentBabyId=id; saveBabies(); updateBabyUI(); refreshAll(); updateGrowthUI(); buildAllCharts(); updateCalendar(); updateMoodUI(); }
         function addBaby() { const name=document.getElementById('newBabyName').value.trim(); if(!name)return; const id=Date.now().toString(); babies.push({id,name}); currentBabyId=id; saveBabies(); document.getElementById('newBabyName').value=''; updateBabyUI(); refreshAll(); updateGrowthUI(); buildAllCharts(); updateCalendar(); updateMoodUI(); document.getElementById('babyPanel').classList.add('hidden'); }
         function deleteBaby(id) { if(babies.length<=1)return; babies=babies.filter(b=>b.id!==id); if(currentBabyId===id)currentBabyId=babies[0].id; saveBabies(); updateBabyUI(); refreshAll(); updateGrowthUI(); buildAllCharts(); updateCalendar(); updateMoodUI(); }
-        function updateBabyUI() {
-            const switcher=document.getElementById('babySwitcher');
-            switcher.innerHTML = babies.map(b=>`<span class="baby-chip${b.id===currentBabyId?' active':''}" onclick="switchBaby('${b.id}')">${b.name}</span>`).join('') + (babies.length<5?`<span class="baby-chip" onclick="document.getElementById('babyPanel').classList.toggle('hidden')" style="font-size:18px;">➕</span>`:'');
-            const list=document.getElementById('babyList');
-            if(list) list.innerHTML = babies.map(b=>`<div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border);"><span>${b.name} ${b.id===currentBabyId?'👈':''}</span>${babies.length>1?`<span onclick="deleteBaby('${b.id}')" style="color:#e8606e; cursor:pointer;">🗑</span>`:''}</div>`).join('');
-        }
+        function updateBabyUI() { const switcher=document.getElementById('babySwitcher'); switcher.innerHTML = babies.map(b=>`<span class="baby-chip${b.id===currentBabyId?' active':''}" onclick="switchBaby('${b.id}')">${b.name}</span>`).join('') + (babies.length<5?`<span class="baby-chip" onclick="document.getElementById('babyPanel').classList.toggle('hidden')" style="font-size:18px;">➕</span>`:''); const list=document.getElementById('babyList'); if(list) list.innerHTML = babies.map(b=>`<div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border);"><span>${b.name} ${b.id===currentBabyId?'👈':''}</span>${babies.length>1?`<span onclick="deleteBaby('${b.id}')" style="color:#e8606e; cursor:pointer;">🗑</span>`:''}</div>`).join(''); }
 
         // === ТЕМА ===
         const THEME_KEY='mama_theme', COLOR_KEY='mama_color';
@@ -513,11 +372,8 @@
         function setThemeMode(mode){localStorage.setItem(THEME_KEY,mode); applyTheme(mode);}
         function setColorScheme(scheme){colorClasses.forEach(c=>document.body.classList.remove(c)); document.body.classList.add('color-'+scheme); localStorage.setItem(COLOR_KEY,scheme); document.querySelectorAll('.color-btn').forEach(b=>b.classList.remove('active')); document.querySelector(`[data-color="${scheme}"]`)?.classList.add('active');}
         function toggleThemePanel(){document.getElementById('themePanel').classList.toggle('hidden'); document.getElementById('soundPanel').classList.add('hidden'); document.getElementById('settingsPanel').classList.add('hidden');}
-        const savedColor=localStorage.getItem(COLOR_KEY)||'pink';
-        colorClasses.forEach(c=>document.body.classList.remove(c)); document.body.classList.add('color-'+savedColor);
-        applyTheme(localStorage.getItem(THEME_KEY)||'dark');
-        document.querySelector(`[data-color="${savedColor}"]`)?.classList.add('active');
-        updateBabyUI();
+        const savedColor=localStorage.getItem(COLOR_KEY)||'pink'; colorClasses.forEach(c=>document.body.classList.remove(c)); document.body.classList.add('color-'+savedColor);
+        applyTheme(localStorage.getItem(THEME_KEY)||'dark'); document.querySelector(`[data-color="${savedColor}"]`)?.classList.add('active'); updateBabyUI();
 
         // === ЗВУКИ ===
         let audioCtx=null, soundNodes=[], soundTimer=null, currentSound=null, currentVolume=0.5;
@@ -538,12 +394,63 @@
         function setTimer(minutes){if(soundTimer)clearTimeout(soundTimer); document.querySelectorAll('.timer-row button').forEach(b=>b.classList.remove('active')); document.querySelector(`[data-timer="${minutes}"]`).classList.add('active'); if(minutes>0)soundTimer=setTimeout(()=>{stopSound();},minutes*60*1000);}
         function toggleSoundPanel(){document.getElementById('soundPanel').classList.toggle('hidden'); document.getElementById('themePanel').classList.add('hidden'); document.getElementById('settingsPanel').classList.add('hidden');}
 
-        // === ЗАМЕТКИ ===
-        let pendingSave=null;
-        function showNoteDialog(type,data){pendingSave={type,data}; const overlay=document.createElement('div'); overlay.className='note-overlay'; const dialog=document.createElement('div'); dialog.className='note-dialog'; const emoji=type==='feed'?'🍼':type==='sleep'?'😴':'💧'; const title=type==='feed'?'Кормление':type==='sleep'?'Сон':'Подгузник'; const textareaId='noteText'; dialog.innerHTML=`<h3>${emoji} ${title} сохранено!</h3><p style="color:var(--text-secondary); font-size:13px; margin-bottom:8px;">Добавить заметку:</p><textarea id="${textareaId}" placeholder="Напишите или выберите шаблон..."></textarea><div class="note-templates">${renderTemplates(textareaId)}</div><div class="note-dialog-buttons"><button class="note-skip-btn" id="noteSkip">Пропустить</button><button class="note-save-btn" id="noteSave">💾 Сохранить</button></div>`; overlay.appendChild(dialog); document.body.appendChild(overlay);
-        document.getElementById('noteSave').onclick=()=>{const note=document.getElementById(textareaId).value.trim(); if(pendingSave){pendingSave.data.note=note; saveRecord(pendingSave.type,pendingSave.data); refreshAll();} document.body.removeChild(overlay); pendingSave=null;};
-        document.getElementById('noteSkip').onclick=()=>{if(pendingSave){saveRecord(pendingSave.type,pendingSave.data); refreshAll();} document.body.removeChild(overlay); pendingSave=null;};
-        overlay.addEventListener('click',e=>{if(e.target===overlay){if(pendingSave){saveRecord(pendingSave.type,pendingSave.data); refreshAll();} document.body.removeChild(overlay); pendingSave=null;}}); setTimeout(()=>document.getElementById(textareaId).focus(),100);}
+        // === ЗАМЕТКИ С ФОТО ===
+        let pendingSave=null, pendingPhoto=null, editPendingPhoto=null;
+
+        function handlePhotoSelect(input, previewId) {
+            const file = input.files[0]; if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) { pendingPhoto = e.target.result; const preview = document.getElementById(previewId); if (preview) { preview.style.display = 'block'; preview.innerHTML = `<img src="${e.target.result}" style="max-width:100%; max-height:120px; border-radius:12px;">`; } const label = document.getElementById('notePhotoLabel'); if (label) label.textContent = '✅ Фото выбрано'; };
+            reader.readAsDataURL(file);
+        }
+
+        function handleEditPhotoSelect(input) {
+            const file = input.files[0]; if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) { editPendingPhoto = e.target.result; const preview = document.getElementById('editPhotoPreview'); if (preview) { preview.innerHTML = `<img src="${e.target.result}" style="max-width:100%; max-height:120px; border-radius:12px;">`; } const label = document.getElementById('editPhotoLabel'); if (label) label.textContent = '✅ Фото выбрано'; };
+            reader.readAsDataURL(file);
+        }
+
+        function showNoteDialog(type,data){
+            pendingSave={type,data}; pendingPhoto=null;
+            const overlay=document.createElement('div'); overlay.className='note-overlay';
+            const dialog=document.createElement('div'); dialog.className='note-dialog';
+            const emoji=type==='feed'?'🍼':type==='sleep'?'😴':'💧';
+            const title=type==='feed'?'Кормление':type==='sleep'?'Сон':'Подгузник';
+            const textareaId='noteText';
+            dialog.innerHTML=`<h3>${emoji} ${title} сохранено!</h3><p style="color:var(--text-secondary); font-size:13px; margin-bottom:8px;">Добавить заметку:</p><textarea id="${textareaId}" placeholder="Напишите или выберите шаблон..."></textarea><div class="note-templates">${renderTemplates(textareaId)}</div>
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;"><input type="file" id="notePhotoInput" accept="image/*" capture="camera" style="display:none;" onchange="handlePhotoSelect(this, 'notePhotoPreview')"><button class="note-template" onclick="document.getElementById('notePhotoInput').click()" style="display:flex; align-items:center; gap:4px;">📷 Фото</button><span id="notePhotoLabel" style="font-size:12px; color:var(--text-secondary);"></span></div>
+                <div id="notePhotoPreview" style="display:none; margin-bottom:8px; text-align:center;"></div>
+                <div class="note-dialog-buttons"><button class="note-skip-btn" id="noteSkip">Пропустить</button><button class="note-save-btn" id="noteSave">💾 Сохранить</button></div>`;
+            overlay.appendChild(dialog); document.body.appendChild(overlay);
+            document.getElementById('noteSave').onclick=()=>{const note=document.getElementById(textareaId).value.trim(); if(pendingSave){pendingSave.data.note=note; if(pendingPhoto)pendingSave.data.photo=pendingPhoto; saveRecord(pendingSave.type,pendingSave.data); refreshAll();} document.body.removeChild(overlay); pendingSave=null; pendingPhoto=null;};
+            document.getElementById('noteSkip').onclick=()=>{if(pendingSave){if(pendingPhoto)pendingSave.data.photo=pendingPhoto; saveRecord(pendingSave.type,pendingSave.data); refreshAll();} document.body.removeChild(overlay); pendingSave=null; pendingPhoto=null;};
+            overlay.addEventListener('click',e=>{if(e.target===overlay){if(pendingSave){if(pendingPhoto)pendingSave.data.photo=pendingPhoto; saveRecord(pendingSave.type,pendingSave.data); refreshAll();} document.body.removeChild(overlay); pendingSave=null; pendingPhoto=null;}});
+            setTimeout(()=>document.getElementById(textareaId).focus(),100);
+        }
+
+        function showNote(type,index){
+            const recs=type==='feed'?(isPro()?getAllRecords('feed').slice(0,50):getRecords('feed').sort((a,b)=>b.timestamp-a.timestamp)):type==='sleep'?(isPro()?getAllRecords('sleep').slice(0,50):getRecords('sleep').sort((a,b)=>b.timestamp-a.timestamp)):getRecords('diaper').sort((a,b)=>b.timestamp-a.timestamp);
+            const record=recs[index]; if(!record)return;
+            editPendingPhoto=record.photo||null;
+            const note=record.note||''; const t=new Date(record.timestamp).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
+            const d=new Date(record.timestamp).toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'});
+            const emoji=type==='feed'?'🍼':type==='sleep'?'😴':'💧';
+            const textareaId='editNoteText';
+            const overlay=document.createElement('div'); overlay.className='note-overlay';
+            const dialog=document.createElement('div'); dialog.className='note-dialog';
+            dialog.innerHTML=`<h3>${emoji} ${d} ${t}</h3><p style="color:var(--text-secondary); font-size:13px; margin-bottom:8px;">${note?'Редактировать заметку:':'Добавить заметку:'}</p><textarea id="${textareaId}" placeholder="Заметка...">${note}</textarea><div class="note-templates">${renderTemplates(textareaId)}</div>
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;"><input type="file" id="editPhotoInput" accept="image/*" capture="camera" style="display:none;" onchange="handleEditPhotoSelect(this)"><button class="note-template" onclick="document.getElementById('editPhotoInput').click()" style="display:flex; align-items:center; gap:4px;">📷 Фото</button><span id="editPhotoLabel" style="font-size:12px; color:var(--text-secondary);">${record.photo?'✅ Фото есть':'Добавить фото'}</span></div>
+                <div id="editPhotoPreview" style="margin-bottom:8px; text-align:center;">${record.photo?`<img src="${record.photo}" style="max-width:100%; max-height:120px; border-radius:12px;">`:''}</div>
+                <div class="note-dialog-buttons">${note||record.photo?'<button class="note-skip-btn" id="noteDelete" style="color:#e8606e;">🗑 Удалить</button>':''}<button class="note-skip-btn" id="noteClose">Закрыть</button><button class="note-save-btn" id="noteUpdate">💾 Сохранить</button></div>`;
+            overlay.appendChild(dialog); document.body.appendChild(overlay);
+            document.getElementById('noteUpdate').onclick=()=>{const nn=document.getElementById(textareaId).value.trim(); const key=getKey(type,new Date(record.timestamp)); const all=JSON.parse(localStorage.getItem(key)||'[]'); for(let i=all.length-1;i>=0;i--){if(all[i].timestamp===record.timestamp){all[i].note=nn||undefined; if(!nn)delete all[i].note; if(editPendingPhoto)all[i].photo=editPendingPhoto; else delete all[i].photo; break;}} localStorage.setItem(key,JSON.stringify(all)); document.body.removeChild(overlay); refreshAll();};
+            document.getElementById('noteClose').onclick=()=>document.body.removeChild(overlay);
+            const del=document.getElementById('noteDelete'); if(del)del.onclick=()=>{const key=getKey(type,new Date(record.timestamp)); const all=JSON.parse(localStorage.getItem(key)||'[]'); for(let i=all.length-1;i>=0;i--){if(all[i].timestamp===record.timestamp){delete all[i].note; delete all[i].photo; break;}} localStorage.setItem(key,JSON.stringify(all)); document.body.removeChild(overlay); refreshAll();};
+            overlay.addEventListener('click',e=>{if(e.target===overlay)document.body.removeChild(overlay);});
+            setTimeout(()=>document.getElementById(textareaId).focus(),100);
+        }
+
         function refreshAll(){updateFeedStats(); renderFeedHistory(); updateSleepStats(); renderSleepHistory(); updateDiaperStats(); renderDiaperHistory();}
 
         // === PRO ===
@@ -583,12 +490,7 @@
             let maxFeeds=0;
             for(let d=1;d<=lastDay.getDate();d++){const c=getFeedCountForDate(new Date(calYear,calMonth,d)); if(c>maxFeeds)maxFeeds=c;}
             if(maxFeeds===0)maxFeeds=1;
-            for(let d=1;d<=lastDay.getDate();d++){
-                const count=getFeedCountForDate(new Date(calYear,calMonth,d)), intensity=count/maxFeeds;
-                let bg=count===0?'var(--stat-bg)':intensity<0.25?'rgba(232,160,191,0.15)':intensity<0.5?'rgba(232,160,191,0.35)':intensity<0.75?'rgba(232,160,191,0.6)':'#e8a0bf';
-                const todayClass=(d===today.getDate()&&calMonth===today.getMonth()&&calYear===today.getFullYear())?' today':'';
-                html+=`<div class="calendar-day${todayClass}" style="background:${bg}; color:${count>0&&intensity>=0.75?'#1a1a2e':'var(--text-secondary)'};" onclick="showDayDetail(${d})">${d}</div>`;
-            }
+            for(let d=1;d<=lastDay.getDate();d++){const count=getFeedCountForDate(new Date(calYear,calMonth,d)), intensity=count/maxFeeds; let bg=count===0?'var(--stat-bg)':intensity<0.25?'rgba(232,160,191,0.15)':intensity<0.5?'rgba(232,160,191,0.35)':intensity<0.75?'rgba(232,160,191,0.6)':'#e8a0bf'; const todayClass=(d===today.getDate()&&calMonth===today.getMonth()&&calYear===today.getFullYear())?' today':''; html+=`<div class="calendar-day${todayClass}" style="background:${bg}; color:${count>0&&intensity>=0.75?'#1a1a2e':'var(--text-secondary)'};" onclick="showDayDetail(${d})">${d}</div>`;}
             const remaining=7-((startDow-1+lastDay.getDate())%7);
             if(remaining<7)for(let i=1;i<=remaining;i++)html+=`<div class="calendar-day other-month">${i}</div>`;
             grid.innerHTML=html;
@@ -602,7 +504,7 @@
         function startFeeding(){if(!feedSide)return; feedRunning=true; feedStart=Date.now(); document.getElementById('feedingBtn').textContent='⏹ Завершить'; document.getElementById('feedingBtn').className='action-btn stop'; feedInterval=setInterval(()=>{const e=Math.floor((Date.now()-feedStart)/1000); document.getElementById('feedingTimer').textContent=String(Math.floor(e/60)).padStart(2,'0')+':'+String(e%60).padStart(2,'0');},200);}
         function stopFeeding(){feedRunning=false; clearInterval(feedInterval); const dur=Math.floor((Date.now()-feedStart)/1000); document.getElementById('feedingTimer').textContent='00:00'; document.getElementById('feedingBtn').textContent='▶️ Начать'; document.getElementById('feedingBtn').className='action-btn start'; document.getElementById('feedingBtn').disabled=true; if(dur>=5){spawnConfetti(window.innerWidth/2,window.innerHeight/2); showNoteDialog('feed',{side:feedSide,duration:dur});}}
         function updateFeedStats(){const recs=getRecords('feed'); document.getElementById('feedCount').textContent=recs.length; const min=Math.floor(recs.reduce((s,r)=>s+r.duration,0)/60); document.getElementById('feedDuration').textContent=min<60?min+' мин':Math.floor(min/60)+' ч '+(min%60)+' мин';}
-        function renderFeedHistory(){const recs=isPro()?getAllRecords('feed').slice(0,50):getRecords('feed').sort((a,b)=>b.timestamp-a.timestamp); const list=document.getElementById('feedHistory'); if(!recs.length){list.innerHTML='<div class="empty-state">Нет записей</div>'; return;} list.innerHTML=recs.map((r,i)=>{const t=new Date(r.timestamp).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}); const d=new Date(r.timestamp).toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'}); const min=Math.floor(r.duration/60),sec=r.duration%60; const dp=isPro()?'<span style="font-size:10px; color:var(--text-secondary);">'+d+' </span>':''; const ni=r.note?'<span class="history-note-icon">📝</span>':''; return `<div class="history-item" onclick="showNote('feed',${i})">${dp}<span>${t}</span><span class="history-duration">${min}:${String(sec).padStart(2,'0')}${ni}</span><span class="history-side"><span class="side-dot ${r.side}"></span>${r.side==='left'?'Левая':'Правая'}</span></div>`;}).join('');}
+        function renderFeedHistory(){const recs=isPro()?getAllRecords('feed').slice(0,50):getRecords('feed').sort((a,b)=>b.timestamp-a.timestamp); const list=document.getElementById('feedHistory'); if(!recs.length){list.innerHTML='<div class="empty-state">Нет записей</div>'; return;} list.innerHTML=recs.map((r,i)=>{const t=new Date(r.timestamp).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}); const d=new Date(r.timestamp).toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'}); const min=Math.floor(r.duration/60),sec=r.duration%60; const dp=isPro()?'<span style="font-size:10px; color:var(--text-secondary);">'+d+' </span>':''; const ni=(r.note||r.photo)?'<span class="history-note-icon">'+(r.photo?'🖼 ':'')+(r.note?'📝':'')+'</span>':''; return `<div class="history-item" onclick="showNote('feed',${i})">${dp}<span>${t}</span><span class="history-duration">${min}:${String(sec).padStart(2,'0')}${ni}</span><span class="history-side"><span class="side-dot ${r.side}"></span>${r.side==='left'?'Левая':'Правая'}</span></div>`;}).join('');}
 
         // === СОН ===
         let sleepRunning=false, sleepStart=null, sleepInterval=null;
@@ -610,15 +512,12 @@
         function startSleep(){sleepRunning=true; sleepStart=Date.now(); document.getElementById('sleepBtn').textContent='⏹ Проснулся'; document.getElementById('sleepBtn').className='action-btn stop'; sleepInterval=setInterval(()=>{const e=Math.floor((Date.now()-sleepStart)/1000); document.getElementById('sleepTimer').textContent=String(Math.floor(e/60)).padStart(2,'0')+':'+String(e%60).padStart(2,'0');},200);}
         function stopSleep(){sleepRunning=false; clearInterval(sleepInterval); const dur=Math.floor((Date.now()-sleepStart)/1000); document.getElementById('sleepTimer').textContent='00:00'; document.getElementById('sleepBtn').textContent='▶️ Уложить спать'; document.getElementById('sleepBtn').className='action-btn start-sleep'; if(dur>=60){spawnConfetti(window.innerWidth/2,window.innerHeight/2); showNoteDialog('sleep',{duration:dur});}}
         function updateSleepStats(){const recs=getRecords('sleep'); document.getElementById('sleepCount').textContent=recs.length; const min=Math.floor(recs.reduce((s,r)=>s+r.duration,0)/60); document.getElementById('sleepDuration').textContent=min<60?min+' мин':Math.floor(min/60)+' ч '+(min%60)+' мин';}
-        function renderSleepHistory(){const recs=isPro()?getAllRecords('sleep').slice(0,50):getRecords('sleep').sort((a,b)=>b.timestamp-a.timestamp); const list=document.getElementById('sleepHistory'); if(!recs.length){list.innerHTML='<div class="empty-state">Нет записей</div>'; return;} list.innerHTML=recs.map((r,i)=>{const t=new Date(r.timestamp).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}); const d=new Date(r.timestamp).toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'}); const min=Math.floor(r.duration/60); const durStr=Math.floor(min/60)>0?Math.floor(min/60)+' ч '+(min%60)+' мин':min+' мин'; const dp=isPro()?'<span style="font-size:10px; color:var(--text-secondary);">'+d+' </span>':''; const ni=r.note?'<span class="history-note-icon">📝</span>':''; return `<div class="history-item" onclick="showNote('sleep',${i})">${dp}<span>${t}</span><span class="history-duration">${durStr}${ni}</span><span class="history-side"><span class="side-dot sleep"></span>Сон</span></div>`;}).join('');}
+        function renderSleepHistory(){const recs=isPro()?getAllRecords('sleep').slice(0,50):getRecords('sleep').sort((a,b)=>b.timestamp-a.timestamp); const list=document.getElementById('sleepHistory'); if(!recs.length){list.innerHTML='<div class="empty-state">Нет записей</div>'; return;} list.innerHTML=recs.map((r,i)=>{const t=new Date(r.timestamp).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}); const d=new Date(r.timestamp).toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'}); const min=Math.floor(r.duration/60); const durStr=Math.floor(min/60)>0?Math.floor(min/60)+' ч '+(min%60)+' мин':min+' мин'; const dp=isPro()?'<span style="font-size:10px; color:var(--text-secondary);">'+d+' </span>':''; const ni=(r.note||r.photo)?'<span class="history-note-icon">'+(r.photo?'🖼 ':'')+(r.note?'📝':'')+'</span>':''; return `<div class="history-item" onclick="showNote('sleep',${i})">${dp}<span>${t}</span><span class="history-duration">${durStr}${ni}</span><span class="history-side"><span class="side-dot sleep"></span>Сон</span></div>`;}).join('');}
 
         // === ПОДГУЗНИКИ ===
         function addDiaper(type){showNoteDialog('diaper',{type});}
         function updateDiaperStats(){const recs=getRecords('diaper'); document.getElementById('diaperCount').textContent=recs.length; document.getElementById('diaperDirty').textContent=recs.filter(r=>r.type==='dirty'||r.type==='both').length;}
-        function renderDiaperHistory(){const recs=getRecords('diaper').sort((a,b)=>b.timestamp-a.timestamp); const list=document.getElementById('diaperHistory'); if(!recs.length){list.innerHTML='<div class="empty-state">Нет записей</div>'; return;} const labels={wet:'💦 Мокрый',dirty:'💩 Грязный',both:'💦💩 Всё вместе',dry:'✅ Сменили'}; const dots={wet:'wet',dirty:'dirty',both:'both',dry:'sleep'}; list.innerHTML=recs.map((r,i)=>{const t=new Date(r.timestamp).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}); const ni=r.note?'<span class="history-note-icon">📝</span>':''; return `<div class="history-item" onclick="showNote('diaper',${i})"><span>${t}${ni}</span><span class="history-side"><span class="side-dot ${dots[r.type]}"></span>${labels[r.type]}</span></div>`;}).join('');}
-
-        // === ЗАМЕТКА (редактирование) ===
-        function showNote(type,index){const recs=type==='feed'?(isPro()?getAllRecords('feed').slice(0,50):getRecords('feed').sort((a,b)=>b.timestamp-a.timestamp)):type==='sleep'?(isPro()?getAllRecords('sleep').slice(0,50):getRecords('sleep').sort((a,b)=>b.timestamp-a.timestamp)):getRecords('diaper').sort((a,b)=>b.timestamp-a.timestamp); const record=recs[index]; if(!record)return; const note=record.note||''; const t=new Date(record.timestamp).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}); const d=new Date(record.timestamp).toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'}); const emoji=type==='feed'?'🍼':type==='sleep'?'😴':'💧'; const textareaId='editNoteText'; const overlay=document.createElement('div'); overlay.className='note-overlay'; const dialog=document.createElement('div'); dialog.className='note-dialog'; dialog.innerHTML=`<h3>${emoji} ${d} ${t}</h3><p style="color:var(--text-secondary); font-size:13px; margin-bottom:8px;">${note?'Редактировать заметку:':'Добавить заметку:'}</p><textarea id="${textareaId}" placeholder="Заметка...">${note}</textarea><div class="note-templates">${renderTemplates(textareaId)}</div><div class="note-dialog-buttons">${note?'<button class="note-skip-btn" id="noteDelete" style="color:#e8606e;">🗑 Удалить</button>':''}<button class="note-skip-btn" id="noteClose">Закрыть</button><button class="note-save-btn" id="noteUpdate">💾 Сохранить</button></div>`; overlay.appendChild(dialog); document.body.appendChild(overlay); document.getElementById('noteUpdate').onclick=()=>{const nn=document.getElementById(textareaId).value.trim(); const key=getKey(type,new Date(record.timestamp)); const all=JSON.parse(localStorage.getItem(key)||'[]'); for(let i=all.length-1;i>=0;i--){if(all[i].timestamp===record.timestamp){all[i].note=nn||undefined; if(!nn)delete all[i].note; break;}} localStorage.setItem(key,JSON.stringify(all)); document.body.removeChild(overlay); refreshAll();}; document.getElementById('noteClose').onclick=()=>document.body.removeChild(overlay); const del=document.getElementById('noteDelete'); if(del)del.onclick=()=>{const key=getKey(type,new Date(record.timestamp)); const all=JSON.parse(localStorage.getItem(key)||'[]'); for(let i=all.length-1;i>=0;i--){if(all[i].timestamp===record.timestamp){delete all[i].note; break;}} localStorage.setItem(key,JSON.stringify(all)); document.body.removeChild(overlay); refreshAll();}; overlay.addEventListener('click',e=>{if(e.target===overlay)document.body.removeChild(overlay);}); setTimeout(()=>document.getElementById(textareaId).focus(),100);}
+        function renderDiaperHistory(){const recs=getRecords('diaper').sort((a,b)=>b.timestamp-a.timestamp); const list=document.getElementById('diaperHistory'); if(!recs.length){list.innerHTML='<div class="empty-state">Нет записей</div>'; return;} const labels={wet:'💦 Мокрый',dirty:'💩 Грязный',both:'💦💩 Всё вместе',dry:'✅ Сменили'}; const dots={wet:'wet',dirty:'dirty',both:'both',dry:'sleep'}; list.innerHTML=recs.map((r,i)=>{const t=new Date(r.timestamp).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}); const ni=(r.note||r.photo)?'<span class="history-note-icon">'+(r.photo?'🖼 ':'')+(r.note?'📝':'')+'</span>':''; return `<div class="history-item" onclick="showNote('diaper',${i})"><span>${t}${ni}</span><span class="history-side"><span class="side-dot ${dots[r.type]}"></span>${labels[r.type]}</span></div>`;}).join('');}
 
         // === СТАТИСТИКА ===
         function getWeekData(type){const days=[]; for(let i=6;i>=0;i--){const d=new Date(); d.setDate(d.getDate()-i); days.push(getRecords(type,d));} return days;}
