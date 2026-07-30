@@ -268,12 +268,13 @@
         const FEEDBACK_CHAT_ID = '1581192883';
 
         function toggleFeedbackPanel() {
-            document.getElementById('feedbackPanel').classList.toggle('hidden');
+            const panel = document.getElementById('feedbackPanel');
+            panel.classList.toggle('hidden');
             document.getElementById('soundPanel').classList.add('hidden');
             document.getElementById('themePanel').classList.add('hidden');
         }
 
-        async function sendFeedback() {
+        function sendFeedback() {
             const text = document.getElementById('feedbackText').value.trim();
             if (!text) {
                 if (tg?.showPopup) tg.showPopup({ title: '⚠️ Пусто', message: 'Напишите сообщение', buttons: [{type: 'ok'}] });
@@ -283,25 +284,25 @@
 
             const msg = `💬 *Новое сообщение из Мама Трекера*\n\n${text}\n\n_Отправлено: ${new Date().toLocaleString('ru-RU')}_`;
 
-            try {
-                const response = await fetch(`https://api.telegram.org/bot${FEEDBACK_BOT_TOKEN}/sendMessage`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ chat_id: FEEDBACK_CHAT_ID, text: msg, parse_mode: 'Markdown' })
-                });
-
+            fetch(`https://api.telegram.org/bot${FEEDBACK_BOT_TOKEN}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chat_id: FEEDBACK_CHAT_ID, text: msg, parse_mode: 'Markdown' })
+            })
+            .then(response => {
                 if (response.ok) {
                     document.getElementById('feedbackText').value = '';
                     document.getElementById('feedbackPanel').classList.add('hidden');
                     if (tg?.showPopup) tg.showPopup({ title: '✅ Спасибо!', message: 'Ваше сообщение отправлено! Мы обязательно его прочитаем.', buttons: [{type: 'ok'}] });
                     else alert('Спасибо! Сообщение отправлено!');
                 } else {
-                    throw new Error('Ошибка отправки');
+                    throw new Error('Ошибка');
                 }
-            } catch (e) {
+            })
+            .catch(() => {
                 if (tg?.showPopup) tg.showPopup({ title: '❌ Ошибка', message: 'Не удалось отправить. Попробуйте позже.', buttons: [{type: 'ok'}] });
                 else alert('Не удалось отправить сообщение');
-            }
+            });
         }
 
         // === КОНФЕТТИ ===
