@@ -147,6 +147,15 @@
         .month-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
         .month-nav button { background: var(--stat-bg); border: none; color: var(--text); width: 36px; height: 36px; border-radius: 10px; font-size: 18px; cursor: pointer; }
         .month-nav span { font-size: 16px; font-weight: 700; }
+
+        /* Итоги дня */
+        .summary-row { display: flex; align-items: center; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--border); }
+        .summary-row:last-child { border-bottom: none; }
+        .summary-emoji { font-size: 28px; width: 40px; text-align: center; }
+        .summary-info { flex: 1; }
+        .summary-info .title { font-size: 15px; font-weight: 600; }
+        .summary-info .detail { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+        .summary-value { font-size: 22px; font-weight: 700; color: var(--accent); text-align: right; }
     </style>
 </head>
 <body class="color-pink">
@@ -155,6 +164,7 @@
         <div class="header-top">
             <div class="header-center"><h1>🤱 Мама Трекер <span id="proBadge" class="pro-badge" style="display:none;">PRO</span></h1><div class="date" id="todayDate"></div></div>
             <div class="header-btns">
+                <button class="icon-btn" onclick="showDaySummary()" title="Итоги дня">📋</button>
                 <button class="icon-btn" onclick="toggleFeedbackPanel()" title="Обратная связь">💬</button>
                 <button class="icon-btn" onclick="toggleSoundPanel()" id="soundToggle" title="Белый шум">🎵</button>
                 <button class="icon-btn" onclick="toggleThemePanel()" id="themeToggle" title="Оформление">🎨</button>
@@ -255,12 +265,94 @@
         const today = new Date();
         document.getElementById('todayDate').textContent = today.toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' });
 
+        // === ИТОГИ ДНЯ ===
+        function showDaySummary() {
+            const feedData = getRecords('feed');
+            const sleepData = getRecords('sleep');
+            const diaperData = getRecords('diaper');
+            const growthData = getGrowthRecords();
+            
+            const totalFeedMin = Math.floor(feedData.reduce((s,r) => s + r.duration, 0) / 60);
+            const totalSleepMin = Math.floor(sleepData.reduce((s,r) => s + r.duration, 0) / 60);
+            const dirtyCount = diaperData.filter(r => r.type === 'dirty' || r.type === 'both').length;
+            const lastGrowth = growthData.length > 0 ? growthData[growthData.length - 1] : null;
+            
+            const babyName = (babies.find(b => b.id === currentBabyId) || {name:'Малыш'}).name;
+            
+            let growthText = '';
+            if (lastGrowth) {
+                const parts = [];
+                if (lastGrowth.weight) parts.push('⚖️ ' + lastGrowth.weight + ' кг');
+                if (lastGrowth.height) parts.push('📏 ' + lastGrowth.height + ' см');
+                growthText = parts.join(' · ');
+            }
+            
+            const overlay = document.createElement('div');
+            overlay.className = 'note-overlay';
+            overlay.id = 'summaryOverlay';
+            
+            const dialog = document.createElement('div');
+            dialog.className = 'note-dialog';
+            
+            const feedTimeStr = totalFeedMin < 60 ? totalFeedMin + ' мин' : Math.floor(totalFeedMin/60) + ' ч ' + (totalFeedMin%60) + ' мин';
+            const sleepTimeStr = totalSleepMin < 60 ? totalSleepMin + ' мин' : Math.floor(totalSleepMin/60) + ' ч ' + (totalSleepMin%60) + ' мин';
+            
+            dialog.innerHTML = `
+                <h3>📝 Итоги дня</h3>
+                <p style="color:var(--text-secondary); font-size:13px; margin-bottom:16px;">${babyName} · ${today.toLocaleDateString('ru-RU', {day:'numeric', month:'long'})}</p>
+                
+                <div class="summary-row">
+                    <div class="summary-emoji">🍼</div>
+                    <div class="summary-info"><div class="title">Кормления</div><div class="detail">${feedData.length} раз</div></div>
+                    <div class="summary-value">${feedTimeStr}</div>
+                </div>
+                <div class="summary-row">
+                    <div class="summary-emoji">😴</div>
+                    <div class="summary-info"><div class="title">Сон</div><div class="detail">${sleepData.length} снов</div></div>
+                    <div class="summary-value">${sleepTimeStr}</div>
+                </div>
+                <div class="summary-row">
+                    <div class="summary-emoji">💧</div>
+                    <div class="summary-info"><div class="title">Подгузники</div><div class="detail">${diaperData.length} смен, ${dirtyCount} грязных</div></div>
+                    <div class="summary-value">${diaperData.length}</div>
+                </div>
+                ${growthText ? `
+                <div class="summary-row">
+                    <div class="summary-emoji">📏</div>
+                    <div class="summary-info"><div class="title">Рост/вес</div><div class="detail">Последнее измерение</div></div>
+                    <div class="summary-value" style="font-size:14px;">${growthText}</div>
+                </div>` : ''}
+                
+                <div style="margin-top:16px; text-align:center; font-size:14px; color:var(--accent); font-weight:600;">
+                    ${feedData.length > 0 || sleepData.length > 0 ? '🌟 Вы молодец, мама! 🌟' : 'Начните вести учёт уже сегодня!'}
+                </div>
+                
+                <div class="note-dialog-buttons" style="margin-top:16px;">
+                    <button class="note-skip-btn" id="summaryClose">Закрыть</button>
+                    <button class="note-save-btn" id="summaryShare">📤 Поделиться</button>
+                </div>
+            `;
+            
+            overlay.appendChild(dialog);
+            document.body.appendChild(overlay);
+            
+            document.getElementById('summaryClose').onclick = () => document.body.removeChild(overlay);
+            document.getElementById('summaryShare').onclick = () => {
+                const text = `📝 Итоги дня — ${babyName}\n${today.toLocaleDateString('ru-RU', {day:'numeric', month:'long'})}\n\n🍼 Кормлений: ${feedData.length} (${feedTimeStr})\n😴 Сна: ${sleepData.length} (${sleepTimeStr})\n💧 Подгузников: ${diaperData.length}\n${growthText ? '📏 ' + growthText + '\n' : ''}\nСоздано в Мама Трекер`;
+                navigator.clipboard.writeText(text).then(() => {
+                    if (tg?.showPopup) tg.showPopup({ title: '✅ Скопировано!', message: 'Итоги дня скопированы в буфер обмена. Отправьте мужу или бабушке!', buttons: [{type:'ok'}] });
+                    else alert('Итоги скопированы!');
+                });
+            };
+            
+            overlay.addEventListener('click', e => { if (e.target === overlay) document.body.removeChild(overlay); });
+        }
+
         // === ОБРАТНАЯ СВЯЗЬ ===
         function toggleFeedbackPanel() {
             const overlay = document.createElement('div');
             overlay.className = 'note-overlay';
             overlay.id = 'feedbackOverlay';
-            
             const dialog = document.createElement('div');
             dialog.className = 'note-dialog';
             dialog.innerHTML = `
@@ -271,66 +363,35 @@
                     <button class="note-skip-btn" id="feedbackClose">Закрыть</button>
                     <button class="note-save-btn" id="feedbackSend">📨 Отправить</button>
                 </div>
-                <p style="font-size:11px; color:var(--text-secondary); margin-top:8px; text-align:center;">Мы читаем все сообщения ❤️</p>
             `;
-            
             overlay.appendChild(dialog);
             document.body.appendChild(overlay);
-            
             document.getElementById('feedbackSend').onclick = async function() {
                 const text = document.getElementById('feedbackMsg').value.trim();
-                if (!text) {
-                    alert('Напишите сообщение');
-                    return;
-                }
-                
+                if (!text) { alert('Напишите сообщение'); return; }
                 const btn = document.getElementById('feedbackSend');
-                btn.textContent = '⏳ Отправка...';
-                btn.disabled = true;
-                
+                btn.textContent = '⏳ Отправка...'; btn.disabled = true;
                 try {
                     const response = await fetch('https://formspree.io/f/xojgbrjj', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            message: text,
-                            date: new Date().toLocaleString('ru-RU'),
-                            app: 'Мама Трекер'
-                        })
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ message: text, date: new Date().toLocaleString('ru-RU'), app: 'Мама Трекер' })
                     });
-                    
                     if (response.ok) {
                         document.body.removeChild(overlay);
-                        if (tg?.showPopup) tg.showPopup({ title: '✅ Спасибо!', message: 'Ваше сообщение отправлено!', buttons: [{type: 'ok'}] });
+                        if (tg?.showPopup) tg.showPopup({ title: '✅ Спасибо!', message: 'Ваше сообщение отправлено!', buttons: [{type:'ok'}] });
                         else alert('Спасибо! Сообщение отправлено!');
-                    } else {
-                        btn.textContent = '📨 Отправить';
-                        btn.disabled = false;
-                        alert('Ошибка отправки. Попробуйте позже.');
-                    }
-                } catch (e) {
-                    btn.textContent = '📨 Отправить';
-                    btn.disabled = false;
-                    alert('Ошибка отправки. Проверьте интернет.');
-                }
+                    } else { btn.textContent = '📨 Отправить'; btn.disabled = false; alert('Ошибка отправки.'); }
+                } catch (e) { btn.textContent = '📨 Отправить'; btn.disabled = false; alert('Ошибка отправки.'); }
             };
-            
-            document.getElementById('feedbackClose').onclick = function() {
-                document.body.removeChild(overlay);
-            };
-            
-            overlay.addEventListener('click', function(e) {
-                if (e.target === overlay) document.body.removeChild(overlay);
-            });
-            
+            document.getElementById('feedbackClose').onclick = () => document.body.removeChild(overlay);
+            overlay.addEventListener('click', e => { if (e.target === overlay) document.body.removeChild(overlay); });
             setTimeout(() => document.getElementById('feedbackMsg').focus(), 100);
         }
 
         // === КОНФЕТТИ ===
         function spawnConfetti(x, y) {
             const emojis = ['🎉', '✨', '🌟', '💖', '🎊', '🥳', '💫', '🌸', '💗', '🎀', '💝', '🌺', '🎈', '💐', '🎵'];
-            const count = 40;
-            for (let i = 0; i < count; i++) {
+            for (let i = 0; i < 40; i++) {
                 const piece = document.createElement('div');
                 piece.textContent = emojis[Math.floor(Math.random() * emojis.length)];
                 piece.style.cssText = `position:fixed; left:${x}px; top:${y}px; z-index:10000; pointer-events:none; font-size:${18+Math.random()*28}px; transition:none; opacity:0; transform:translate(0,0) rotate(0deg) scale(0);`;
