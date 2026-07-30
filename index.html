@@ -117,8 +117,8 @@
         .note-dialog-buttons button { flex: 1; height: 44px; border-radius: 12px; border: none; font-size: 15px; font-weight: 600; cursor: pointer; }
         .note-save-btn { background: var(--accent); color: #fff; }
         .note-skip-btn { background: var(--btn-ghost); color: var(--text-secondary); }
-        .sound-panel, .theme-panel, .baby-panel, .feedback-panel { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 500px; background: var(--surface); border-radius: 24px 24px 0 0; padding: 24px; z-index: 1000; box-shadow: 0 -4px 30px rgba(0,0,0,0.3); transition: transform 0.3s ease; }
-        .sound-panel.hidden, .theme-panel.hidden, .baby-panel.hidden, .feedback-panel.hidden { transform: translateX(-50%) translateY(100%); }
+        .sound-panel, .theme-panel, .baby-panel { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 500px; background: var(--surface); border-radius: 24px 24px 0 0; padding: 24px; z-index: 1000; box-shadow: 0 -4px 30px rgba(0,0,0,0.3); transition: transform 0.3s ease; }
+        .sound-panel.hidden, .theme-panel.hidden, .baby-panel.hidden { transform: translateX(-50%) translateY(100%); }
         .sound-grid, .color-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 16px; }
         .sound-btn, .color-btn { height: 60px; border-radius: 14px; border: 2px solid transparent; font-size: 11px; font-weight: 600; cursor: pointer; background: var(--stat-bg); color: var(--text-secondary); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; transition: all 0.2s; }
         .sound-btn .sound-emoji { font-size: 20px; }
@@ -213,14 +213,6 @@
         </div>
     </div>
 
-    <div class="feedback-panel hidden" id="feedbackPanel">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;"><h3 style="font-size:18px;">💬 Обратная связь</h3><button class="icon-btn" onclick="document.getElementById('feedbackPanel').classList.add('hidden')" style="width:32px;height:32px;font-size:16px;">✕</button></div>
-        <p style="font-size:13px; color:var(--text-secondary); margin-bottom:12px;">Напишите ваше сообщение, идею или пожелание:</p>
-        <textarea id="feedbackText" placeholder="Ваше сообщение..." style="height:100px; margin-bottom:12px;"></textarea>
-        <button class="action-btn start" style="margin:0;" onclick="sendFeedback()">📨 Отправить</button>
-        <p style="font-size:11px; color:var(--text-secondary); margin-top:8px; text-align:center;">Мы читаем все сообщения и учитываем ваши пожелания ❤️</p>
-    </div>
-
     <div class="sound-panel hidden" id="soundPanel">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;"><h3 style="font-size:18px;">🎵 Белый шум</h3><button class="icon-btn" onclick="stopSound()" style="width:32px;height:32px;font-size:16px;">✕</button></div>
         <div class="sound-grid" style="grid-template-columns: repeat(3, 1fr);">
@@ -264,45 +256,74 @@
         document.getElementById('todayDate').textContent = today.toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' });
 
         // === ОБРАТНАЯ СВЯЗЬ ===
-        const FEEDBACK_BOT_TOKEN = '8625753833:AAHQK00XKdLkqvPPxMYXvYmFPkemmloXb8w';
-        const FEEDBACK_CHAT_ID = '1581192883';
-
         function toggleFeedbackPanel() {
-            const panel = document.getElementById('feedbackPanel');
-            panel.classList.toggle('hidden');
-            document.getElementById('soundPanel').classList.add('hidden');
-            document.getElementById('themePanel').classList.add('hidden');
-        }
-
-        function sendFeedback() {
-            const text = document.getElementById('feedbackText').value.trim();
-            if (!text) {
-                if (tg?.showPopup) tg.showPopup({ title: '⚠️ Пусто', message: 'Напишите сообщение', buttons: [{type: 'ok'}] });
-                else alert('Напишите сообщение');
-                return;
-            }
-
-            const msg = `💬 *Новое сообщение из Мама Трекера*\n\n${text}\n\n_Отправлено: ${new Date().toLocaleString('ru-RU')}_`;
-
-            fetch(`https://api.telegram.org/bot${FEEDBACK_BOT_TOKEN}/sendMessage`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ chat_id: FEEDBACK_CHAT_ID, text: msg, parse_mode: 'Markdown' })
-            })
-            .then(response => {
-                if (response.ok) {
-                    document.getElementById('feedbackText').value = '';
-                    document.getElementById('feedbackPanel').classList.add('hidden');
-                    if (tg?.showPopup) tg.showPopup({ title: '✅ Спасибо!', message: 'Ваше сообщение отправлено! Мы обязательно его прочитаем.', buttons: [{type: 'ok'}] });
-                    else alert('Спасибо! Сообщение отправлено!');
-                } else {
-                    throw new Error('Ошибка');
+            const overlay = document.createElement('div');
+            overlay.className = 'note-overlay';
+            overlay.id = 'feedbackOverlay';
+            
+            const dialog = document.createElement('div');
+            dialog.className = 'note-dialog';
+            dialog.innerHTML = `
+                <h3>💬 Обратная связь</h3>
+                <p style="color:var(--text-secondary); font-size:13px; margin-bottom:12px;">Напишите ваше сообщение, идею или пожелание:</p>
+                <textarea id="feedbackMsg" placeholder="Ваше сообщение..." style="height:100px; margin-bottom:12px;"></textarea>
+                <div class="note-dialog-buttons">
+                    <button class="note-skip-btn" id="feedbackClose">Закрыть</button>
+                    <button class="note-save-btn" id="feedbackSend">📨 Отправить</button>
+                </div>
+                <p style="font-size:11px; color:var(--text-secondary); margin-top:8px; text-align:center;">Мы читаем все сообщения ❤️</p>
+            `;
+            
+            overlay.appendChild(dialog);
+            document.body.appendChild(overlay);
+            
+            document.getElementById('feedbackSend').onclick = async function() {
+                const text = document.getElementById('feedbackMsg').value.trim();
+                if (!text) {
+                    alert('Напишите сообщение');
+                    return;
                 }
-            })
-            .catch(() => {
-                if (tg?.showPopup) tg.showPopup({ title: '❌ Ошибка', message: 'Не удалось отправить. Попробуйте позже.', buttons: [{type: 'ok'}] });
-                else alert('Не удалось отправить сообщение');
+                
+                const btn = document.getElementById('feedbackSend');
+                btn.textContent = '⏳ Отправка...';
+                btn.disabled = true;
+                
+                try {
+                    const response = await fetch('https://formspree.io/f/xojgbrjj', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            message: text,
+                            date: new Date().toLocaleString('ru-RU'),
+                            app: 'Мама Трекер'
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        document.body.removeChild(overlay);
+                        if (tg?.showPopup) tg.showPopup({ title: '✅ Спасибо!', message: 'Ваше сообщение отправлено!', buttons: [{type: 'ok'}] });
+                        else alert('Спасибо! Сообщение отправлено!');
+                    } else {
+                        btn.textContent = '📨 Отправить';
+                        btn.disabled = false;
+                        alert('Ошибка отправки. Попробуйте позже.');
+                    }
+                } catch (e) {
+                    btn.textContent = '📨 Отправить';
+                    btn.disabled = false;
+                    alert('Ошибка отправки. Проверьте интернет.');
+                }
+            };
+            
+            document.getElementById('feedbackClose').onclick = function() {
+                document.body.removeChild(overlay);
+            };
+            
+            overlay.addEventListener('click', function(e) {
+                if (e.target === overlay) document.body.removeChild(overlay);
             });
+            
+            setTimeout(() => document.getElementById('feedbackMsg').focus(), 100);
         }
 
         // === КОНФЕТТИ ===
@@ -345,7 +366,7 @@
         function applyTheme(theme) { if (theme === 'light') { document.body.classList.add('light-theme'); document.getElementById('btnLight')?.classList.add('active'); document.getElementById('btnDark')?.classList.remove('active'); } else { document.body.classList.remove('light-theme'); document.getElementById('btnDark')?.classList.add('active'); document.getElementById('btnLight')?.classList.remove('active'); } }
         function setThemeMode(mode) { localStorage.setItem(THEME_KEY, mode); applyTheme(mode); }
         function setColorScheme(scheme) { colorClasses.forEach(c => document.body.classList.remove(c)); document.body.classList.add('color-' + scheme); localStorage.setItem(COLOR_KEY, scheme); document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active')); document.querySelector(`[data-color="${scheme}"]`)?.classList.add('active'); }
-        function toggleThemePanel() { document.getElementById('themePanel').classList.toggle('hidden'); document.getElementById('soundPanel').classList.add('hidden'); document.getElementById('feedbackPanel').classList.add('hidden'); }
+        function toggleThemePanel() { document.getElementById('themePanel').classList.toggle('hidden'); document.getElementById('soundPanel').classList.add('hidden'); }
         const savedColor = localStorage.getItem(COLOR_KEY) || 'pink';
         colorClasses.forEach(c => document.body.classList.remove(c)); document.body.classList.add('color-' + savedColor);
         applyTheme(localStorage.getItem(THEME_KEY) || 'dark');
@@ -361,7 +382,7 @@
         function playSound(type) { initAudio(); stopAllNodes(); if (soundTimer) clearTimeout(soundTimer); currentSound = type; const masterGain = createGain(); if (type === 'whitenoise') { const buf = audioCtx.createBuffer(1, 4*audioCtx.sampleRate, audioCtx.sampleRate); const d = buf.getChannelData(0); let last = 0; for (let i=0;i<d.length;i++) { const w = Math.random()*2-1; last = last*0.7 + w*0.3; d[i] = last*0.6; } const s = audioCtx.createBufferSource(); s.buffer = buf; s.loop = true; const f = audioCtx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=3000; s.connect(f); f.connect(masterGain); s.start(); soundNodes.push(s,f); } else if (type==='fan') { const o1=audioCtx.createOscillator(); o1.type='sine'; o1.frequency.value=85; const o2=audioCtx.createOscillator(); o2.type='sine'; o2.frequency.value=87; const fg=audioCtx.createGain(); fg.gain.value=0.4; o1.connect(fg); o2.connect(fg); const ff=audioCtx.createBiquadFilter(); ff.type='lowpass'; ff.frequency.value=200; fg.connect(ff); ff.connect(masterGain); o1.start(); o2.start(); soundNodes.push(o1,o2,fg,ff); } else if (type==='rain') { const buf=audioCtx.createBuffer(1,3*audioCtx.sampleRate,audioCtx.sampleRate); const d=buf.getChannelData(0); for (let i=0;i<d.length;i++) { const t=i/audioCtx.sampleRate; d[i]=(Math.random()*2-1)*(0.3+0.7*Math.abs(Math.sin(t*0.7)))*0.5; } const s=audioCtx.createBufferSource(); s.buffer=buf; s.loop=true; const ff=audioCtx.createBiquadFilter(); ff.type='highpass'; ff.frequency.value=800; s.connect(ff); ff.connect(masterGain); s.start(); soundNodes.push(s,ff); } else if (type==='heartbeat') { const o=audioCtx.createOscillator(); o.type='sine'; o.frequency.value=45; const bg=audioCtx.createGain(); bg.gain.value=0; o.connect(bg); bg.connect(masterGain); o.start(); soundNodes.push(o,bg); let bt=0; const iv=setInterval(()=>{ bt+=0.1; const cy=bt%1.2; if(cy<0.12){bg.gain.setTargetAtTime(1.2,audioCtx.currentTime,0.02); bg.gain.setTargetAtTime(0.1,audioCtx.currentTime+0.1,0.05);} else if(cy>0.3&&cy<0.42){bg.gain.setTargetAtTime(0.9,audioCtx.currentTime,0.02); bg.gain.setTargetAtTime(0.1,audioCtx.currentTime+0.08,0.04);} },100); soundNodes._beatInterval=iv; } else if (type==='lullaby') { const notes=[262,294,330,349,392,349,330,294,262,330,392,440,392,330,294,262]; const o=audioCtx.createOscillator(); o.type='sine'; o.frequency.value=notes[0]; const lg=audioCtx.createGain(); lg.gain.value=0.5; o.connect(lg); lg.connect(masterGain); o.start(); soundNodes.push(o,lg); let ni=0; const mv=setInterval(()=>{ ni=(ni+1)%notes.length; o.frequency.setTargetAtTime(notes[ni],audioCtx.currentTime,0.1); },900); soundNodes._melody=mv; } else if (type==='nature') { const buf=audioCtx.createBuffer(1,5*audioCtx.sampleRate,audioCtx.sampleRate); const d=buf.getChannelData(0); for (let i=0;i<d.length;i++) { const t=i/audioCtx.sampleRate; d[i]=Math.sin(t*6.28*150+Math.sin(t*0.4)*60)*0.15 + (Math.sin(t*6.28*1200+Math.sin(t*2)*200)*0.08)*(Math.sin(t*1.5)>0.7?1:0) + (Math.random()*2-1)*0.1*(0.4+0.6*Math.sin(t*0.5)); } const s=audioCtx.createBufferSource(); s.buffer=buf; s.loop=true; s.connect(masterGain); s.start(); soundNodes.push(s); } document.querySelectorAll('.sound-btn').forEach(b=>b.classList.remove('active')); const btn=document.querySelector(`[data-sound="${type}"]`); if(btn) btn.classList.add('active'); document.getElementById('soundToggle').classList.add('active'); }
         function setVolume(val) { currentVolume=val/100; document.getElementById('volumeLabel').textContent=val+'%'; soundNodes.forEach(n=>{ if(n.gain&&n.gain.value!==undefined) n.gain.value=currentVolume; }); }
         function setTimer(minutes) { if(soundTimer) clearTimeout(soundTimer); document.querySelectorAll('.timer-row button').forEach(b=>b.classList.remove('active')); document.querySelector(`[data-timer="${minutes}"]`).classList.add('active'); if(minutes>0) soundTimer=setTimeout(()=>{stopSound();}, minutes*60*1000); }
-        function toggleSoundPanel() { document.getElementById('soundPanel').classList.toggle('hidden'); document.getElementById('themePanel').classList.add('hidden'); document.getElementById('feedbackPanel').classList.add('hidden'); }
+        function toggleSoundPanel() { document.getElementById('soundPanel').classList.toggle('hidden'); document.getElementById('themePanel').classList.add('hidden'); }
 
         // === ЗАМЕТКИ ===
         let pendingSave = null;
