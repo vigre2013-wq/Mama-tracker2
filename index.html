@@ -44,7 +44,8 @@
         .tabs { display: flex; gap: 4px; margin: 16px 0; flex-wrap: wrap; }
         .tab-btn { flex: 1; min-width: 40px; height: 44px; border-radius: 12px; border: none; font-size: 15px; cursor: pointer; background: var(--tab-bg); color: var(--text-secondary); display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
         .tab-btn.active { background: var(--accent); color: #fff; }
-        .tab-content { display: none; } .tab-content.active { display: block; }
+        .tab-content { display: none; opacity: 0; transform: translateY(8px); transition: opacity 0.25s ease, transform 0.25s ease; }
+        .tab-content.active { display: block; opacity: 1; transform: translateY(0); }
         .card { background: var(--surface); border-radius: 24px; padding: 24px; margin: 16px 0; }
         .card-title { font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px; }
         .timer-display { text-align: center; font-size: 64px; font-weight: 300; font-family: 'SF Mono', 'Menlo', monospace; margin: 16px 0 24px; letter-spacing: 2px; }
@@ -400,9 +401,25 @@
         function closeWelcome(){document.getElementById('welcomeScreen').style.display='none'; document.getElementById('mainApp').style.display='block'; localStorage.setItem('mama-welcome-shown','true');}
         if(localStorage.getItem('mama-welcome-shown')){document.getElementById('welcomeScreen').style.display='none'; document.getElementById('mainApp').style.display='block';}
 
-        // === НАВИГАЦИЯ ===
+        // === НАВИГАЦИЯ (с анимацией) ===
         let mainTab='feeding', statsSubTab='feed';
-        function switchMainTab(tab){mainTab=tab; const tabs=['feeding','sleep','diaper','stats','growth','calendar','pro']; document.querySelectorAll('#mainApp .tab-btn').forEach((b,i)=>b.classList.toggle('active',tabs[i]===tab)); document.querySelectorAll('#mainApp .tab-content').forEach(c=>c.classList.remove('active')); document.getElementById('tab-'+tab).classList.add('active'); if(tab==='stats')buildAllCharts(); if(tab==='growth')updateGrowthUI(); if(tab==='calendar')updateCalendar(); if(tab==='pro')updateProUI();}
+        function switchMainTab(tab){
+            mainTab=tab;
+            const tabs=['feeding','sleep','diaper','stats','growth','calendar','pro'];
+            document.querySelectorAll('#mainApp .tab-btn').forEach((b,i)=>b.classList.toggle('active',tabs[i]===tab));
+            document.querySelectorAll('#mainApp .tab-content').forEach(c=>{c.classList.remove('active'); c.style.display='none';});
+            const target=document.getElementById('tab-'+tab);
+            target.style.display='block';
+            requestAnimationFrame(()=>{
+                requestAnimationFrame(()=>{
+                    target.classList.add('active');
+                });
+            });
+            if(tab==='stats')buildAllCharts();
+            if(tab==='growth')updateGrowthUI();
+            if(tab==='calendar')updateCalendar();
+            if(tab==='pro')updateProUI();
+        }
         function switchStatsTab(tab){statsSubTab=tab; document.querySelectorAll('.sub-tab').forEach((b,i)=>b.classList.toggle('active',['feed','sleep','diaper'][i]===tab)); document.getElementById('statsFeed').style.display=tab==='feed'?'block':'none'; document.getElementById('statsSleep').style.display=tab==='sleep'?'block':'none'; document.getElementById('statsDiaper').style.display=tab==='diaper'?'block':'none';}
 
         // === ХРАНИЛИЩЕ ===
@@ -509,49 +526,26 @@
             setTimeout(()=>{drawGrowthChart('weightChart',records,'weight','var(--accent)',' кг'); drawGrowthChart('heightChart',records,'height','var(--sleep)',' см');},100);
         }
         function editGrowth(index){const records=getGrowthRecords(); const r=records[index]; if(!r)return; document.getElementById('growthDate').value=r.date; document.getElementById('growthWeight').value=r.weight||''; document.getElementById('growthHeight').value=r.height||''; records.splice(index,1); localStorage.setItem('mama'+getBabyPrefix()+'-growth',JSON.stringify(records)); updateGrowthComparison();}
-
         function updateGrowthComparison() {
             const records = getGrowthRecords();
             const currentDate = document.getElementById('growthDate').value;
-            if (!currentDate || records.length === 0) {
-                document.getElementById('growthComparison').innerHTML = '';
-                return;
-            }
+            if (!currentDate || records.length === 0) { document.getElementById('growthComparison').innerHTML = ''; return; }
             const prevRecords = records.filter(r => r.date < currentDate).sort((a,b) => b.date.localeCompare(a.date));
-            if (prevRecords.length === 0) {
-                document.getElementById('growthComparison').innerHTML = '<span style="font-size:12px; color:var(--text-secondary);">Это первое измерение</span>';
-                return;
-            }
+            if (prevRecords.length === 0) { document.getElementById('growthComparison').innerHTML = '<span style="font-size:12px; color:var(--text-secondary);">Это первое измерение</span>'; return; }
             const prev = prevRecords[0];
-            const prevDate = new Date(prev.date);
-            const currDate = new Date(currentDate);
+            const prevDate = new Date(prev.date); const currDate = new Date(currentDate);
             const daysDiff = Math.floor((currDate - prevDate) / (1000 * 60 * 60 * 24));
             let parts = [];
             if (prev.weight != null) {
-                const currentWeight = parseFloat(document.getElementById('growthWeight').value);
-                if (currentWeight) {
-                    const diff = currentWeight - prev.weight;
-                    const sign = diff >= 0 ? '+' : '';
-                    const diffStr = sign + diff.toFixed(1) + ' кг';
-                    const daysStr = daysDiff === 0 ? 'сегодня' : daysDiff === 1 ? 'вчера' : daysDiff + ' дн. назад';
-                    parts.push('⚖️ Вес: ' + diffStr + ' (было ' + prev.weight + ' кг, ' + daysStr + ')');
-                }
+                const cw = parseFloat(document.getElementById('growthWeight').value);
+                if (cw) { const diff = cw - prev.weight; const sign = diff >= 0 ? '+' : ''; const daysStr = daysDiff === 0 ? 'сегодня' : daysDiff === 1 ? 'вчера' : daysDiff + ' дн. назад'; parts.push('⚖️ Вес: ' + sign + diff.toFixed(1) + ' кг (было ' + prev.weight + ' кг, ' + daysStr + ')'); }
             }
             if (prev.height != null) {
-                const currentHeight = parseFloat(document.getElementById('growthHeight').value);
-                if (currentHeight) {
-                    const diff = currentHeight - prev.height;
-                    const sign = diff >= 0 ? '+' : '';
-                    const diffStr = sign + diff.toFixed(1) + ' см';
-                    const daysStr = daysDiff === 0 ? 'сегодня' : daysDiff === 1 ? 'вчера' : daysDiff + ' дн. назад';
-                    parts.push('📏 Рост: ' + diffStr + ' (было ' + prev.height + ' см, ' + daysStr + ')');
-                }
+                const ch = parseFloat(document.getElementById('growthHeight').value);
+                if (ch) { const diff = ch - prev.height; const sign = diff >= 0 ? '+' : ''; const daysStr = daysDiff === 0 ? 'сегодня' : daysDiff === 1 ? 'вчера' : daysDiff + ' дн. назад'; parts.push('📏 Рост: ' + sign + diff.toFixed(1) + ' см (было ' + prev.height + ' см, ' + daysStr + ')'); }
             }
-            if (parts.length > 0) {
-                document.getElementById('growthComparison').innerHTML = '<span style="font-size:12px; color:var(--accent);">С прошлого измерения:</span><br>' + parts.join('<br>');
-            } else {
-                document.getElementById('growthComparison').innerHTML = '<span style="font-size:12px; color:var(--text-secondary);">Введите вес или рост для сравнения</span>';
-            }
+            if (parts.length > 0) { document.getElementById('growthComparison').innerHTML = '<span style="font-size:12px; color:var(--accent);">С прошлого измерения:</span><br>' + parts.join('<br>'); }
+            else { document.getElementById('growthComparison').innerHTML = '<span style="font-size:12px; color:var(--text-secondary);">Введите вес или рост для сравнения</span>'; }
         }
 
         // === НАПОМИНАНИЯ ===
