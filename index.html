@@ -160,16 +160,6 @@
         .month-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
         .month-nav button { background: var(--stat-bg); border: none; color: var(--text); width: 36px; height: 36px; border-radius: 10px; font-size: 18px; cursor: pointer; }
         .month-nav span { font-size: 16px; font-weight: 700; }
-
-        /* Конфетти */
-        .confetti-piece {
-            position: fixed; z-index: 10000; pointer-events: none;
-            animation: confettiFall 1.2s ease-out forwards;
-        }
-        @keyframes confettiFall {
-            0% { transform: translateY(0) rotate(0deg) scale(1); opacity: 1; }
-            100% { transform: translateY(110vh) rotate(720deg) scale(0.3); opacity: 0; }
-        }
     </style>
 </head>
 <body class="color-pink">
@@ -284,24 +274,38 @@
         document.getElementById('todayDate').textContent = today.toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' });
 
         // === КОНФЕТТИ ===
-        function spawnConfetti(x, y, color) {
-            const emojis = ['🎉', '✨', '🌟', '💖', '🎊', '🥳', '💫', '🌸', '💗', '🎀'];
-            const count = 25;
+        function spawnConfetti(x, y) {
+            const emojis = ['🎉', '✨', '🌟', '💖', '🎊', '🥳', '💫', '🌸', '💗', '🎀', '💝', '🌺', '🎈', '💐', '🎵'];
+            const count = 40;
             for (let i = 0; i < count; i++) {
                 const piece = document.createElement('div');
-                piece.className = 'confetti-piece';
                 piece.textContent = emojis[Math.floor(Math.random() * emojis.length)];
-                piece.style.left = x + 'px';
-                piece.style.top = y + 'px';
-                piece.style.fontSize = (16 + Math.random() * 24) + 'px';
-                piece.style.animationDuration = (0.8 + Math.random() * 1.4) + 's';
-                piece.style.animationDelay = Math.random() * 0.3 + 's';
-                const spreadX = (Math.random() - 0.5) * 300;
-                piece.style.setProperty('--spread', spreadX + 'px');
-                piece.style.animation = `confettiFall ${0.8 + Math.random() * 1.4}s ease-out ${Math.random() * 0.3}s forwards`;
-                piece.style.transform = `translateX(${spreadX}px)`;
+                piece.style.cssText = `
+                    position: fixed; left: ${x}px; top: ${y}px; z-index: 10000; pointer-events: none;
+                    font-size: ${18 + Math.random() * 28}px; transition: none; opacity: 0;
+                    transform: translate(0, 0) rotate(0deg) scale(0);
+                `;
                 document.body.appendChild(piece);
-                setTimeout(() => piece.remove(), 2000);
+                
+                const duration = 1.5 + Math.random() * 1.5;
+                const delay = Math.random() * 0.5;
+                const spreadX = (Math.random() - 0.5) * 350;
+                const spreadY = -(100 + Math.random() * 400);
+                const rotation = (Math.random() - 0.5) * 1080;
+                
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        piece.style.transition = `all ${duration}s ease-out ${delay}s`;
+                        piece.style.transform = `translate(${spreadX * 2}px, ${spreadY + 600}px) rotate(${rotation}deg) scale(1)`;
+                        piece.style.opacity = '1';
+                    });
+                });
+                
+                setTimeout(() => {
+                    piece.style.transition = 'opacity 0.8s ease-in';
+                    piece.style.opacity = '0';
+                    setTimeout(() => piece.remove(), 800);
+                }, (duration + delay) * 1000 - 400);
             }
         }
 
