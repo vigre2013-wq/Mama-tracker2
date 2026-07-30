@@ -101,7 +101,10 @@
         .note-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; }
         .note-dialog { background: var(--surface); border-radius: 20px; padding: 24px; width: 100%; max-width: 400px; }
         .note-dialog h3 { margin-bottom: 16px; font-size: 18px; }
-        .note-dialog textarea { margin-bottom: 16px; height: 80px; }
+        .note-dialog textarea { margin-bottom: 8px; height: 60px; }
+        .note-templates { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+        .note-template { padding: 6px 12px; border-radius: 14px; border: 1px solid var(--border); background: var(--stat-bg); color: var(--text-secondary); font-size: 12px; cursor: pointer; white-space: nowrap; transition: all 0.2s; }
+        .note-template:active { background: var(--accent-light); color: var(--accent); border-color: var(--accent); }
         .note-dialog-buttons { display: flex; gap: 8px; }
         .note-dialog-buttons button { flex: 1; height: 44px; border-radius: 12px; border: none; font-size: 15px; font-weight: 600; cursor: pointer; }
         .note-save-btn { background: var(--accent); color: #fff; }
@@ -263,6 +266,30 @@
         const today = new Date();
         document.getElementById('todayDate').textContent = today.toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' });
 
+        // === ШАБЛОНЫ ЗАМЕТОК ===
+        const NOTE_TEMPLATES = [
+            { emoji: '😋', text: 'Хорошо покушал' },
+            { emoji: '😔', text: 'Много срыгнул' },
+            { emoji: '💤', text: 'Заснул сразу' },
+            { emoji: '😢', text: 'Капризничал' },
+            { emoji: '🌡', text: 'Температура' },
+            { emoji: '💊', text: 'Лекарство' }
+        ];
+
+        function addTemplateToNote(textareaId, templateText) {
+            const textarea = document.getElementById(textareaId);
+            if (!textarea) return;
+            const current = textarea.value.trim();
+            textarea.value = current ? current + '; ' + templateText : templateText;
+            textarea.focus();
+        }
+
+        function renderTemplates(textareaId) {
+            return NOTE_TEMPLATES.map(t => 
+                `<span class="note-template" onclick="addTemplateToNote('${textareaId}', '${t.text}')">${t.emoji} ${t.text}</span>`
+            ).join('');
+        }
+
         // === ПАНЕЛЬ НАСТРОЕК ===
         function toggleSettingsPanel() {
             document.getElementById('settingsPanel').classList.toggle('hidden');
@@ -383,12 +410,22 @@
         function setTimer(minutes){if(soundTimer)clearTimeout(soundTimer); document.querySelectorAll('.timer-row button').forEach(b=>b.classList.remove('active')); document.querySelector(`[data-timer="${minutes}"]`).classList.add('active'); if(minutes>0)soundTimer=setTimeout(()=>{stopSound();},minutes*60*1000);}
         function toggleSoundPanel(){document.getElementById('soundPanel').classList.toggle('hidden'); document.getElementById('themePanel').classList.add('hidden'); document.getElementById('settingsPanel').classList.add('hidden');}
 
-        // === ЗАМЕТКИ ===
+        // === ЗАМЕТКИ (с шаблонами) ===
         let pendingSave=null;
-        function showNoteDialog(type,data){pendingSave={type,data}; const overlay=document.createElement('div'); overlay.className='note-overlay'; const dialog=document.createElement('div'); dialog.className='note-dialog'; const emoji=type==='feed'?'🍼':type==='sleep'?'😴':'💧'; const title=type==='feed'?'Кормление':type==='sleep'?'Сон':'Подгузник'; dialog.innerHTML=`<h3>${emoji} ${title} сохранено!</h3><p style="color:var(--text-secondary); font-size:14px; margin-bottom:12px;">Добавить заметку?</p><textarea id="noteText" placeholder="Например: малыш капризничал..."></textarea><div class="note-dialog-buttons"><button class="note-skip-btn" id="noteSkip">Пропустить</button><button class="note-save-btn" id="noteSave">💾 Сохранить</button></div>`; overlay.appendChild(dialog); document.body.appendChild(overlay);
-        document.getElementById('noteSave').onclick=()=>{const note=document.getElementById('noteText').value.trim(); if(pendingSave){pendingSave.data.note=note; saveRecord(pendingSave.type,pendingSave.data); refreshAll();} document.body.removeChild(overlay); pendingSave=null;};
-        document.getElementById('noteSkip').onclick=()=>{if(pendingSave){saveRecord(pendingSave.type,pendingSave.data); refreshAll();} document.body.removeChild(overlay); pendingSave=null;};
-        overlay.addEventListener('click',e=>{if(e.target===overlay){if(pendingSave){saveRecord(pendingSave.type,pendingSave.data); refreshAll();} document.body.removeChild(overlay); pendingSave=null;}}); setTimeout(()=>document.getElementById('noteText').focus(),100);}
+        function showNoteDialog(type,data){
+            pendingSave={type,data};
+            const overlay=document.createElement('div'); overlay.className='note-overlay';
+            const dialog=document.createElement('div'); dialog.className='note-dialog';
+            const emoji=type==='feed'?'🍼':type==='sleep'?'😴':'💧';
+            const title=type==='feed'?'Кормление':type==='sleep'?'Сон':'Подгузник';
+            const textareaId='noteText';
+            dialog.innerHTML=`<h3>${emoji} ${title} сохранено!</h3><p style="color:var(--text-secondary); font-size:13px; margin-bottom:8px;">Добавить заметку:</p><textarea id="${textareaId}" placeholder="Напишите или выберите шаблон..."></textarea><div class="note-templates">${renderTemplates(textareaId)}</div><div class="note-dialog-buttons"><button class="note-skip-btn" id="noteSkip">Пропустить</button><button class="note-save-btn" id="noteSave">💾 Сохранить</button></div>`;
+            overlay.appendChild(dialog); document.body.appendChild(overlay);
+            document.getElementById('noteSave').onclick=()=>{const note=document.getElementById(textareaId).value.trim(); if(pendingSave){pendingSave.data.note=note; saveRecord(pendingSave.type,pendingSave.data); refreshAll();} document.body.removeChild(overlay); pendingSave=null;};
+            document.getElementById('noteSkip').onclick=()=>{if(pendingSave){saveRecord(pendingSave.type,pendingSave.data); refreshAll();} document.body.removeChild(overlay); pendingSave=null;};
+            overlay.addEventListener('click',e=>{if(e.target===overlay){if(pendingSave){saveRecord(pendingSave.type,pendingSave.data); refreshAll();} document.body.removeChild(overlay); pendingSave=null;}});
+            setTimeout(()=>document.getElementById(textareaId).focus(),100);
+        }
         function refreshAll(){updateFeedStats(); renderFeedHistory(); updateSleepStats(); renderSleepHistory(); updateDiaperStats(); renderDiaperHistory();}
 
         // === PRO ===
@@ -401,25 +438,9 @@
         function closeWelcome(){document.getElementById('welcomeScreen').style.display='none'; document.getElementById('mainApp').style.display='block'; localStorage.setItem('mama-welcome-shown','true');}
         if(localStorage.getItem('mama-welcome-shown')){document.getElementById('welcomeScreen').style.display='none'; document.getElementById('mainApp').style.display='block';}
 
-        // === НАВИГАЦИЯ (с анимацией) ===
+        // === НАВИГАЦИЯ ===
         let mainTab='feeding', statsSubTab='feed';
-        function switchMainTab(tab){
-            mainTab=tab;
-            const tabs=['feeding','sleep','diaper','stats','growth','calendar','pro'];
-            document.querySelectorAll('#mainApp .tab-btn').forEach((b,i)=>b.classList.toggle('active',tabs[i]===tab));
-            document.querySelectorAll('#mainApp .tab-content').forEach(c=>{c.classList.remove('active'); c.style.display='none';});
-            const target=document.getElementById('tab-'+tab);
-            target.style.display='block';
-            requestAnimationFrame(()=>{
-                requestAnimationFrame(()=>{
-                    target.classList.add('active');
-                });
-            });
-            if(tab==='stats')buildAllCharts();
-            if(tab==='growth')updateGrowthUI();
-            if(tab==='calendar')updateCalendar();
-            if(tab==='pro')updateProUI();
-        }
+        function switchMainTab(tab){mainTab=tab; const tabs=['feeding','sleep','diaper','stats','growth','calendar','pro']; document.querySelectorAll('#mainApp .tab-btn').forEach((b,i)=>b.classList.toggle('active',tabs[i]===tab)); document.querySelectorAll('#mainApp .tab-content').forEach(c=>{c.classList.remove('active'); c.style.display='none';}); const target=document.getElementById('tab-'+tab); target.style.display='block'; requestAnimationFrame(()=>{requestAnimationFrame(()=>{target.classList.add('active');});}); if(tab==='stats')buildAllCharts(); if(tab==='growth')updateGrowthUI(); if(tab==='calendar')updateCalendar(); if(tab==='pro')updateProUI();}
         function switchStatsTab(tab){statsSubTab=tab; document.querySelectorAll('.sub-tab').forEach((b,i)=>b.classList.toggle('active',['feed','sleep','diaper'][i]===tab)); document.getElementById('statsFeed').style.display=tab==='feed'?'block':'none'; document.getElementById('statsSleep').style.display=tab==='sleep'?'block':'none'; document.getElementById('statsDiaper').style.display=tab==='diaper'?'block':'none';}
 
         // === ХРАНИЛИЩЕ ===
@@ -492,12 +513,12 @@
         function updateDiaperStats(){const recs=getRecords('diaper'); document.getElementById('diaperCount').textContent=recs.length; document.getElementById('diaperDirty').textContent=recs.filter(r=>r.type==='dirty'||r.type==='both').length;}
         function renderDiaperHistory(){const recs=getRecords('diaper').sort((a,b)=>b.timestamp-a.timestamp); const list=document.getElementById('diaperHistory'); if(!recs.length){list.innerHTML='<div class="empty-state">Нет записей</div>'; return;} const labels={wet:'💦 Мокрый',dirty:'💩 Грязный',both:'💦💩 Всё вместе',dry:'✅ Сменили'}; const dots={wet:'wet',dirty:'dirty',both:'both',dry:'sleep'}; list.innerHTML=recs.map((r,i)=>{const t=new Date(r.timestamp).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}); const ni=r.note?'<span class="history-note-icon">📝</span>':''; return `<div class="history-item" onclick="showNote('diaper',${i})"><span>${t}${ni}</span><span class="history-side"><span class="side-dot ${dots[r.type]}"></span>${labels[r.type]}</span></div>`;}).join('');}
 
-        // === ЗАМЕТКА ===
-        function showNote(type,index){const recs=type==='feed'?(isPro()?getAllRecords('feed').slice(0,50):getRecords('feed').sort((a,b)=>b.timestamp-a.timestamp)):type==='sleep'?(isPro()?getAllRecords('sleep').slice(0,50):getRecords('sleep').sort((a,b)=>b.timestamp-a.timestamp)):getRecords('diaper').sort((a,b)=>b.timestamp-a.timestamp); const record=recs[index]; if(!record)return; const note=record.note||''; const t=new Date(record.timestamp).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}); const d=new Date(record.timestamp).toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'}); const emoji=type==='feed'?'🍼':type==='sleep'?'😴':'💧'; const overlay=document.createElement('div'); overlay.className='note-overlay'; const dialog=document.createElement('div'); dialog.className='note-dialog'; dialog.innerHTML=`<h3>${emoji} ${d} ${t}</h3><p style="color:var(--text-secondary); font-size:13px; margin-bottom:8px;">${note?'Редактировать заметку:':'Добавить заметку:'}</p><textarea id="editNoteText" placeholder="Заметка...">${note}</textarea><div class="note-dialog-buttons">${note?'<button class="note-skip-btn" id="noteDelete" style="color:#e8606e;">🗑 Удалить</button>':''}<button class="note-skip-btn" id="noteClose">Закрыть</button><button class="note-save-btn" id="noteUpdate">💾 Сохранить</button></div>`; overlay.appendChild(dialog); document.body.appendChild(overlay);
-        document.getElementById('noteUpdate').onclick=()=>{const nn=document.getElementById('editNoteText').value.trim(); const key=getKey(type,new Date(record.timestamp)); const all=JSON.parse(localStorage.getItem(key)||'[]'); for(let i=all.length-1;i>=0;i--){if(all[i].timestamp===record.timestamp){all[i].note=nn||undefined; if(!nn)delete all[i].note; break;}} localStorage.setItem(key,JSON.stringify(all)); document.body.removeChild(overlay); refreshAll();};
+        // === ЗАМЕТКА (редактирование) ===
+        function showNote(type,index){const recs=type==='feed'?(isPro()?getAllRecords('feed').slice(0,50):getRecords('feed').sort((a,b)=>b.timestamp-a.timestamp)):type==='sleep'?(isPro()?getAllRecords('sleep').slice(0,50):getRecords('sleep').sort((a,b)=>b.timestamp-a.timestamp)):getRecords('diaper').sort((a,b)=>b.timestamp-a.timestamp); const record=recs[index]; if(!record)return; const note=record.note||''; const t=new Date(record.timestamp).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}); const d=new Date(record.timestamp).toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'}); const emoji=type==='feed'?'🍼':type==='sleep'?'😴':'💧'; const textareaId='editNoteText'; const overlay=document.createElement('div'); overlay.className='note-overlay'; const dialog=document.createElement('div'); dialog.className='note-dialog'; dialog.innerHTML=`<h3>${emoji} ${d} ${t}</h3><p style="color:var(--text-secondary); font-size:13px; margin-bottom:8px;">${note?'Редактировать заметку:':'Добавить заметку:'}</p><textarea id="${textareaId}" placeholder="Заметка...">${note}</textarea><div class="note-templates">${renderTemplates(textareaId)}</div><div class="note-dialog-buttons">${note?'<button class="note-skip-btn" id="noteDelete" style="color:#e8606e;">🗑 Удалить</button>':''}<button class="note-skip-btn" id="noteClose">Закрыть</button><button class="note-save-btn" id="noteUpdate">💾 Сохранить</button></div>`; overlay.appendChild(dialog); document.body.appendChild(overlay);
+        document.getElementById('noteUpdate').onclick=()=>{const nn=document.getElementById(textareaId).value.trim(); const key=getKey(type,new Date(record.timestamp)); const all=JSON.parse(localStorage.getItem(key)||'[]'); for(let i=all.length-1;i>=0;i--){if(all[i].timestamp===record.timestamp){all[i].note=nn||undefined; if(!nn)delete all[i].note; break;}} localStorage.setItem(key,JSON.stringify(all)); document.body.removeChild(overlay); refreshAll();};
         document.getElementById('noteClose').onclick=()=>document.body.removeChild(overlay);
         const del=document.getElementById('noteDelete'); if(del)del.onclick=()=>{const key=getKey(type,new Date(record.timestamp)); const all=JSON.parse(localStorage.getItem(key)||'[]'); for(let i=all.length-1;i>=0;i--){if(all[i].timestamp===record.timestamp){delete all[i].note; break;}} localStorage.setItem(key,JSON.stringify(all)); document.body.removeChild(overlay); refreshAll();};
-        overlay.addEventListener('click',e=>{if(e.target===overlay)document.body.removeChild(overlay);}); setTimeout(()=>document.getElementById('editNoteText').focus(),100);}
+        overlay.addEventListener('click',e=>{if(e.target===overlay)document.body.removeChild(overlay);}); setTimeout(()=>document.getElementById(textareaId).focus(),100);}
 
         // === СТАТИСТИКА ===
         function getWeekData(type){const days=[]; for(let i=6;i>=0;i--){const d=new Date(); d.setDate(d.getDate()-i); days.push(getRecords(type,d));} return days;}
@@ -516,37 +537,9 @@
         function addGrowth(){const date=document.getElementById('growthDate').value; const weight=parseFloat(document.getElementById('growthWeight').value); const height=parseFloat(document.getElementById('growthHeight').value); if(!date){alert('Выберите дату'); return;} if(!weight&&!height){alert('Введите вес или рост'); return;} const records=getGrowthRecords(); const existing=records.findIndex(r=>r.date===date); const entry={date,weight:weight||null,height:height||null,timestamp:Date.now()}; if(existing>=0){records[existing]=entry;}else{records.push(entry);} localStorage.setItem('mama'+getBabyPrefix()+'-growth',JSON.stringify(records)); document.getElementById('growthDate').value=''; document.getElementById('growthWeight').value=''; document.getElementById('growthHeight').value=''; updateGrowthUI(); if(tg?.HapticFeedback)tg.HapticFeedback.notificationOccurred('success');}
         function deleteGrowth(index){const records=getGrowthRecords(); records.splice(index,1); localStorage.setItem('mama'+getBabyPrefix()+'-growth',JSON.stringify(records)); updateGrowthUI();}
         function drawGrowthChart(canvasId,records,field,color,unit){const canvas=document.getElementById(canvasId); if(!canvas||!records.length)return; const valid=records.filter(r=>r[field]!=null); if(valid.length<1)return; const ctx=canvas.getContext('2d'); const dpr=window.devicePixelRatio||1; const rect=canvas.parentElement.getBoundingClientRect(); canvas.width=rect.width*dpr; canvas.height=200*dpr; canvas.style.width=rect.width+'px'; canvas.style.height='200px'; ctx.scale(dpr,dpr); const w=rect.width-40; const h=160; const pad={top:10,right:10,bottom:30,left:40}; const values=valid.map(r=>r[field]); const minVal=Math.floor(Math.min(...values)*0.9); const maxVal=Math.ceil(Math.max(...values)*1.1); const range=maxVal-minVal||1; ctx.clearRect(0,0,w,200); const surfaceColor=getComputedStyle(document.body).getPropertyValue('--surface').trim()||'#16213e'; ctx.fillStyle=surfaceColor; ctx.fillRect(0,0,w,200); ctx.strokeStyle='rgba(255,255,255,0.08)'; ctx.lineWidth=0.5; const secondaryColor=getComputedStyle(document.body).getPropertyValue('--text-secondary').trim()||'#a8a0b0'; for(let i=0;i<=4;i++){const gy=pad.top+(h/4)*i; ctx.beginPath(); ctx.moveTo(pad.left,gy); ctx.lineTo(w-pad.right,gy); ctx.stroke(); ctx.fillStyle=secondaryColor; ctx.font='10px -apple-system, sans-serif'; ctx.fillText((maxVal-(range/4)*i).toFixed(1)+unit,2,gy+4);} const cssColor=getComputedStyle(document.body).getPropertyValue(field==='weight'?'--accent':'--sleep').trim(); const actualColor=cssColor||(field==='weight'?'#e8a0bf':'#c4a0e8'); if(valid.length===1){const x=pad.left+(w-pad.left-pad.right)/2; const y=pad.top+h-((valid[0][field]-minVal)/range)*h; ctx.fillStyle=actualColor; ctx.beginPath(); ctx.arc(x,y,8,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#fff'; ctx.font='bold 13px -apple-system, sans-serif'; ctx.textAlign='center'; ctx.fillText(valid[0][field]+unit,x,y-14); ctx.fillStyle=secondaryColor; ctx.font='11px -apple-system, sans-serif'; const dateLabel=new Date(valid[0].date).toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'}); ctx.fillText(dateLabel,x,pad.top+h+20);}else{const stepX=(w-pad.left-pad.right)/(valid.length-1); ctx.strokeStyle=actualColor; ctx.lineWidth=3; ctx.lineJoin='round'; ctx.lineCap='round'; ctx.beginPath(); valid.forEach((r,i)=>{const x=pad.left+stepX*i; const y=pad.top+h-((r[field]-minVal)/range)*h; if(i===0){ctx.moveTo(x,y);}else{ctx.lineTo(x,y);}}); ctx.stroke(); valid.forEach((r,i)=>{const x=pad.left+stepX*i; const y=pad.top+h-((r[field]-minVal)/range)*h; ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(x,y,7,0,Math.PI*2); ctx.fill(); ctx.fillStyle=actualColor; ctx.beginPath(); ctx.arc(x,y,5,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#fff'; ctx.font='bold 12px -apple-system, sans-serif'; ctx.textAlign='center'; ctx.fillText(r[field]+unit,x,y-14); if(i===0||i===valid.length-1){ctx.fillStyle=secondaryColor; ctx.font='10px -apple-system, sans-serif'; const dateLabel=new Date(r.date).toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'}); ctx.fillText(dateLabel,x,pad.top+h+18);}});}}
-        function updateGrowthUI(){
-            const records=getGrowthRecords();
-            const list=document.getElementById('growthHistory');
-            if(!records.length){list.innerHTML='<div class="empty-state">Нет записей</div>';}
-            else{list.innerHTML=records.map((r,i)=>{const d=new Date(r.date).toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit',year:'numeric'}); const parts=[]; if(r.weight)parts.push('⚖️ '+r.weight+' кг'); if(r.height)parts.push('📏 '+r.height+' см'); return `<div class="growth-list-item" onclick="editGrowth(${i})"><span>${d}</span><span style="font-size:13px; color:var(--text-secondary);">${parts.join(' · ')}</span><span onclick="event.stopPropagation(); deleteGrowth(${i})" style="color:#e8606e; cursor:pointer;">🗑</span></div>`;}).join('');}
-            document.getElementById('growthDate').value=today.toISOString().split('T')[0];
-            updateGrowthComparison();
-            setTimeout(()=>{drawGrowthChart('weightChart',records,'weight','var(--accent)',' кг'); drawGrowthChart('heightChart',records,'height','var(--sleep)',' см');},100);
-        }
+        function updateGrowthUI(){const records=getGrowthRecords(); const list=document.getElementById('growthHistory'); if(!records.length){list.innerHTML='<div class="empty-state">Нет записей</div>';}else{list.innerHTML=records.map((r,i)=>{const d=new Date(r.date).toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit',year:'numeric'}); const parts=[]; if(r.weight)parts.push('⚖️ '+r.weight+' кг'); if(r.height)parts.push('📏 '+r.height+' см'); return `<div class="growth-list-item" onclick="editGrowth(${i})"><span>${d}</span><span style="font-size:13px; color:var(--text-secondary);">${parts.join(' · ')}</span><span onclick="event.stopPropagation(); deleteGrowth(${i})" style="color:#e8606e; cursor:pointer;">🗑</span></div>`;}).join('');} document.getElementById('growthDate').value=today.toISOString().split('T')[0]; updateGrowthComparison(); setTimeout(()=>{drawGrowthChart('weightChart',records,'weight','var(--accent)',' кг'); drawGrowthChart('heightChart',records,'height','var(--sleep)',' см');},100);}
         function editGrowth(index){const records=getGrowthRecords(); const r=records[index]; if(!r)return; document.getElementById('growthDate').value=r.date; document.getElementById('growthWeight').value=r.weight||''; document.getElementById('growthHeight').value=r.height||''; records.splice(index,1); localStorage.setItem('mama'+getBabyPrefix()+'-growth',JSON.stringify(records)); updateGrowthComparison();}
-        function updateGrowthComparison() {
-            const records = getGrowthRecords();
-            const currentDate = document.getElementById('growthDate').value;
-            if (!currentDate || records.length === 0) { document.getElementById('growthComparison').innerHTML = ''; return; }
-            const prevRecords = records.filter(r => r.date < currentDate).sort((a,b) => b.date.localeCompare(a.date));
-            if (prevRecords.length === 0) { document.getElementById('growthComparison').innerHTML = '<span style="font-size:12px; color:var(--text-secondary);">Это первое измерение</span>'; return; }
-            const prev = prevRecords[0];
-            const prevDate = new Date(prev.date); const currDate = new Date(currentDate);
-            const daysDiff = Math.floor((currDate - prevDate) / (1000 * 60 * 60 * 24));
-            let parts = [];
-            if (prev.weight != null) {
-                const cw = parseFloat(document.getElementById('growthWeight').value);
-                if (cw) { const diff = cw - prev.weight; const sign = diff >= 0 ? '+' : ''; const daysStr = daysDiff === 0 ? 'сегодня' : daysDiff === 1 ? 'вчера' : daysDiff + ' дн. назад'; parts.push('⚖️ Вес: ' + sign + diff.toFixed(1) + ' кг (было ' + prev.weight + ' кг, ' + daysStr + ')'); }
-            }
-            if (prev.height != null) {
-                const ch = parseFloat(document.getElementById('growthHeight').value);
-                if (ch) { const diff = ch - prev.height; const sign = diff >= 0 ? '+' : ''; const daysStr = daysDiff === 0 ? 'сегодня' : daysDiff === 1 ? 'вчера' : daysDiff + ' дн. назад'; parts.push('📏 Рост: ' + sign + diff.toFixed(1) + ' см (было ' + prev.height + ' см, ' + daysStr + ')'); }
-            }
-            if (parts.length > 0) { document.getElementById('growthComparison').innerHTML = '<span style="font-size:12px; color:var(--accent);">С прошлого измерения:</span><br>' + parts.join('<br>'); }
-            else { document.getElementById('growthComparison').innerHTML = '<span style="font-size:12px; color:var(--text-secondary);">Введите вес или рост для сравнения</span>'; }
-        }
+        function updateGrowthComparison(){const records=getGrowthRecords(); const currentDate=document.getElementById('growthDate').value; if(!currentDate||records.length===0){document.getElementById('growthComparison').innerHTML=''; return;} const prevRecords=records.filter(r=>r.date<currentDate).sort((a,b)=>b.date.localeCompare(a.date)); if(prevRecords.length===0){document.getElementById('growthComparison').innerHTML='<span style="font-size:12px; color:var(--text-secondary);">Это первое измерение</span>'; return;} const prev=prevRecords[0]; const prevDate=new Date(prev.date); const currDate=new Date(currentDate); const daysDiff=Math.floor((currDate-prevDate)/(1000*60*60*24)); let parts=[]; if(prev.weight!=null){const cw=parseFloat(document.getElementById('growthWeight').value); if(cw){const diff=cw-prev.weight; const sign=diff>=0?'+':''; const daysStr=daysDiff===0?'сегодня':daysDiff===1?'вчера':daysDiff+' дн. назад'; parts.push('⚖️ Вес: '+sign+diff.toFixed(1)+' кг (было '+prev.weight+' кг, '+daysStr+')');}} if(prev.height!=null){const ch=parseFloat(document.getElementById('growthHeight').value); if(ch){const diff=ch-prev.height; const sign=diff>=0?'+':''; const daysStr=daysDiff===0?'сегодня':daysDiff===1?'вчера':daysDiff+' дн. назад'; parts.push('📏 Рост: '+sign+diff.toFixed(1)+' см (было '+prev.height+' см, '+daysStr+')');}} if(parts.length>0){document.getElementById('growthComparison').innerHTML='<span style="font-size:12px; color:var(--accent);">С прошлого измерения:</span><br>'+parts.join('<br>');}else{document.getElementById('growthComparison').innerHTML='<span style="font-size:12px; color:var(--text-secondary);">Введите вес или рост для сравнения</span>';}}
 
         // === НАПОМИНАНИЯ ===
         let reminderInterval=null, reminderMinutes=null;
