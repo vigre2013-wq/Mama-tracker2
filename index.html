@@ -169,59 +169,59 @@
 <div class="header">
     <div class="header-top">
         <div class="header-center"><h1>🤱 Мама Трекер <span id="proBadge" class="pro-badge" style="display:none;">PRO</span></h1><div class="date" id="todayDate"></div></div>
-        <div class="header-settings"><button class="icon-btn" id="btnSettings" title="Настройки">⚙️</button></div>
+        <div class="header-settings"><button class="icon-btn" onclick="togglePanel('settingsPanel')" title="Настройки">⚙️</button></div>
     </div>
     <div class="baby-switcher" id="babySwitcher"></div>
 </div>
 
-<div id="welcomeScreen"><div class="card" style="text-align:center;"><div style="font-size:60px;">👋</div><h2>Привет, мама!</h2><p style="color:var(--text-secondary);">Я помогу следить за режимом малыша</p><button id="btnWelcome" class="welcome-btn" style="margin-top:16px;">Понятно, начнём! 🚀</button></div></div>
+<div id="welcomeScreen"><div class="card" style="text-align:center;"><div style="font-size:60px;">👋</div><h2>Привет, мама!</h2><p style="color:var(--text-secondary);">Я помогу следить за режимом малыша</p><button onclick="closeWelcome()" class="welcome-btn" style="margin-top:16px;">Понятно, начнём! 🚀</button></div></div>
 
 <div id="mainApp" style="display:none;">
-    <div class="tabs" id="mainTabs">
-        <button class="tab-btn active" data-tab="feeding">🍼</button>
-        <button class="tab-btn" data-tab="sleep">😴</button>
-        <button class="tab-btn" data-tab="diaper">💧</button>
-        <button class="tab-btn" data-tab="stats">📊</button>
-        <button class="tab-btn" data-tab="growth">📏</button>
-        <button class="tab-btn" data-tab="calendar">📅</button>
-        <button class="tab-btn" data-tab="mood">💖</button>
-        <button class="tab-btn" data-tab="meds">💊</button>
-        <button class="tab-btn" data-tab="pro">👑</button>
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchMainTab('feeding')">🍼</button>
+        <button class="tab-btn" onclick="switchMainTab('sleep')">😴</button>
+        <button class="tab-btn" onclick="switchMainTab('diaper')">💧</button>
+        <button class="tab-btn" onclick="switchMainTab('stats')">📊</button>
+        <button class="tab-btn" onclick="switchMainTab('growth')">📏</button>
+        <button class="tab-btn" onclick="switchMainTab('calendar')">📅</button>
+        <button class="tab-btn" onclick="switchMainTab('mood')">💖</button>
+        <button class="tab-btn" onclick="switchMainTab('meds')">💊</button>
+        <button class="tab-btn" onclick="switchMainTab('pro')">👑</button>
     </div>
 
     <div class="tab-content active" id="tab-feeding">
-        <div class="card"><div class="card-title">🍼 Кормление</div><div class="breast-select"><button class="breast-btn left" id="btnLeft">⬅️ Левая</button><button class="breast-btn right" id="btnRight">➡️ Правая</button></div><div class="timer-display" id="feedingTimer">00:00</div><button class="action-btn start" id="feedingBtn" disabled>▶️ Начать</button></div>
-        <div class="card"><div class="card-title">📊 Сегодня</div><div class="stats-grid"><div class="stat-item"><div class="stat-value" id="feedCount">0</div><div class="stat-label">Кормлений</div></div><div class="stat-item"><div class="stat-value" id="feedDuration">0 мин</div><div class="stat-label">Общее время</div></div></div><div id="reminderStatus" style="text-align:center;font-size:13px;margin-top:16px;min-height:20px;"></div><div style="display:flex;gap:8px;margin-top:12px;"><button class="reminder-btn" data-min="120" style="background:rgba(232,160,191,0.2);color:var(--left-breast);">🔔 2 ч</button><button class="reminder-btn" data-min="180" style="background:rgba(160,196,232,0.2);color:var(--right-breast);">🔔 3 ч</button><button class="reminder-btn" id="btnStopReminder" style="background:var(--btn-ghost);color:var(--text-secondary);">🔕</button></div></div>
+        <div class="card"><div class="card-title">🍼 Кормление</div><div class="breast-select"><button class="breast-btn left" id="btnLeft" onclick="feedTracker.selectSide('left')">⬅️ Левая</button><button class="breast-btn right" id="btnRight" onclick="feedTracker.selectSide('right')">➡️ Правая</button></div><div class="timer-display" id="feedingTimer">00:00</div><button class="action-btn start" id="feedingBtn" onclick="feedTracker.toggle()" disabled>▶️ Начать</button></div>
+        <div class="card"><div class="card-title">📊 Сегодня</div><div class="stats-grid"><div class="stat-item"><div class="stat-value" id="feedCount">0</div><div class="stat-label">Кормлений</div></div><div class="stat-item"><div class="stat-value" id="feedDuration">0 мин</div><div class="stat-label">Общее время</div></div></div><div id="reminderStatus" style="text-align:center;font-size:13px;margin-top:16px;min-height:20px;"></div><div style="display:flex;gap:8px;margin-top:12px;"><button onclick="startReminder(120)" class="reminder-btn" style="background:rgba(232,160,191,0.2);color:var(--left-breast);">🔔 2 ч</button><button onclick="startReminder(180)" class="reminder-btn" style="background:rgba(160,196,232,0.2);color:var(--right-breast);">🔔 3 ч</button><button onclick="stopReminder()" class="reminder-btn" style="background:var(--btn-ghost);color:var(--text-secondary);">🔕</button></div></div>
         <div class="card"><div class="card-title">📝 История</div><div class="history-list" id="feedHistory"><div class="empty-state">Нет записей</div></div></div>
     </div>
     <div class="tab-content" id="tab-sleep">
-        <div class="card"><div class="card-title">😴 Сон</div><div class="timer-display" id="sleepTimer">00:00</div><button class="action-btn start-sleep" id="sleepBtn">▶️ Уложить спать</button></div>
+        <div class="card"><div class="card-title">😴 Сон</div><div class="timer-display" id="sleepTimer">00:00</div><button class="action-btn start-sleep" id="sleepBtn" onclick="sleepTracker.toggle()">▶️ Уложить спать</button></div>
         <div class="card"><div class="card-title">📊 Сегодня</div><div class="stats-grid"><div class="stat-item"><div class="stat-value" id="sleepCount">0</div><div class="stat-label">Снов</div></div><div class="stat-item"><div class="stat-value" id="sleepDuration">0 мин</div><div class="stat-label">Общее время</div></div></div></div>
         <div class="card"><div class="card-title">📝 История</div><div class="history-list" id="sleepHistory"><div class="empty-state">Нет записей</div></div></div>
     </div>
     <div class="tab-content" id="tab-diaper">
-        <div class="card"><div class="card-title">💧 Сменить подгузник</div><div class="diaper-types"><button class="diaper-btn wet" data-type="wet">💦<br>Мокрый</button><button class="diaper-btn dirty" data-type="dirty">💩<br>Грязный</button><button class="diaper-btn both" data-type="both">💦💩<br>Всё вместе</button><button class="diaper-btn" data-type="dry">✅<br>Сменили</button></div></div>
+        <div class="card"><div class="card-title">💧 Сменить подгузник</div><div class="diaper-types"><button class="diaper-btn wet" onclick="addDiaper('wet')">💦<br>Мокрый</button><button class="diaper-btn dirty" onclick="addDiaper('dirty')">💩<br>Грязный</button><button class="diaper-btn both" onclick="addDiaper('both')">💦💩<br>Всё вместе</button><button class="diaper-btn" onclick="addDiaper('dry')">✅<br>Сменили</button></div></div>
         <div class="card"><div class="card-title">📊 Сегодня</div><div class="stats-grid"><div class="stat-item"><div class="stat-value" id="diaperCount">0</div><div class="stat-label">Всего смен</div></div><div class="stat-item"><div class="stat-value" id="diaperDirty">0</div><div class="stat-label">Грязных</div></div></div></div>
         <div class="card"><div class="card-title">📝 История</div><div class="history-list" id="diaperHistory"><div class="empty-state">Нет записей</div></div></div>
     </div>
     <div class="tab-content" id="tab-stats">
-        <div class="sub-tabs" id="statsSubTabs"><button class="sub-tab active" data-stat="feed">🍼 Кормления</button><button class="sub-tab" data-stat="sleep">😴 Сон</button><button class="sub-tab" data-stat="diaper">💧 Подгузники</button></div>
+        <div class="sub-tabs"><button class="sub-tab active" onclick="switchStatsTab('feed')">🍼 Кормления</button><button class="sub-tab" onclick="switchStatsTab('sleep')">😴 Сон</button><button class="sub-tab" onclick="switchStatsTab('diaper')">💧 Подгузники</button></div>
         <div id="statsFeed"><div class="card"><div class="card-title">📈 Кормления за неделю (мин)</div><div id="feedChart"></div></div><div class="card" id="proAnalyticsFeed"><div class="card-title">👑 PRO-аналитика</div><div id="proFeedContent"></div></div><div class="card"><div class="card-title">📊 Средние показатели</div><div id="feedAverages"></div></div></div>
         <div id="statsSleep" style="display:none;"><div class="card"><div class="card-title">📈 Сон за неделю (мин)</div><div id="sleepChart"></div></div><div class="card"><div class="card-title">📊 Средние показатели</div><div id="sleepAverages"></div></div></div>
         <div id="statsDiaper" style="display:none;"><div class="card"><div class="card-title">📈 Подгузники за неделю</div><div id="diaperChart"></div></div><div class="card"><div class="card-title">📊 Средние показатели</div><div id="diaperAverages"></div></div></div>
     </div>
     <div class="tab-content" id="tab-growth">
-        <div class="card"><div class="card-title">📏 Добавить запись</div><div style="display:flex;flex-direction:column;gap:12px;"><input type="date" id="growthDate" style="height:48px;font-size:16px;text-align:left;padding-left:16px;"><input type="number" id="growthWeight" placeholder="Вес (кг)" step="0.1" style="height:56px;font-size:20px;font-weight:600;text-align:center;"><input type="number" id="growthHeight" placeholder="Рост (см)" step="0.1" style="height:56px;font-size:20px;font-weight:600;text-align:center;"><div id="growthComparison" style="text-align:center;min-height:20px;font-size:13px;line-height:1.6;"></div><button class="action-btn start" id="btnAddGrowth" style="margin:0;height:56px;font-size:18px;">💾 Сохранить</button></div></div>
+        <div class="card"><div class="card-title">📏 Добавить запись</div><div style="display:flex;flex-direction:column;gap:12px;"><input type="date" id="growthDate" style="height:48px;font-size:16px;text-align:left;padding-left:16px;" onchange="updateGrowthComparison()"><input type="number" id="growthWeight" placeholder="Вес (кг)" step="0.1" style="height:56px;font-size:20px;font-weight:600;text-align:center;" oninput="updateGrowthComparison()"><input type="number" id="growthHeight" placeholder="Рост (см)" step="0.1" style="height:56px;font-size:20px;font-weight:600;text-align:center;" oninput="updateGrowthComparison()"><div id="growthComparison" style="text-align:center;min-height:20px;font-size:13px;line-height:1.6;"></div><button class="action-btn start" style="margin:0;height:56px;font-size:18px;" onclick="addGrowth()">💾 Сохранить</button></div></div>
         <div class="card"><div class="card-title">📈 График веса</div><div class="growth-chart-container"><canvas id="weightChart"></canvas></div></div>
         <div class="card"><div class="card-title">📈 График роста</div><div class="growth-chart-container"><canvas id="heightChart"></canvas></div></div>
         <div class="card"><div class="card-title">📝 История</div><div class="history-list" id="growthHistory"><div class="empty-state">Нет записей</div></div></div>
     </div>
     <div class="tab-content" id="tab-calendar">
-        <div class="card"><div class="card-title">📅 Календарь кормлений</div><div class="month-nav"><button id="btnPrevMonth">◀</button><span id="monthLabel"></span><button id="btnNextMonth">▶</button></div><div class="calendar" id="calendarGrid"></div><div class="calendar-legend"><span>Меньше</span><div class="legend-dot" style="background:rgba(232,160,191,0.15);"></div><div class="legend-dot" style="background:rgba(232,160,191,0.4);"></div><div class="legend-dot" style="background:rgba(232,160,191,0.7);"></div><div class="legend-dot" style="background:#e8a0bf;"></div><span>Больше</span></div></div>
+        <div class="card"><div class="card-title">📅 Календарь кормлений</div><div class="month-nav"><button onclick="changeMonth(-1)">◀</button><span id="monthLabel"></span><button onclick="changeMonth(1)">▶</button></div><div class="calendar" id="calendarGrid"></div><div class="calendar-legend"><span>Меньше</span><div class="legend-dot" style="background:rgba(232,160,191,0.15);"></div><div class="legend-dot" style="background:rgba(232,160,191,0.4);"></div><div class="legend-dot" style="background:rgba(232,160,191,0.7);"></div><div class="legend-dot" style="background:#e8a0bf;"></div><span>Больше</span></div></div>
         <div class="card" id="dayDetail" style="display:none;"><div class="card-title" id="dayDetailTitle">Детали дня</div><div id="dayDetailContent"></div></div>
     </div>
     <div class="tab-content" id="tab-mood">
-        <div class="card"><div class="card-title">💖 Как вы себя чувствуете?</div><div class="mood-grid"><button class="mood-btn" data-mood="great" title="Отлично">😊</button><button class="mood-btn" data-mood="good" title="Хорошо">😀</button><button class="mood-btn" data-mood="okay" title="Нормально">😐</button><button class="mood-btn" data-mood="tired" title="Устала">😔</button><button class="mood-btn" data-mood="bad" title="Плохо">😢</button></div><div id="moodTodayLabel" style="text-align:center;font-size:14px;color:var(--text-secondary);min-height:20px;"></div></div>
+        <div class="card"><div class="card-title">💖 Как вы себя чувствуете?</div><div class="mood-grid"><button class="mood-btn" onclick="saveMood('great')" title="Отлично">😊</button><button class="mood-btn" onclick="saveMood('good')" title="Хорошо">😀</button><button class="mood-btn" onclick="saveMood('okay')" title="Нормально">😐</button><button class="mood-btn" onclick="saveMood('tired')" title="Устала">😔</button><button class="mood-btn" onclick="saveMood('bad')" title="Плохо">😢</button></div><div id="moodTodayLabel" style="text-align:center;font-size:14px;color:var(--text-secondary);min-height:20px;"></div></div>
         <div class="card"><div class="card-title">📊 За неделю</div><div id="moodWeekStats" style="text-align:center;font-size:32px;padding:12px 0;"></div><div style="text-align:center;font-size:13px;color:var(--text-secondary);" id="moodWeekLabel"></div></div>
         <div class="card"><div class="card-title">📝 История</div><div class="history-list" id="moodHistory"><div class="empty-state">Нет записей</div></div></div>
     </div>
@@ -232,59 +232,59 @@
             <input type="text" id="medDose" placeholder="Дозировка" style="text-align:left;padding-left:16px;">
             <p style="font-size:13px;color:var(--text-secondary);margin-bottom:6px;">Повторять каждые:</p>
             <div class="interval-btns" id="medIntervals">
-                <button class="interval-btn active" data-int="4">4 ч</button>
-                <button class="interval-btn" data-int="6">6 ч</button>
-                <button class="interval-btn" data-int="8">8 ч</button>
-                <button class="interval-btn" data-int="12">12 ч</button>
-                <button class="interval-btn" data-int="0">Разово</button>
+                <button class="interval-btn active" onclick="selectMedInterval(4)">4 ч</button>
+                <button class="interval-btn" onclick="selectMedInterval(6)">6 ч</button>
+                <button class="interval-btn" onclick="selectMedInterval(8)">8 ч</button>
+                <button class="interval-btn" onclick="selectMedInterval(12)">12 ч</button>
+                <button class="interval-btn" onclick="selectMedInterval(0)">Разово</button>
             </div>
-            <button class="action-btn" id="btnAddMed" style="background:#e8c080;color:#1a1a2e;">💾 Записать приём</button>
+            <button class="action-btn" style="background:#e8c080;color:#1a1a2e;" onclick="addMedication()">💾 Записать приём</button>
             <div id="medTimer" style="display:none;margin-top:16px;">
                 <div style="text-align:center;font-size:13px;color:var(--text-secondary);">Следующий приём через:</div>
                 <div id="medCountdown" style="text-align:center;font-size:32px;font-weight:600;color:#e8c080;margin:8px 0;">--:--:--</div>
-                <button class="action-btn" id="btnResetMed" style="background:#e8c080;color:#1a1a2e;height:44px;font-size:14px;margin-top:8px;">✅ Принято! Сбросить таймер</button>
+                <button class="action-btn" style="background:#e8c080;color:#1a1a2e;height:44px;font-size:14px;margin-top:8px;" onclick="resetMedTimer()">✅ Принято! Сбросить таймер</button>
             </div>
         </div>
         <div class="card"><div class="card-title">📝 Сегодня</div><div class="history-list" id="medHistory"><div class="empty-state">Нет записей</div></div></div>
     </div>
     <div class="tab-content" id="tab-pro">
-        <div id="proActive" style="display:none;"><div class="card pro-card" style="text-align:center;"><div style="font-size:50px;">👑</div><h2>Вы — PRO!</h2><p style="color:var(--text-secondary);">Все функции разблокированы</p></div><div class="card"><div class="card-title">📤 Экспорт</div><button class="export-btn" id="btnExport">📸 Скачать отчёт в PNG</button></div></div>
-        <div id="proInactive"><div class="card" style="text-align:center;"><div style="font-size:60px;">👑</div><h2>Мама PRO</h2><p style="color:var(--text-secondary);">Разблокируй все возможности</p></div><div class="card" style="text-align:center;"><input type="text" id="activateCode" placeholder="Введите TEST123"><button class="activate-btn" id="btnActivatePro">🔓 Активировать PRO</button></div></div>
+        <div id="proActive" style="display:none;"><div class="card pro-card" style="text-align:center;"><div style="font-size:50px;">👑</div><h2>Вы — PRO!</h2><p style="color:var(--text-secondary);">Все функции разблокированы</p></div><div class="card"><div class="card-title">📤 Экспорт</div><button class="export-btn" onclick="exportAsImage()">📸 Скачать отчёт в PNG</button></div></div>
+        <div id="proInactive"><div class="card" style="text-align:center;"><div style="font-size:60px;">👑</div><h2>Мама PRO</h2><p style="color:var(--text-secondary);">Разблокируй все возможности</p></div><div class="card" style="text-align:center;"><input type="text" id="activateCode" placeholder="Введите TEST123"><button class="activate-btn" onclick="activatePro()">🔓 Активировать PRO</button></div></div>
     </div>
 </div>
 
 <div class="panel hidden" id="settingsPanel">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;"><h3 style="font-size:18px;">⚙️ Настройки</h3><button class="icon-btn" id="btnCloseSettings" style="width:32px;height:32px;font-size:16px;">✕</button></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;"><h3 style="font-size:18px;">⚙️ Настройки</h3><button class="icon-btn" onclick="hidePanel('settingsPanel')" style="width:32px;height:32px;font-size:16px;">✕</button></div>
     <div class="settings-grid">
-        <button class="settings-btn" id="btnDaySummary"><span class="settings-emoji">📋</span>Итоги дня</button>
-        <button class="settings-btn" id="btnFeedback"><span class="settings-emoji">💬</span>Обратная связь</button>
-        <button class="settings-btn" id="btnTheme"><span class="settings-emoji">🎨</span>Оформление</button>
-        <button class="settings-btn" id="btnSound"><span class="settings-emoji">🎵</span>Белый шум</button>
+        <button class="settings-btn" onclick="hidePanel('settingsPanel');showDaySummary()"><span class="settings-emoji">📋</span>Итоги дня</button>
+        <button class="settings-btn" onclick="hidePanel('settingsPanel');toggleFeedbackPanel()"><span class="settings-emoji">💬</span>Обратная связь</button>
+        <button class="settings-btn" onclick="hidePanel('settingsPanel');togglePanel('themePanel')"><span class="settings-emoji">🎨</span>Оформление</button>
+        <button class="settings-btn" onclick="hidePanel('settingsPanel');togglePanel('soundPanel')"><span class="settings-emoji">🎵</span>Белый шум</button>
     </div>
 </div>
 
 <div class="panel hidden" id="soundPanel">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;"><h3 style="font-size:18px;">🎵 Белый шум</h3><button class="icon-btn" id="btnStopSound" style="width:32px;height:32px;font-size:16px;">✕</button></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;"><h3 style="font-size:18px;">🎵 Белый шум</h3><button class="icon-btn" onclick="stopSound()" style="width:32px;height:32px;font-size:16px;">✕</button></div>
     <div class="sound-grid" style="grid-template-columns: repeat(3, 1fr);" id="soundGrid"></div>
-    <div class="volume-row"><span>🔈</span><input type="range" id="volumeSlider" min="0" max="100" value="50"><span id="volumeLabel">50%</span></div>
+    <div class="volume-row"><span>🔈</span><input type="range" id="volumeSlider" min="0" max="100" value="50" oninput="setVolume(this.value)"><span id="volumeLabel">50%</span></div>
     <p style="font-size:12px;color:var(--text-secondary);margin-bottom:8px;">Автовыключение:</p>
     <div class="timer-row" id="soundTimers">
-        <button data-timer="15">15 мин</button><button data-timer="30">30 мин</button><button data-timer="60">60 мин</button><button data-timer="0" class="active">∞</button>
+        <button onclick="setSoundTimer(15)">15 мин</button><button onclick="setSoundTimer(30)">30 мин</button><button onclick="setSoundTimer(60)">60 мин</button><button onclick="setSoundTimer(0)" class="active">∞</button>
     </div>
 </div>
 
 <div class="panel hidden" id="themePanel">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;"><h3 style="font-size:18px;">🎨 Оформление</h3><button class="icon-btn" id="btnCloseTheme" style="width:32px;height:32px;font-size:16px;">✕</button></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;"><h3 style="font-size:18px;">🎨 Оформление</h3><button class="icon-btn" onclick="hidePanel('themePanel')" style="width:32px;height:32px;font-size:16px;">✕</button></div>
     <p style="font-size:13px;color:var(--text-secondary);margin-bottom:8px;">Режим:</p>
-    <div class="theme-toggle-row"><button id="btnDark">🌙 Тёмная</button><button id="btnLight">☀️ Светлая</button></div>
+    <div class="theme-toggle-row"><button id="btnDark" onclick="setThemeMode('dark')">🌙 Тёмная</button><button id="btnLight" onclick="setThemeMode('light')">☀️ Светлая</button></div>
     <p style="font-size:13px;color:var(--text-secondary);margin-bottom:8px;margin-top:12px;">Цвет:</p>
     <div class="color-grid" id="colorGrid"></div>
 </div>
 
 <div class="panel hidden" id="babyPanel">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;"><h3 style="font-size:18px;">👶 Управление детьми</h3><button class="icon-btn" id="btnCloseBaby" style="width:32px;height:32px;font-size:16px;">✕</button></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;"><h3 style="font-size:18px;">👶 Управление детьми</h3><button class="icon-btn" onclick="hidePanel('babyPanel')" style="width:32px;height:32px;font-size:16px;">✕</button></div>
     <div id="babyList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;"></div>
-    <div style="display:flex;gap:8px;"><input type="text" id="newBabyName" placeholder="Имя ребёнка" style="flex:1;margin-bottom:0;"><button class="action-btn start" id="btnAddBaby" style="width:auto;margin:0;padding:0 20px;height:44px;font-size:14px;">➕</button></div>
+    <div style="display:flex;gap:8px;"><input type="text" id="newBabyName" placeholder="Имя ребёнка" style="flex:1;margin-bottom:0;"><button class="action-btn start" style="width:auto;margin:0;padding:0 20px;height:44px;font-size:14px;" onclick="addBaby()">➕</button></div>
 </div>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -308,80 +308,32 @@ const CFG = {
         {emoji:'😋',text:'Хорошо покушал'},{emoji:'😔',text:'Много срыгнул'},{emoji:'💤',text:'Заснул сразу'},
         {emoji:'😢',text:'Капризничал'},{emoji:'🌡',text:'Температура'},{emoji:'💊',text:'Лекарство'}
     ],
-    TAB_EMOJIS: ['🍼','😴','💧','📊','📏','📅','💖','💊','👑'],
     TABS: ['feeding','sleep','diaper','stats','growth','calendar','mood','meds','pro']
 };
 
-// === DOM-КЭШ ===
+// === DOM-ХЕЛПЕР ===
 const $ = id => document.getElementById(id);
-const dom = {
-    get feedingBtn() { return $('feedingBtn'); },
-    get feedingTimer() { return $('feedingTimer'); },
-    get feedCount() { return $('feedCount'); },
-    get feedDuration() { return $('feedDuration'); },
-    get feedHistory() { return $('feedHistory'); },
-    get feedChart() { return $('feedChart'); },
-    get feedAverages() { return $('feedAverages'); },
-    get proFeedContent() { return $('proFeedContent'); },
-    get sleepBtn() { return $('sleepBtn'); },
-    get sleepTimer() { return $('sleepTimer'); },
-    get sleepCount() { return $('sleepCount'); },
-    get sleepDuration() { return $('sleepDuration'); },
-    get sleepHistory() { return $('sleepHistory'); },
-    get sleepChart() { return $('sleepChart'); },
-    get sleepAverages() { return $('sleepAverages'); },
-    get diaperCount() { return $('diaperCount'); },
-    get diaperDirty() { return $('diaperDirty'); },
-    get diaperHistory() { return $('diaperHistory'); },
-    get diaperChart() { return $('diaperChart'); },
-    get diaperAverages() { return $('diaperAverages'); },
-    get moodTodayLabel() { return $('moodTodayLabel'); },
-    get moodWeekStats() { return $('moodWeekStats'); },
-    get moodWeekLabel() { return $('moodWeekLabel'); },
-    get moodHistory() { return $('moodHistory'); },
-    get medHistory() { return $('medHistory'); },
-    get medCountdown() { return $('medCountdown'); },
-    get medTimer() { return $('medTimer'); },
-    get growthHistory() { return $('growthHistory'); },
-    get growthComparison() { return $('growthComparison'); },
-    get reminderStatus() { return $('reminderStatus'); },
-    get monthLabel() { return $('monthLabel'); },
-    get calendarGrid() { return $('calendarGrid'); },
-    get dayDetail() { return $('dayDetail'); },
-    get dayDetailTitle() { return $('dayDetailTitle'); },
-    get dayDetailContent() { return $('dayDetailContent'); },
-    get babySwitcher() { return $('babySwitcher'); },
-    get babyList() { return $('babyList'); },
-    get proBadge() { return $('proBadge'); },
-    get proActive() { return $('proActive'); },
-    get proInactive() { return $('proInactive'); },
-};
-
-// === ХЕЛПЕРЫ ===
-const today = new Date();
-const fmtDate = (d, opt) => (d||today).toLocaleDateString('ru-RU', opt||{day:'2-digit',month:'2-digit'});
-const fmtTime = ts => new Date(ts).toLocaleTimeString('ru-RU', {hour:'2-digit',minute:'2-digit'});
-const fmtDuration = sec => { const m=Math.floor(sec/60); return m<60?m+' мин':Math.floor(m/60)+' ч '+(m%60)+' мин'; };
-const fmtTimer = sec => String(Math.floor(sec/60)).padStart(2,'0')+':'+String(sec%60).padStart(2,'0');
-const pad2 = n => String(n).padStart(2,'0');
-const haptic = () => tg?.HapticFeedback?.notificationOccurred('success');
 
 // === TELEGRAM ===
 const tg = window.Telegram?.WebApp;
 if (tg) { tg.ready(); tg.expand(); }
-$('todayDate').textContent = fmtDate(today, {weekday:'long',day:'numeric',month:'long'});
+const today = new Date();
+$('todayDate').textContent = today.toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' });
+const fmtDate = (d, opt) => (d||today).toLocaleDateString('ru-RU', opt||{day:'2-digit',month:'2-digit'});
+const fmtTime = ts => new Date(ts).toLocaleTimeString('ru-RU', {hour:'2-digit',minute:'2-digit'});
+const pad2 = n => String(n).padStart(2,'0');
+const fmtTimer = sec => pad2(Math.floor(sec/60))+':'+pad2(sec%60);
+const haptic = () => tg?.HapticFeedback?.notificationOccurred('success');
 
 // === STORAGE ===
 const LS = {
-    get(key) { return JSON.parse(localStorage.getItem(key)||'null'); },
-    set(key, val) { localStorage.setItem(key, JSON.stringify(val)); },
-    remove(key) { localStorage.removeItem(key); }
+    get(key) { try { return JSON.parse(localStorage.getItem(key)); } catch(e) { return null; } },
+    set(key, val) { localStorage.setItem(key, JSON.stringify(val)); }
 };
 
 // === ДЕТИ ===
 let babies = LS.get('mama_babies') || [{id:'0',name:'Малыш'}];
 let currentBabyId = LS.get('mama_current_baby') || '0';
-
 function saveBabies() { LS.set('mama_babies', babies); LS.set('mama_current_baby', currentBabyId); }
 function getBabyPrefix() { return currentBabyId === '0' ? '' : '-' + currentBabyId; }
 function getStorageKey(type, dateObj) { return 'mama' + getBabyPrefix() + '-' + type + '-' + (dateObj||today).toISOString().split('T')[0]; }
@@ -390,21 +342,20 @@ function saveRecord(type, data) { const key = getStorageKey(type); const records
 function getAllRecords(type, days=30) { const all=[]; for(let i=0;i<days;i++){const d=new Date();d.setDate(d.getDate()-i);all.push(...getRecords(type,d));} return all.sort((a,b)=>b.timestamp-a.timestamp); }
 
 function switchBaby(id) { currentBabyId=id; saveBabies(); updateBabyUI(); refreshAll(); updateGrowthUI(); buildAllCharts(); updateCalendar(); updateMoodUI(); updateMedHistory(); }
-function addBaby() { const name=$('newBabyName').value.trim(); if(!name)return; babies.push({id:Date.now().toString(),name}); currentBabyId=babies[babies.length-1].id; saveBabies(); $('newBabyName').value=''; updateBabyUI(); refreshAll(); updateGrowthUI(); buildAllCharts(); updateCalendar(); updateMoodUI(); updateMedHistory(); $('babyPanel').classList.add('hidden'); }
+function addBaby() { const name=$('newBabyName').value.trim(); if(!name)return; babies.push({id:Date.now().toString(),name}); currentBabyId=babies[babies.length-1].id; saveBabies(); $('newBabyName').value=''; updateBabyUI(); refreshAll(); updateGrowthUI(); buildAllCharts(); updateCalendar(); updateMoodUI(); updateMedHistory(); hidePanel('babyPanel'); }
 function deleteBaby(id) { if(babies.length<=1)return; babies=babies.filter(b=>b.id!==id); if(currentBabyId===id)currentBabyId=babies[0].id; saveBabies(); updateBabyUI(); refreshAll(); updateGrowthUI(); buildAllCharts(); updateCalendar(); updateMoodUI(); updateMedHistory(); }
 
 function updateBabyUI() {
-    dom.babySwitcher.innerHTML = babies.map(b =>
-        `<span class="baby-chip${b.id===currentBabyId?' active':''}" data-baby="${b.id}">${b.name}</span>`
-    ).join('') + (babies.length<5 ? `<span class="baby-chip" id="btnOpenBabyPanel" style="font-size:18px;">➕</span>` : '');
-    if (dom.babyList) dom.babyList.innerHTML = babies.map(b =>
-        `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);"><span>${b.name} ${b.id===currentBabyId?'👈':''}</span>${babies.length>1?`<span data-delete-baby="${b.id}" style="color:#e8606e;cursor:pointer;">🗑</span>`:''}</div>`
+    $('babySwitcher').innerHTML = babies.map(b =>
+        `<span class="baby-chip${b.id===currentBabyId?' active':''}" onclick="switchBaby('${b.id}')">${b.name}</span>`
+    ).join('') + (babies.length<5 ? `<span class="baby-chip" onclick="togglePanel('babyPanel')" style="font-size:18px;">➕</span>` : '');
+    if ($('babyList')) $('babyList').innerHTML = babies.map(b =>
+        `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);"><span>${b.name} ${b.id===currentBabyId?'👈':''}</span>${babies.length>1?`<span onclick="deleteBaby('${b.id}')" style="color:#e8606e;cursor:pointer;">🗑</span>`:''}</div>`
     ).join('');
 }
 
 // === ТЕМЫ ===
 const THEME_KEY='mama_theme', COLOR_KEY='mama_color';
-
 function applyTheme(theme) {
     const isLight = theme === 'light';
     document.body.classList.toggle('light-theme', isLight);
@@ -418,27 +369,24 @@ function setColorScheme(scheme) {
     LS.set(COLOR_KEY, scheme);
     document.querySelectorAll('.color-btn').forEach(b => b.classList.toggle('active', b.dataset.color===scheme));
 }
-
 const savedColor = LS.get(COLOR_KEY) || 'pink';
 document.body.classList.add('color-'+savedColor);
 applyTheme(LS.get(THEME_KEY)||'dark');
-updateBabyUI();
 
 // === PRO ===
 const PRO_KEY = 'mama_pro_active';
 const isPro = () => LS.get(PRO_KEY) === true;
 function updateProUI() {
     const pro = isPro();
-    dom.proBadge.style.display = pro ? 'inline-block' : 'none';
-    dom.proActive.style.display = pro ? 'block' : 'none';
-    dom.proInactive.style.display = pro ? 'none' : 'block';
+    $('proBadge').style.display = pro ? 'inline-block' : 'none';
+    $('proActive').style.display = pro ? 'block' : 'none';
+    $('proInactive').style.display = pro ? 'none' : 'block';
     buildAllCharts();
 }
 function activatePro() {
     const code = $('activateCode').value.trim().toUpperCase();
     if (CFG.PRO_CODES.includes(code)) {
-        LS.set(PRO_KEY, true);
-        updateProUI();
+        LS.set(PRO_KEY, true); updateProUI();
         tg?.showPopup ? tg.showPopup({title:'🎉 PRO активирован!',message:'Все функции разблокированы!',buttons:[{type:'ok'}]}) : alert('PRO активирован!');
     } else {
         tg?.showPopup ? tg.showPopup({title:'❌ Неверный код',message:'Попробуйте TEST123',buttons:[{type:'ok'}]}) : alert('Неверный код.');
@@ -451,14 +399,12 @@ if (LS.get('mama-welcome-shown')) { $('welcomeScreen').style.display='none'; $('
 
 // === НАВИГАЦИЯ ===
 let mainTab = 'feeding', statsSubTab = 'feed';
-
 function switchMainTab(tab) {
     mainTab = tab;
-    document.querySelectorAll('#mainTabs .tab-btn').forEach((b,i) => b.classList.toggle('active', CFG.TABS[i]===tab));
+    document.querySelectorAll('.tabs .tab-btn').forEach((b,i) => b.classList.toggle('active', CFG.TABS[i]===tab));
     document.querySelectorAll('.tab-content').forEach(c => { c.classList.remove('active'); c.style.display='none'; });
     const target = $('tab-'+tab);
-    target.style.display='block';
-    requestAnimationFrame(() => requestAnimationFrame(() => target.classList.add('active')));
+    if (target) { target.style.display='block'; requestAnimationFrame(() => requestAnimationFrame(() => target.classList.add('active'))); }
     if (tab==='stats') buildAllCharts();
     if (tab==='growth') updateGrowthUI();
     if (tab==='calendar') updateCalendar();
@@ -468,39 +414,35 @@ function switchMainTab(tab) {
 }
 function switchStatsTab(tab) {
     statsSubTab = tab;
-    document.querySelectorAll('#statsSubTabs .sub-tab').forEach((b,i) => b.classList.toggle('active', ['feed','sleep','diaper'][i]===tab));
+    document.querySelectorAll('.sub-tabs .sub-tab').forEach((b,i) => b.classList.toggle('active', ['feed','sleep','diaper'][i]===tab));
     $('statsFeed').style.display = tab==='feed'?'block':'none';
     $('statsSleep').style.display = tab==='sleep'?'block':'none';
     $('statsDiaper').style.display = tab==='diaper'?'block':'none';
 }
 
-// === УНИВЕРСАЛЬНЫЙ ТАЙМЕР (кормление/сон) ===
+// === ПАНЕЛИ ===
+function togglePanel(id) { const p=$(id); if(p)p.classList.toggle('hidden'); }
+function hidePanel(id) { const p=$(id); if(p)p.classList.add('hidden'); }
+
+// === УНИВЕРСАЛЬНЫЙ ТАЙМЕР ===
 class Tracker {
     constructor(type, config) {
-        this.type = type;
-        this.cfg = config;
-        this.running = false;
-        this.startTime = null;
-        this.interval = null;
-        this.side = null;
+        this.type = type; this.cfg = config;
+        this.running = false; this.startTime = null; this.interval = null; this.side = null;
     }
     selectSide(side) { if(!this.running){ this.side=side; this.cfg.btn.disabled=false; this.cfg.sideButtons?.forEach(b=>b.classList.toggle('selected',b.dataset.side===side)); } }
     toggle() { this.running ? this.stop() : this.start(); }
     start() {
         if (this.type==='feed' && !this.side) return;
         this.running = true; this.startTime = Date.now();
-        this.cfg.btn.textContent = '⏹ Завершить';
-        this.cfg.btn.className = 'action-btn stop';
-        this.interval = setInterval(() => {
-            this.cfg.timerEl.textContent = fmtTimer(Math.floor((Date.now()-this.startTime)/1000));
-        }, 200);
+        this.cfg.btn.textContent = '⏹ Завершить'; this.cfg.btn.className = 'action-btn stop';
+        this.interval = setInterval(() => { this.cfg.timerEl.textContent = fmtTimer(Math.floor((Date.now()-this.startTime)/1000)); }, 200);
     }
     stop() {
         this.running = false; clearInterval(this.interval);
         const dur = Math.floor((Date.now()-this.startTime)/1000);
         this.cfg.timerEl.textContent = '00:00';
-        this.cfg.btn.textContent = this.cfg.startLabel;
-        this.cfg.btn.className = this.cfg.startClass;
+        this.cfg.btn.textContent = this.cfg.startLabel; this.cfg.btn.className = this.cfg.startClass;
         if (this.type==='feed') { this.cfg.btn.disabled=true; this.side=null; this.cfg.sideButtons?.forEach(b=>b.classList.remove('selected')); }
         const minDur = this.type==='feed'?5:60;
         if (dur >= minDur) {
@@ -511,48 +453,49 @@ class Tracker {
     }
 }
 
+// ГЛОБАЛЬНЫЕ трекеры (должны быть объявлены ДО использования в HTML)
 const feedTracker = new Tracker('feed', {
-    btn: dom.feedingBtn, timerEl: dom.feedingTimer,
+    btn: $('feedingBtn'), timerEl: $('feedingTimer'),
     sideButtons: [$('btnLeft'), $('btnRight')],
     startLabel: '▶️ Начать', startClass: 'action-btn start'
 });
 const sleepTracker = new Tracker('sleep', {
-    btn: dom.sleepBtn, timerEl: dom.sleepTimer,
+    btn: $('sleepBtn'), timerEl: $('sleepTimer'),
     startLabel: '▶️ Уложить спать', startClass: 'action-btn start-sleep'
 });
 
 // === КОРМЛЕНИЕ ===
 function updateFeedStats() {
     const recs = getRecords('feed');
-    dom.feedCount.textContent = recs.length;
+    $('feedCount').textContent = recs.length;
     const min = Math.floor(recs.reduce((s,r)=>s+r.duration,0)/60);
-    dom.feedDuration.textContent = min<60?min+' мин':Math.floor(min/60)+' ч '+(min%60)+' мин';
+    $('feedDuration').textContent = min<60?min+' мин':Math.floor(min/60)+' ч '+(min%60)+' мин';
 }
 function renderFeedHistory() {
     const recs = isPro() ? getAllRecords('feed').slice(0,50) : getRecords('feed').sort((a,b)=>b.timestamp-a.timestamp);
-    dom.feedHistory.innerHTML = recs.length ? recs.map((r,i)=>{
+    $('feedHistory').innerHTML = recs.length ? recs.map((r,i)=>{
         const min=Math.floor(r.duration/60), sec=r.duration%60;
         const dp=isPro()?`<span style="font-size:10px;color:var(--text-secondary);">${fmtDate(new Date(r.timestamp))} </span>`:'';
         const ni=(r.note||r.photo)?`<span class="history-note-icon">${r.photo?'🖼 ':''}${r.note?'📝':''}</span>`:'';
-        return `<div class="history-item" data-note="feed,${i}">${dp}<span>${fmtTime(r.timestamp)}</span><span class="history-duration">${min}:${pad2(sec)}${ni}</span><span class="history-side"><span class="side-dot ${r.side}"></span>${r.side==='left'?'Левая':'Правая'}</span></div>`;
+        return `<div class="history-item" onclick="showNote('feed',${i})">${dp}<span>${fmtTime(r.timestamp)}</span><span class="history-duration">${min}:${pad2(sec)}${ni}</span><span class="history-side"><span class="side-dot ${r.side}"></span>${r.side==='left'?'Левая':'Правая'}</span></div>`;
     }).join('') : '<div class="empty-state">Нет записей</div>';
 }
 
 // === СОН ===
 function updateSleepStats() {
     const recs = getRecords('sleep');
-    dom.sleepCount.textContent = recs.length;
+    $('sleepCount').textContent = recs.length;
     const min = Math.floor(recs.reduce((s,r)=>s+r.duration,0)/60);
-    dom.sleepDuration.textContent = min<60?min+' мин':Math.floor(min/60)+' ч '+(min%60)+' мин';
+    $('sleepDuration').textContent = min<60?min+' мин':Math.floor(min/60)+' ч '+(min%60)+' мин';
 }
 function renderSleepHistory() {
     const recs = isPro() ? getAllRecords('sleep').slice(0,50) : getRecords('sleep').sort((a,b)=>b.timestamp-a.timestamp);
-    dom.sleepHistory.innerHTML = recs.length ? recs.map((r,i)=>{
+    $('sleepHistory').innerHTML = recs.length ? recs.map((r,i)=>{
         const min=Math.floor(r.duration/60);
         const durStr=Math.floor(min/60)>0?Math.floor(min/60)+' ч '+(min%60)+' мин':min+' мин';
         const dp=isPro()?`<span style="font-size:10px;color:var(--text-secondary);">${fmtDate(new Date(r.timestamp))} </span>`:'';
         const ni=(r.note||r.photo)?`<span class="history-note-icon">${r.photo?'🖼 ':''}${r.note?'📝':''}</span>`:'';
-        return `<div class="history-item" data-note="sleep,${i}">${dp}<span>${fmtTime(r.timestamp)}</span><span class="history-duration">${durStr}${ni}</span><span class="history-side"><span class="side-dot sleep"></span>Сон</span></div>`;
+        return `<div class="history-item" onclick="showNote('sleep',${i})">${dp}<span>${fmtTime(r.timestamp)}</span><span class="history-duration">${durStr}${ni}</span><span class="history-side"><span class="side-dot sleep"></span>Сон</span></div>`;
     }).join('') : '<div class="empty-state">Нет записей</div>';
 }
 
@@ -560,14 +503,14 @@ function renderSleepHistory() {
 function addDiaper(type) { showNoteDialog('diaper', {type}); }
 function updateDiaperStats() {
     const recs = getRecords('diaper');
-    dom.diaperCount.textContent = recs.length;
-    dom.diaperDirty.textContent = recs.filter(r=>r.type==='dirty'||r.type==='both').length;
+    $('diaperCount').textContent = recs.length;
+    $('diaperDirty').textContent = recs.filter(r=>r.type==='dirty'||r.type==='both').length;
 }
 function renderDiaperHistory() {
     const recs = getRecords('diaper').sort((a,b)=>b.timestamp-a.timestamp);
-    dom.diaperHistory.innerHTML = recs.length ? recs.map((r,i)=>{
+    $('diaperHistory').innerHTML = recs.length ? recs.map((r,i)=>{
         const ni=(r.note||r.photo)?`<span class="history-note-icon">${r.photo?'🖼 ':''}${r.note?'📝':''}</span>`:'';
-        return `<div class="history-item" data-note="diaper,${i}"><span>${fmtTime(r.timestamp)}${ni}</span><span class="history-side"><span class="side-dot ${CFG.DIAPER_DOTS[r.type]}"></span>${CFG.DIAPER_LABELS[r.type]}</span></div>`;
+        return `<div class="history-item" onclick="showNote('diaper',${i})"><span>${fmtTime(r.timestamp)}${ni}</span><span class="history-side"><span class="side-dot ${CFG.DIAPER_DOTS[r.type]}"></span>${CFG.DIAPER_LABELS[r.type]}</span></div>`;
     }).join('') : '<div class="empty-state">Нет записей</div>';
 }
 
@@ -575,8 +518,8 @@ function refreshAll() { updateFeedStats(); renderFeedHistory(); updateSleepStats
 
 // === СТАТИСТИКА ===
 function getWeekData(type) { const days=[]; for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);days.push(getRecords(type,d));} return days; }
-function buildChart(container, data, color, labelFn, maxVal) {
-    if (!container) return;
+function buildChart(containerId, data, color, labelFn, maxVal) {
+    const container = $(containerId); if (!container) return;
     const max = maxVal || Math.max(...data.map(d=>d),1);
     container.innerHTML = '<div class="chart-row">'+data.map((val,i)=>{
         const h = max>0?Math.max((val/max)*90,4):4;
@@ -592,19 +535,17 @@ function calcAvgInterval(feedings) {
     const avgMin=Math.floor(totalGap/gaps/60000);
     return avgMin<60?avgMin+' мин':Math.floor(avgMin/60)+' ч '+(avgMin%60)+' мин';
 }
-
 function buildFeedChart() {
     const week=getWeekData('feed');
-    const counts=week.map(r=>r.length);
-    const durations=week.map(r=>Math.floor(r.reduce((s,f)=>s+f.duration,0)/60));
-    buildChart(dom.feedChart, durations, 'var(--accent)', v=>v+' мин', 120);
-    dom.feedAverages.innerHTML = `
+    const counts=week.map(r=>r.length), durations=week.map(r=>Math.floor(r.reduce((s,f)=>s+f.duration,0)/60));
+    buildChart('feedChart', durations, 'var(--accent)', v=>v+' мин', 120);
+    $('feedAverages').innerHTML = `
         <div class="avg-row"><span>Всего кормлений</span><span class="avg-value">${counts.reduce((a,b)=>a+b,0)}</span></div>
         <div class="avg-row"><span>В среднем в день</span><span class="avg-value">${(counts.reduce((a,b)=>a+b,0)/7).toFixed(1)}</span></div>
         <div class="avg-row"><span>Средняя длительность</span><span class="avg-value">${durations.reduce((a,b)=>a+b,0)>0?Math.floor(durations.reduce((a,b)=>a+b,0)/counts.reduce((a,b)=>a+b,0)):0} мин</span></div>`;
     const allFeed=getAllRecords('feed');
     const left=allFeed.filter(r=>r.side==='left').length, right=allFeed.filter(r=>r.side==='right').length, total=left+right||1;
-    dom.proFeedContent.innerHTML = isPro() ? `
+    $('proFeedContent').innerHTML = isPro() ? `
         <p style="font-size:13px;color:var(--text-secondary);margin-bottom:8px;">Соотношение груди (за 30 дней)</p>
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;"><span style="font-size:12px;width:50px;">⬅️ Левая</span><div class="pro-bar" style="flex:1;"><div class="pro-bar-fill" style="width:${Math.round(left/total*100)}%;background:var(--left-breast);"></div></div><span style="font-size:12px;width:40px;">${Math.round(left/total*100)}%</span></div>
         <div style="display:flex;align-items:center;gap:8px;"><span style="font-size:12px;width:50px;">➡️ Правая</span><div class="pro-bar" style="flex:1;"><div class="pro-bar-fill" style="width:${Math.round(right/total*100)}%;background:var(--right-breast);"></div></div><span style="font-size:12px;width:40px;">${Math.round(right/total*100)}%</span></div>
@@ -615,18 +556,18 @@ function buildFeedChart() {
 function buildSleepChart() {
     const week=getWeekData('sleep');
     const counts=week.map(r=>r.length), durations=week.map(r=>Math.floor(r.reduce((s,f)=>s+f.duration,0)/60));
-    buildChart(dom.sleepChart, durations, 'var(--sleep)', v=>v>=60?Math.floor(v/60)+' ч':v+' мин', 600);
+    buildChart('sleepChart', durations, 'var(--sleep)', v=>v>=60?Math.floor(v/60)+' ч':v+' мин', 600);
     const totalMin=durations.reduce((a,b)=>a+b,0), totalCount=counts.reduce((a,b)=>a+b,0);
-    dom.sleepAverages.innerHTML = `
+    $('sleepAverages').innerHTML = `
         <div class="avg-row"><span>Всего сна</span><span class="avg-value">${Math.floor(totalMin/60)} ч ${totalMin%60} мин</span></div>
         <div class="avg-row"><span>В среднем в день</span><span class="avg-value">${Math.floor(totalMin/7/60)} ч ${Math.floor(totalMin/7)%60} мин</span></div>
         <div class="avg-row"><span>Средняя длительность</span><span class="avg-value">${totalCount>0?Math.floor(totalMin/totalCount):0} мин</span></div>`;
 }
 function buildDiaperChart() {
     const week=getWeekData('diaper'), counts=week.map(r=>r.length);
-    buildChart(dom.diaperChart, counts, 'var(--diaper)', v=>v, 20);
+    buildChart('diaperChart', counts, 'var(--diaper)', v=>v, 20);
     const total=counts.reduce((a,b)=>a+b,0);
-    dom.diaperAverages.innerHTML = `
+    $('diaperAverages').innerHTML = `
         <div class="avg-row"><span>Всего смен</span><span class="avg-value">${total}</span></div>
         <div class="avg-row"><span>В среднем в день</span><span class="avg-value">${(total/7).toFixed(1)}</span></div>`;
 }
@@ -635,11 +576,10 @@ function buildAllCharts() { buildFeedChart(); buildSleepChart(); buildDiaperChar
 // === КАЛЕНДАРЬ ===
 let calYear=today.getFullYear(), calMonth=today.getMonth();
 const MONTHS=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
-
 function changeMonth(delta) { calMonth+=delta; if(calMonth<0){calMonth=11;calYear--;} if(calMonth>11){calMonth=0;calYear++;} updateCalendar(); }
 function getFeedCountForDate(d) { return getRecords('feed',d).length; }
 function updateCalendar() {
-    dom.monthLabel.textContent = MONTHS[calMonth]+' '+calYear;
+    $('monthLabel').textContent = MONTHS[calMonth]+' '+calYear;
     let html = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'].map(d=>`<div class="calendar-day-header">${d}</div>`).join('');
     const firstDay=new Date(calYear,calMonth,1), lastDay=new Date(calYear,calMonth+1,0);
     let startDow=firstDay.getDay()||7;
@@ -652,25 +592,25 @@ function updateCalendar() {
         const count=getFeedCountForDate(new Date(calYear,calMonth,d)), intensity=count/maxFeeds;
         let bg=count===0?'var(--stat-bg)':intensity<0.25?'rgba(232,160,191,0.15)':intensity<0.5?'rgba(232,160,191,0.35)':intensity<0.75?'rgba(232,160,191,0.6)':'#e8a0bf';
         const todayClass=(d===today.getDate()&&calMonth===today.getMonth()&&calYear===today.getFullYear())?' today':'';
-        html+=`<div class="calendar-day${todayClass}" style="background:${bg};color:${count>0&&intensity>=0.75?'#1a1a2e':'var(--text-secondary)'};" data-day="${d}">${d}</div>`;
+        html+=`<div class="calendar-day${todayClass}" style="background:${bg};color:${count>0&&intensity>=0.75?'#1a1a2e':'var(--text-secondary)'};" onclick="showDayDetail(${d})">${d}</div>`;
     }
     const remaining=7-((startDow-1+lastDay.getDate())%7);
     if(remaining<7) for(let i=1;i<=remaining;i++) html+=`<div class="calendar-day other-month">${i}</div>`;
-    dom.calendarGrid.innerHTML = html;
+    $('calendarGrid').innerHTML = html;
 }
 function showDayDetail(day) {
     document.querySelectorAll('.calendar-day.selected').forEach(el=>el.classList.remove('selected'));
-    const dayEl = document.querySelector(`.calendar-day[data-day="${day}"]:not(.other-month)`);
+    const dayEl = document.querySelector(`.calendar-day[onclick="showDayDetail(${day})"]:not(.other-month)`);
     if (dayEl) dayEl.classList.add('selected');
     const date = new Date(calYear,calMonth,day);
-    dom.dayDetailTitle.textContent = '📅 '+fmtDate(date,{weekday:'long',day:'numeric',month:'long'});
+    $('dayDetailTitle').textContent = '📅 '+fmtDate(date,{weekday:'long',day:'numeric',month:'long'});
     const feedData=getRecords('feed',date), sleepData=getRecords('sleep',date), diaperData=getRecords('diaper',date);
     let html='';
     if(feedData.length){html+='<p style="font-size:14px;color:var(--accent);margin-bottom:8px;">🍼 Кормления: '+feedData.length+'</p>';feedData.sort((a,b)=>a.timestamp-b.timestamp).forEach(r=>html+=`<div style="font-size:13px;padding:4px 0;color:var(--text-secondary);">${fmtTime(r.timestamp)} — ${Math.floor(r.duration/60)} мин (${r.side==='left'?'Л':'П'})</div>`);}
     if(sleepData.length){html+='<p style="font-size:14px;color:var(--sleep);margin-top:12px;margin-bottom:8px;">😴 Сон: '+sleepData.length+'</p>';sleepData.sort((a,b)=>a.timestamp-b.timestamp).forEach(r=>html+=`<div style="font-size:13px;padding:4px 0;color:var(--text-secondary);">${fmtTime(r.timestamp)} — ${Math.floor(r.duration/60)} мин</div>`);}
     if(diaperData.length){html+='<p style="font-size:14px;color:var(--diaper);margin-top:12px;margin-bottom:8px;">💧 Подгузники: '+diaperData.length+'</p>';diaperData.sort((a,b)=>a.timestamp-b.timestamp).forEach(r=>html+=`<div style="font-size:13px;padding:4px 0;color:var(--text-secondary);">${fmtTime(r.timestamp)} — ${CFG.DIAPER_LABELS[r.type]||r.type}</div>`);}
-    dom.dayDetailContent.innerHTML = html || '<p style="color:var(--text-secondary);">Нет данных за этот день</p>';
-    dom.dayDetail.style.display='block';
+    $('dayDetailContent').innerHTML = html || '<p style="color:var(--text-secondary);">Нет данных за этот день</p>';
+    $('dayDetail').style.display='block';
 }
 
 // === РОСТ И ВЕС ===
@@ -695,8 +635,7 @@ function editGrowth(index) {
     updateGrowthComparison();
 }
 function drawGrowthChart(canvasId, records, field, color, unit) {
-    const canvas = $(canvasId);
-    if (!canvas || !records.length) return;
+    const canvas = $(canvasId); if (!canvas || !records.length) return;
     const valid = records.filter(r => r[field] != null);
     if (valid.length < 1) return;
     const ctx = canvas.getContext('2d');
@@ -719,8 +658,7 @@ function drawGrowthChart(canvasId, records, field, color, unit) {
         ctx.fillStyle=secColor; ctx.font='10px -apple-system, sans-serif';
         ctx.fillText((maxVal-(range/4)*i).toFixed(1)+unit, 2, gy+4);
     }
-    const cssColor = getComputedStyle(document.body).getPropertyValue(field==='weight'?'--accent':'--sleep').trim();
-    const actualColor = cssColor || (field==='weight'?'#e8a0bf':'#c4a0e8');
+    const actualColor = field==='weight'?'#e8a0bf':'#c4a0e8';
     if (valid.length===1) {
         const x=pad.left+(w-pad.left-pad.right)/2, y=pad.top+h-((valid[0][field]-minVal)/range)*h;
         ctx.fillStyle=actualColor; ctx.beginPath(); ctx.arc(x,y,8,0,Math.PI*2); ctx.fill();
@@ -746,9 +684,9 @@ function drawGrowthChart(canvasId, records, field, color, unit) {
 }
 function updateGrowthUI() {
     const records = getGrowthRecords();
-    dom.growthHistory.innerHTML = records.length ? records.map((r,i)=>{
+    $('growthHistory').innerHTML = records.length ? records.map((r,i)=>{
         const parts=[]; if(r.weight)parts.push('⚖️ '+r.weight+' кг'); if(r.height)parts.push('📏 '+r.height+' см');
-        return `<div class="growth-list-item" data-edit-growth="${i}"><span>${fmtDate(new Date(r.date),{day:'2-digit',month:'2-digit',year:'numeric'})}</span><span style="font-size:13px;color:var(--text-secondary);">${parts.join(' · ')}</span><span data-delete-growth="${i}" style="color:#e8606e;cursor:pointer;">🗑</span></div>`;
+        return `<div class="growth-list-item" onclick="editGrowth(${i})"><span>${fmtDate(new Date(r.date),{day:'2-digit',month:'2-digit',year:'numeric'})}</span><span style="font-size:13px;color:var(--text-secondary);">${parts.join(' · ')}</span><span onclick="event.stopPropagation();deleteGrowth(${i})" style="color:#e8606e;cursor:pointer;">🗑</span></div>`;
     }).join('') : '<div class="empty-state">Нет записей</div>';
     $('growthDate').value = today.toISOString().split('T')[0];
     updateGrowthComparison();
@@ -756,14 +694,14 @@ function updateGrowthUI() {
 }
 function updateGrowthComparison() {
     const records=getGrowthRecords(), currentDate=$('growthDate').value;
-    if(!currentDate||records.length===0){dom.growthComparison.innerHTML='';return;}
+    if(!currentDate||records.length===0){$('growthComparison').innerHTML='';return;}
     const prevRecords=records.filter(r=>r.date<currentDate).sort((a,b)=>b.date.localeCompare(a.date));
-    if(prevRecords.length===0){dom.growthComparison.innerHTML='<span style="font-size:12px;color:var(--text-secondary);">Это первое измерение</span>';return;}
+    if(prevRecords.length===0){$('growthComparison').innerHTML='<span style="font-size:12px;color:var(--text-secondary);">Это первое измерение</span>';return;}
     const prev=prevRecords[0], daysDiff=Math.floor((new Date(currentDate)-new Date(prev.date))/(86400000));
     let parts=[];
     if(prev.weight!=null){const cw=parseFloat($('growthWeight').value);if(cw){const diff=cw-prev.weight,sign=diff>=0?'+':'';parts.push('⚖️ Вес: '+sign+diff.toFixed(1)+' кг (было '+prev.weight+' кг, '+(daysDiff===0?'сегодня':daysDiff+' дн. назад')+')');}}
     if(prev.height!=null){const ch=parseFloat($('growthHeight').value);if(ch){const diff=ch-prev.height,sign=diff>=0?'+':'';parts.push('📏 Рост: '+sign+diff.toFixed(1)+' см (было '+prev.height+' см, '+(daysDiff===0?'сегодня':daysDiff+' дн. назад')+')');}}
-    dom.growthComparison.innerHTML = parts.length>0 ? '<span style="font-size:12px;color:var(--accent);">С прошлого измерения:</span><br>'+parts.join('<br>') : '<span style="font-size:12px;color:var(--text-secondary);">Введите вес или рост для сравнения</span>';
+    $('growthComparison').innerHTML = parts.length>0 ? '<span style="font-size:12px;color:var(--accent);">С прошлого измерения:</span><br>'+parts.join('<br>') : '<span style="font-size:12px;color:var(--text-secondary);">Введите вес или рост для сравнения</span>';
 }
 
 // === НАСТРОЕНИЕ ===
@@ -776,29 +714,25 @@ function getAllMoodRecords() {
 function saveMood(mood) { LS.set(getMoodKey(), mood); updateMoodUI(); haptic(); }
 function updateMoodUI() {
     const todayMood = LS.get(getMoodKey());
-    dom.moodTodayLabel.innerHTML = todayMood&&CFG.MOODS[todayMood] ? `Сегодня: ${CFG.MOODS[todayMood].emoji} ${CFG.MOODS[todayMood].text}` : 'Выберите настроение';
+    $('moodTodayLabel').innerHTML = todayMood&&CFG.MOODS[todayMood] ? `Сегодня: ${CFG.MOODS[todayMood].emoji} ${CFG.MOODS[todayMood].text}` : 'Выберите настроение';
     const allMoods = getAllMoodRecords();
-    dom.moodHistory.innerHTML = allMoods.length ? allMoods.map(r=>{
+    $('moodHistory').innerHTML = allMoods.length ? allMoods.map(r=>{
         const m=CFG.MOODS[r.mood]||{emoji:'❓',text:'Неизвестно'};
         return `<div class="mood-history-item"><span class="mood-emoji-big">${m.emoji}</span><span class="mood-label">${m.text}</span><span class="mood-date" style="margin-left:auto;">${fmtDate(new Date(r.date),{weekday:'short',day:'numeric',month:'short'})}</span></div>`;
     }).join('') : '<div class="empty-state">Нет записей</div>';
     const weekMoods = allMoods.filter(r=>{const d=new Date(r.date),wa=new Date();wa.setDate(wa.getDate()-7);return d>=wa;});
-    if(weekMoods.length===0){dom.moodWeekStats.innerHTML='—';dom.moodWeekLabel.textContent='Нет данных за неделю';}
+    if(weekMoods.length===0){$('moodWeekStats').innerHTML='—';$('moodWeekLabel').textContent='Нет данных за неделю';}
     else{
         const counts={}; weekMoods.forEach(r=>{counts[r.mood]=(counts[r.mood]||0)+1;});
         const top=Object.entries(counts).sort((a,b)=>b[1]-a[1])[0], m=CFG.MOODS[top[0]];
-        dom.moodWeekStats.innerHTML=`${m.emoji} ${m.text}`;
-        dom.moodWeekLabel.textContent=`Чаще всего за 7 дней (${top[1]} из ${weekMoods.length})`;
+        $('moodWeekStats').innerHTML=`${m.emoji} ${m.text}`;
+        $('moodWeekLabel').textContent=`Чаще всего за 7 дней (${top[1]} из ${weekMoods.length})`;
     }
 }
 
 // === ЛЕКАРСТВА ===
 let medInterval=4, medTimerId=null, medEndTime=null;
-
-function selectMedInterval(h) {
-    medInterval=h;
-    document.querySelectorAll('#medIntervals .interval-btn').forEach(b=>b.classList.toggle('active',+b.dataset.int===h));
-}
+function selectMedInterval(h) { medInterval=h; document.querySelectorAll('#medIntervals .interval-btn').forEach(b=>b.classList.toggle('active',parseInt(b.textContent)===h||(h===0&&b.textContent==='Разово'))); }
 function addMedication() {
     const name=$('medName').value.trim(), dose=$('medDose').value.trim();
     if(!name) return alert('Введите название лекарства');
@@ -807,18 +741,18 @@ function addMedication() {
     if(medInterval>0) startMedTimer(medInterval);
     updateMedHistory(); haptic();
 }
-function startMedTimer(hours) { medEndTime=Date.now()+hours*3600000; dom.medTimer.style.display='block'; updateMedCountdown(); if(medTimerId)clearInterval(medTimerId); medTimerId=setInterval(updateMedCountdown,1000); }
+function startMedTimer(hours) { medEndTime=Date.now()+hours*3600000; $('medTimer').style.display='block'; updateMedCountdown(); if(medTimerId)clearInterval(medTimerId); medTimerId=setInterval(updateMedCountdown,1000); }
 function updateMedCountdown() {
     if(!medEndTime) return;
     const remaining=Math.max(0,medEndTime-Date.now());
-    if(remaining<=0){dom.medCountdown.textContent='00:00:00';if(medTimerId)clearInterval(medTimerId);if('Notification' in window&&Notification.permission==='granted')new Notification('💊 Время лекарства!',{body:'Пора дать следующую дозу',tag:'med-reminder',vibrate:[200,100,200]});return;}
+    if(remaining<=0){$('medCountdown').textContent='00:00:00';if(medTimerId)clearInterval(medTimerId);if('Notification' in window&&Notification.permission==='granted')new Notification('💊 Время лекарства!',{body:'Пора дать следующую дозу',tag:'med-reminder',vibrate:[200,100,200]});return;}
     const h=Math.floor(remaining/3600000),m=Math.floor((remaining%3600000)/60000),s=Math.floor((remaining%60000)/1000);
-    dom.medCountdown.textContent=`${pad2(h)}:${pad2(m)}:${pad2(s)}`;
+    $('medCountdown').textContent=`${pad2(h)}:${pad2(m)}:${pad2(s)}`;
 }
 function resetMedTimer() { medEndTime=Date.now()+medInterval*3600000; updateMedCountdown(); if(!medTimerId)medTimerId=setInterval(updateMedCountdown,1000); }
 function updateMedHistory() {
     const recs=getAllRecords('meds',1);
-    dom.medHistory.innerHTML = recs.length ? recs.map(r=>{
+    $('medHistory').innerHTML = recs.length ? recs.map(r=>{
         const t=fmtTime(r.timestamp), intStr=r.interval>0?` (каждые ${r.interval} ч)`:' (разово)';
         return `<div class="history-item"><span>💊 ${r.name} ${r.dose}</span><span style="font-size:12px;color:var(--text-secondary);">${t}${intStr}</span></div>`;
     }).join('') : '<div class="empty-state">Нет записей</div>';
@@ -830,25 +764,23 @@ function getMinutesSinceLastFeeding() { const recs=getRecords('feed'); return re
 function startReminder(min) {
     stopReminder();
     if('Notification' in window&&Notification.permission==='default'){Notification.requestPermission().then(p=>{if(p==='granted')startReminder(min);});return;}
-    reminderMinutes=min;
-    dom.reminderStatus.innerHTML='⏰ Каждые '+min+' мин';
-    dom.reminderStatus.style.color='#7ecb8a';
+    reminderMinutes=min; $('reminderStatus').innerHTML='⏰ Каждые '+min+' мин'; $('reminderStatus').style.color='#7ecb8a';
     reminderInterval=setInterval(()=>{
         const m=getMinutesSinceLastFeeding();
         if(m!==null&&m>=reminderMinutes&&'Notification' in window&&Notification.permission==='granted'){new Notification('🍼 Время кормления!',{body:'Прошло '+m+' минут',tag:'feed-reminder',vibrate:[200,100,200]});stopReminder();}
     },30000);
 }
-function stopReminder() { if(reminderInterval){clearInterval(reminderInterval);reminderInterval=null;} reminderMinutes=null; dom.reminderStatus.innerHTML=''; }
+function stopReminder() { if(reminderInterval){clearInterval(reminderInterval);reminderInterval=null;} reminderMinutes=null; $('reminderStatus').innerHTML=''; }
 
 // === ЗВУКИ ===
-let audioCtx=null, soundNodes=[], soundTimer=null, currentSound=null, currentVolume=0.5;
+let audioCtx=null, soundNodes=[], soundTimer=null, currentVolume=0.5;
 function initAudio() { if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)(); if(audioCtx.state==='suspended')audioCtx.resume(); }
 function stopAllNodes() { soundNodes.forEach(n=>{try{if(n.stop)n.stop();if(n.disconnect)n.disconnect();}catch(e){}}); soundNodes=[]; }
-function stopSound() { stopAllNodes(); if(soundTimer){clearTimeout(soundTimer);soundTimer=null;} currentSound=null; document.querySelectorAll('.sound-btn').forEach(b=>b.classList.remove('active')); $('soundPanel').classList.add('hidden'); }
+function stopSound() { stopAllNodes(); if(soundTimer){clearTimeout(soundTimer);soundTimer=null;} document.querySelectorAll('.sound-btn').forEach(b=>b.classList.remove('active')); hidePanel('soundPanel'); }
 function createGain() { const g=audioCtx.createGain(); g.gain.value=currentVolume; g.connect(audioCtx.destination); soundNodes.push(g); return g; }
 function playSound(type) {
     initAudio(); stopAllNodes(); if(soundTimer)clearTimeout(soundTimer);
-    currentSound=type; const masterGain=createGain();
+    const masterGain=createGain();
     const builders = {
         whitenoise:()=>{const buf=audioCtx.createBuffer(1,4*audioCtx.sampleRate,audioCtx.sampleRate);const d=buf.getChannelData(0);let last=0;for(let i=0;i<d.length;i++){const w=Math.random()*2-1;last=last*0.7+w*0.3;d[i]=last*0.6;}const s=audioCtx.createBufferSource();s.buffer=buf;s.loop=true;const f=audioCtx.createBiquadFilter();f.type='lowpass';f.frequency.value=3000;s.connect(f);f.connect(masterGain);s.start();soundNodes.push(s,f);},
         fan:()=>{const o1=audioCtx.createOscillator();o1.type='sine';o1.frequency.value=85;const o2=audioCtx.createOscillator();o2.type='sine';o2.frequency.value=87;const fg=audioCtx.createGain();fg.gain.value=0.4;o1.connect(fg);o2.connect(fg);const ff=audioCtx.createBiquadFilter();ff.type='lowpass';ff.frequency.value=200;fg.connect(ff);ff.connect(masterGain);o1.start();o2.start();soundNodes.push(o1,o2,fg,ff);},
@@ -862,100 +794,85 @@ function playSound(type) {
     document.querySelector(`.sound-btn[data-sound="${type}"]`)?.classList.add('active');
 }
 function setVolume(val) { currentVolume=val/100; $('volumeLabel').textContent=val+'%'; soundNodes.forEach(n=>{if(n.gain?.value!==undefined)n.gain.value=currentVolume;}); }
-function setSoundTimer(minutes) { if(soundTimer)clearTimeout(soundTimer); document.querySelectorAll('#soundTimers button').forEach(b=>b.classList.toggle('active',+b.dataset.timer===minutes)); if(minutes>0)soundTimer=setTimeout(stopSound,minutes*60*1000); }
+function setSoundTimer(minutes) { if(soundTimer)clearTimeout(soundTimer); document.querySelectorAll('#soundTimers button').forEach(b=>b.classList.toggle('active',parseInt(b.textContent)===minutes||(minutes===0&&b.textContent==='∞'))); if(minutes>0)soundTimer=setTimeout(stopSound,minutes*60*1000); }
 
 // === ЗАМЕТКИ И ФОТО ===
-let pendingSave=null, pendingPhoto=null, editPendingPhoto=null;
+let pendingSave=null, pendingPhoto=null;
 function handlePhotoSelect(input, previewId, labelId) {
     const file=input.files[0]; if(!file)return;
     const reader=new FileReader();
-    reader.onload=function(e){
-        pendingPhoto=e.target.result;
-        const preview=$(previewId); if(preview){preview.style.display='block';preview.innerHTML=`<img src="${e.target.result}" style="max-width:100%;max-height:120px;border-radius:12px;">`;}
-        const label=$(labelId); if(label)label.textContent='✅ Фото выбрано';
-    };
+    reader.onload=function(e){ pendingPhoto=e.target.result; const p=$(previewId); if(p){p.style.display='block';p.innerHTML=`<img src="${e.target.result}" style="max-width:100%;max-height:120px;border-radius:12px;">`;} const l=$(labelId); if(l)l.textContent='✅ Фото выбрано'; };
     reader.readAsDataURL(file);
 }
 function showNoteDialog(type, data) {
     pendingSave={type,data}; pendingPhoto=null;
     const emoji={'feed':'🍼','sleep':'😴','diaper':'💧'}[type];
     const title={'feed':'Кормление','sleep':'Сон','diaper':'Подгузник'}[type];
-    const textareaId='noteText';
     showOverlay(`
         <h3>${emoji} ${title} сохранено!</h3>
         <p style="color:var(--text-secondary);font-size:13px;margin-bottom:8px;">Добавить заметку:</p>
-        <textarea id="${textareaId}" placeholder="Напишите или выберите шаблон..."></textarea>
-        <div class="note-templates">${CFG.NOTE_TEMPLATES.map(t=>`<span class="note-template" data-template="${textareaId},${t.text}">${t.emoji} ${t.text}</span>`).join('')}</div>
+        <textarea id="noteText" placeholder="Напишите или выберите шаблон..."></textarea>
+        <div class="note-templates">${CFG.NOTE_TEMPLATES.map(t=>`<span class="note-template" onclick="addTemplate('noteText','${t.text}')">${t.emoji} ${t.text}</span>`).join('')}</div>
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
-            <input type="file" id="notePhotoInput" accept="image/*" capture="camera" style="display:none;">
-            <button class="note-template" id="btnPhotoUpload" style="display:flex;align-items:center;gap:4px;">📷 Фото</button>
+            <input type="file" id="notePhotoInput" accept="image/*" capture="camera" style="display:none;" onchange="handlePhotoSelect(this,'notePhotoPreview','notePhotoLabel')">
+            <button class="note-template" onclick="$('notePhotoInput').click()" style="display:flex;align-items:center;gap:4px;">📷 Фото</button>
             <span id="notePhotoLabel" style="font-size:12px;color:var(--text-secondary);"></span>
         </div>
         <div id="notePhotoPreview" style="display:none;margin-bottom:8px;text-align:center;"></div>
         <div class="dialog-buttons">
-            <button class="btn-skip" id="noteSkip">Пропустить</button>
-            <button class="btn-save" id="noteSave">💾 Сохранить</button>
+            <button class="btn-skip" onclick="skipNote()">Пропустить</button>
+            <button class="btn-save" onclick="saveNote()">💾 Сохранить</button>
         </div>
-    `, () => {
-        $('btnPhotoUpload').onclick = () => $('notePhotoInput').click();
-        $('notePhotoInput').onchange = function() { handlePhotoSelect(this, 'notePhotoPreview', 'notePhotoLabel'); };
-        $('noteSave').onclick = () => { const note=$('noteText').value.trim(); if(pendingSave){pendingSave.data.note=note;if(pendingPhoto)pendingSave.data.photo=pendingPhoto;saveRecord(pendingSave.type,pendingSave.data);refreshAll();} closeOverlay(); };
-        $('noteSkip').onclick = () => { if(pendingSave){if(pendingPhoto)pendingSave.data.photo=pendingPhoto;saveRecord(pendingSave.type,pendingSave.data);refreshAll();} closeOverlay(); };
-        setTimeout(()=>$('noteText').focus(),100);
-    }, () => { if(pendingSave){if(pendingPhoto)pendingSave.data.photo=pendingPhoto;saveRecord(pendingSave.type,pendingSave.data);refreshAll();} pendingSave=null;pendingPhoto=null; });
+    `);
+    setTimeout(()=>$('noteText')?.focus(),100);
 }
+function addTemplate(textareaId, text) { const ta=$(textareaId); if(ta){ta.value=ta.value.trim()?ta.value+'; '+text:text;ta.focus();} }
+function skipNote() { if(pendingSave){if(pendingPhoto)pendingSave.data.photo=pendingPhoto;saveRecord(pendingSave.type,pendingSave.data);refreshAll();} closeOverlay(); }
+function saveNote() { const note=$('noteText')?.value.trim(); if(pendingSave){pendingSave.data.note=note;if(pendingPhoto)pendingSave.data.photo=pendingPhoto;saveRecord(pendingSave.type,pendingSave.data);refreshAll();} closeOverlay(); }
+
 function showNote(type, index) {
     const recsAll = type==='feed' ? (isPro()?getAllRecords('feed',30).slice(0,50):getRecords('feed').sort((a,b)=>b.timestamp-a.timestamp))
         : type==='sleep' ? (isPro()?getAllRecords('sleep',30).slice(0,50):getRecords('sleep').sort((a,b)=>b.timestamp-a.timestamp))
         : getRecords('diaper').sort((a,b)=>b.timestamp-a.timestamp);
     const record=recsAll[index]; if(!record)return;
-    editPendingPhoto=record.photo||null;
     const emoji={'feed':'🍼','sleep':'😴','diaper':'💧'}[type];
-    const textareaId='editNoteText';
+    const noteText = record.note || '';
     showOverlay(`
         <h3>${emoji} ${fmtDate(new Date(record.timestamp))} ${fmtTime(record.timestamp)}</h3>
-        <p style="color:var(--text-secondary);font-size:13px;margin-bottom:8px;">${record.note?'Редактировать заметку:':'Добавить заметку:'}</p>
-        <textarea id="${textareaId}" placeholder="Заметка...">${record.note||''}</textarea>
-        <div class="note-templates">${CFG.NOTE_TEMPLATES.map(t=>`<span class="note-template" data-template="${textareaId},${t.text}">${t.emoji} ${t.text}</span>`).join('')}</div>
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
-            <input type="file" id="editPhotoInput" accept="image/*" capture="camera" style="display:none;">
-            <button class="note-template" id="btnEditPhoto" style="display:flex;align-items:center;gap:4px;">📷 Фото</button>
-            <span id="editPhotoLabel" style="font-size:12px;color:var(--text-secondary);">${record.photo?'✅ Фото есть':'Добавить фото'}</span>
-        </div>
-        <div id="editPhotoPreview" style="margin-bottom:8px;text-align:center;">${record.photo?`<img src="${record.photo}" style="max-width:100%;max-height:120px;border-radius:12px;">`:''}</div>
+        <textarea id="editNoteText" placeholder="Заметка...">${noteText}</textarea>
+        <div class="note-templates">${CFG.NOTE_TEMPLATES.map(t=>`<span class="note-template" onclick="addTemplate('editNoteText','${t.text}')">${t.emoji} ${t.text}</span>`).join('')}</div>
         <div class="dialog-buttons">
-            ${record.note||record.photo?'<button class="btn-skip" id="noteDelete" style="color:#e8606e;">🗑 Удалить</button>':''}
-            <button class="btn-skip" id="noteClose">Закрыть</button>
-            <button class="btn-save" id="noteUpdate">💾 Сохранить</button>
+            ${noteText||record.photo?`<button class="btn-skip" style="color:#e8606e;" onclick="deleteNote('${type}',${record.timestamp})">🗑 Удалить</button>`:''}
+            <button class="btn-skip" onclick="closeOverlay()">Закрыть</button>
+            <button class="btn-save" onclick="updateNote('${type}',${record.timestamp})">💾 Сохранить</button>
         </div>
-    `, () => {
-        $('btnEditPhoto').onclick = () => $('editPhotoInput').click();
-        $('editPhotoInput').onchange = function() { const file=this.files[0];if(!file)return;const reader=new FileReader();reader.onload=function(e){editPendingPhoto=e.target.result;$('editPhotoPreview').innerHTML=`<img src="${e.target.result}" style="max-width:100%;max-height:120px;border-radius:12px;">`;$('editPhotoLabel').textContent='✅ Фото выбрано';};reader.readAsDataURL(file); };
-        $('noteUpdate').onclick = () => {
-            const nn=$('editNoteText').value.trim();
-            const key=getStorageKey(type,new Date(record.timestamp));
-            const all=LS.get(key)||[];
-            for(let i=all.length-1;i>=0;i--){if(all[i].timestamp===record.timestamp){all[i].note=nn||undefined;if(!nn)delete all[i].note;if(editPendingPhoto)all[i].photo=editPendingPhoto;else delete all[i].photo;break;}}
-            LS.set(key,all); closeOverlay(); refreshAll();
-        };
-        $('noteClose').onclick = closeOverlay;
-        const delBtn=$('noteDelete');
-        if(delBtn)delBtn.onclick=()=>{const key=getStorageKey(type,new Date(record.timestamp));const all=LS.get(key)||[];for(let i=all.length-1;i>=0;i--){if(all[i].timestamp===record.timestamp){delete all[i].note;delete all[i].photo;break;}}LS.set(key,all);closeOverlay();refreshAll();};
-        setTimeout(()=>$('editNoteText').focus(),100);
-    });
+    `);
+    setTimeout(()=>$('editNoteText')?.focus(),100);
+}
+function updateNote(type, ts) {
+    const nn=$('editNoteText')?.value.trim();
+    const key=getStorageKey(type,new Date(ts));
+    const all=LS.get(key)||[];
+    for(let i=all.length-1;i>=0;i--){if(all[i].timestamp===ts){all[i].note=nn||undefined;if(!nn)delete all[i].note;break;}}
+    LS.set(key,all); closeOverlay(); refreshAll();
+}
+function deleteNote(type, ts) {
+    const key=getStorageKey(type,new Date(ts));
+    const all=LS.get(key)||[];
+    for(let i=all.length-1;i>=0;i--){if(all[i].timestamp===ts){delete all[i].note;delete all[i].photo;break;}}
+    LS.set(key,all); closeOverlay(); refreshAll();
 }
 
 // === ОВЕРЛЕЙ ===
 let overlayEl=null;
-function showOverlay(html, onReady, onClose) {
+function showOverlay(html) {
     closeOverlay();
     overlayEl = document.createElement('div'); overlayEl.className='overlay';
     const dialog=document.createElement('div'); dialog.className='dialog'; dialog.innerHTML=html;
     overlayEl.appendChild(dialog); document.body.appendChild(overlayEl);
-    overlayEl.addEventListener('click', e => { if(e.target===overlayEl){if(onClose)onClose();closeOverlay();} });
-    if(onReady) setTimeout(onReady, 50);
+    overlayEl.addEventListener('click', e => { if(e.target===overlayEl) closeOverlay(); });
 }
-function closeOverlay() { if(overlayEl){document.body.removeChild(overlayEl);overlayEl=null;} }
+function closeOverlay() { if(overlayEl){if(overlayEl.parentNode)overlayEl.parentNode.removeChild(overlayEl);overlayEl=null;} }
 
 // === ДИАЛОГИ ===
 function showDaySummary() {
@@ -967,49 +884,43 @@ function showDaySummary() {
     const dirtyCount=diaperData.filter(r=>r.type==='dirty'||r.type==='both').length;
     const lastGrowth=growthData.length>0?growthData[growthData.length-1]:null;
     let growthText=''; if(lastGrowth){const p=[];if(lastGrowth.weight)p.push('⚖️ '+lastGrowth.weight+' кг');if(lastGrowth.height)p.push('📏 '+lastGrowth.height+' см');growthText=p.join(' · ');}
-    const feedTimeStr=fmtDuration(totalFeedMin*60), sleepTimeStr=fmtDuration(totalSleepMin*60);
+    const fmtDur = s => { const m=Math.floor(s/60); return m<60?m+' мин':Math.floor(m/60)+' ч '+(m%60)+' мин'; };
     showOverlay(`
         <h3>📝 Итоги дня</h3>
         <p style="color:var(--text-secondary);font-size:13px;margin-bottom:16px;">${babyName} · ${fmtDate(today,{day:'numeric',month:'long'})}</p>
-        <div class="summary-row"><div class="summary-emoji">🍼</div><div class="summary-info"><div class="title">Кормления</div><div class="detail">${feedData.length} раз</div></div><div class="summary-value">${feedTimeStr}</div></div>
-        <div class="summary-row"><div class="summary-emoji">😴</div><div class="summary-info"><div class="title">Сон</div><div class="detail">${sleepData.length} снов</div></div><div class="summary-value">${sleepTimeStr}</div></div>
+        <div class="summary-row"><div class="summary-emoji">🍼</div><div class="summary-info"><div class="title">Кормления</div><div class="detail">${feedData.length} раз</div></div><div class="summary-value">${fmtDur(totalFeedMin*60)}</div></div>
+        <div class="summary-row"><div class="summary-emoji">😴</div><div class="summary-info"><div class="title">Сон</div><div class="detail">${sleepData.length} снов</div></div><div class="summary-value">${fmtDur(totalSleepMin*60)}</div></div>
         <div class="summary-row"><div class="summary-emoji">💧</div><div class="summary-info"><div class="title">Подгузники</div><div class="detail">${diaperData.length} смен, ${dirtyCount} грязных</div></div><div class="summary-value">${diaperData.length}</div></div>
         ${growthText?`<div class="summary-row"><div class="summary-emoji">📏</div><div class="summary-info"><div class="title">Рост/вес</div><div class="detail">Последнее измерение</div></div><div class="summary-value" style="font-size:14px;">${growthText}</div></div>`:''}
         ${todayMood&&CFG.MOODS[todayMood]?`<div class="summary-row"><div class="summary-emoji">💖</div><div class="summary-info"><div class="title">Настроение мамы</div><div class="detail">Сегодня</div></div><div class="summary-value">${CFG.MOODS[todayMood].emoji}</div></div>`:''}
         <div style="margin-top:16px;text-align:center;font-size:14px;color:var(--accent);font-weight:600;">🌟 Вы молодец, мама! 🌟</div>
-        <div class="dialog-buttons" style="margin-top:16px;"><button class="btn-skip" id="summaryClose">Закрыть</button><button class="btn-save" id="summaryShare">📤 Поделиться</button></div>
-    `, () => {
-        $('summaryClose').onclick=closeOverlay;
-        $('summaryShare').onclick=()=>{
-            const text=`📝 Итоги дня — ${babyName}\n${fmtDate(today,{day:'numeric',month:'long'})}\n\n🍼 Кормлений: ${feedData.length} (${feedTimeStr})\n😴 Сна: ${sleepData.length} (${sleepTimeStr})\n💧 Подгузников: ${diaperData.length}\n${growthText?'📏 '+growthText+'\n':''}${todayMood?'💖 Настроение: '+CFG.MOODS[todayMood].emoji+'\n':''}\nСоздано в Мама Трекер`;
-            navigator.clipboard.writeText(text).then(()=>{tg?.showPopup?tg.showPopup({title:'✅ Скопировано!',message:'Итоги дня скопированы!',buttons:[{type:'ok'}]}):alert('Итоги скопированы!');});
-        };
-    });
+        <div class="dialog-buttons" style="margin-top:16px;"><button class="btn-skip" onclick="closeOverlay()">Закрыть</button><button class="btn-save" onclick="copySummary()">📤 Поделиться</button></div>
+    `);
+    window._summaryData = {babyName,totalFeedMin,totalSleepMin,feedData,sleepData,diaperData,growthText,todayMood};
+}
+function copySummary() {
+    const d = window._summaryData; if(!d)return;
+    const fmtDur = s => { const m=Math.floor(s/60); return m<60?m+' мин':Math.floor(m/60)+' ч '+(m%60)+' мин'; };
+    const text=`📝 Итоги дня — ${d.babyName}\n${fmtDate(today,{day:'numeric',month:'long'})}\n\n🍼 Кормлений: ${d.feedData.length} (${fmtDur(d.totalFeedMin*60)})\n😴 Сна: ${d.sleepData.length} (${fmtDur(d.totalSleepMin*60)})\n💧 Подгузников: ${d.diaperData.length}\n${d.growthText?'📏 '+d.growthText+'\n':''}${d.todayMood?'💖 Настроение: '+CFG.MOODS[d.todayMood].emoji+'\n':''}\nСоздано в Мама Трекер`;
+    navigator.clipboard.writeText(text).then(()=>{tg?.showPopup?tg.showPopup({title:'✅ Скопировано!',message:'Итоги дня скопированы!',buttons:[{type:'ok'}]}):alert('Итоги скопированы!');});
 }
 
 function toggleFeedbackPanel() {
     showOverlay(`
         <h3>💬 Обратная связь</h3>
-        <p style="color:var(--text-secondary);font-size:13px;margin-bottom:12px;">Напишите ваше сообщение:</p>
         <textarea id="feedbackMsg" placeholder="Ваше сообщение..." style="height:100px;margin-bottom:12px;"></textarea>
-        <div class="dialog-buttons"><button class="btn-skip" id="feedbackClose">Закрыть</button><button class="btn-save" id="feedbackSend">📨 Отправить</button></div>
-    `, () => {
-        $('feedbackSend').onclick = async function() {
-            const text=$('feedbackMsg').value.trim(); if(!text)return alert('Напишите сообщение');
-            const btn=$('feedbackSend'); btn.textContent='⏳ Отправка...'; btn.disabled=true;
-            try{const r=await fetch('https://formspree.io/f/xojgbrjj',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,date:new Date().toLocaleString('ru-RU'),app:'Мама Трекер'})});if(r.ok){closeOverlay();tg?.showPopup?tg.showPopup({title:'✅ Спасибо!',message:'Сообщение отправлено!',buttons:[{type:'ok'}]}):alert('Спасибо!');}else{btn.textContent='📨 Отправить';btn.disabled=false;alert('Ошибка отправки.');}}catch(e){btn.textContent='📨 Отправить';btn.disabled=false;alert('Ошибка отправки.');}
-        };
-        $('feedbackClose').onclick = closeOverlay;
-        setTimeout(()=>$('feedbackMsg').focus(),100);
-    });
+        <div class="dialog-buttons"><button class="btn-skip" onclick="closeOverlay()">Закрыть</button><button class="btn-save" id="btnSendFeedback">📨 Отправить</button></div>
+    `);
+    $('btnSendFeedback').onclick = async function() {
+        const text=$('feedbackMsg').value.trim(); if(!text)return alert('Напишите сообщение');
+        const btn=$('btnSendFeedback'); btn.textContent='⏳ Отправка...'; btn.disabled=true;
+        try{const r=await fetch('https://formspree.io/f/xojgbrjj',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,date:new Date().toLocaleString('ru-RU'),app:'Мама Трекер'})});if(r.ok){closeOverlay();tg?.showPopup?tg.showPopup({title:'✅ Спасибо!',message:'Сообщение отправлено!',buttons:[{type:'ok'}]}):alert('Спасибо!');}else{btn.textContent='📨 Отправить';btn.disabled=false;alert('Ошибка отправки.');}}catch(e){btn.textContent='📨 Отправить';btn.disabled=false;alert('Ошибка отправки.');}
+    };
+    setTimeout(()=>$('feedbackMsg')?.focus(),100);
 }
 
 // === КОНФЕТТИ ===
-function spawnConfetti(x,y){const emojis=['🎉','✨','🌟','💖','🎊','🥳','💫','🌸','💗','🎀','💝','🌺','🎈','💐','🎵'];for(let i=0;i<40;i++){const piece=document.createElement('div');piece.textContent=emojis[Math.floor(Math.random()*emojis.length)];piece.style.cssText=`position:fixed;left:${x}px;top:${y}px;z-index:10000;pointer-events:none;font-size:${18+Math.random()*28}px;transition:none;opacity:0;transform:translate(0,0) rotate(0deg) scale(0);`;document.body.appendChild(piece);const duration=1.5+Math.random()*1.5,delay=Math.random()*0.5,spreadX=(Math.random()-0.5)*350,spreadY=-(100+Math.random()*400),rotation=(Math.random()-0.5)*1080;requestAnimationFrame(()=>{requestAnimationFrame(()=>{piece.style.transition=`all ${duration}s ease-out ${delay}s`;piece.style.transform=`translate(${spreadX*2}px, ${spreadY+600}px) rotate(${rotation}deg) scale(1)`;piece.style.opacity='1';});});setTimeout(()=>{piece.style.transition='opacity 0.8s ease-in';piece.style.opacity='0';setTimeout(()=>piece.remove(),800);},(duration+delay)*1000-400);}}
-
-// === ПАНЕЛИ ===
-function togglePanel(id) { const p=$(id); p.classList.toggle('hidden'); }
-function hideAllPanels() { ['soundPanel','themePanel','settingsPanel'].forEach(id=>$(id).classList.add('hidden')); }
+function spawnConfetti(x,y){const emojis=['🎉','✨','🌟','💖','🎊','🥳','💫','🌸','💗','🎀','💝','🌺','🎈','💐','🎵'];for(let i=0;i<40;i++){const piece=document.createElement('div');piece.textContent=emojis[Math.floor(Math.random()*emojis.length)];piece.style.cssText=`position:fixed;left:${x}px;top:${y}px;z-index:10000;pointer-events:none;font-size:${18+Math.random()*28}px;transition:none;opacity:0;`;document.body.appendChild(piece);const duration=1.5+Math.random()*1.5,delay=Math.random()*0.5,spreadX=(Math.random()-0.5)*350,spreadY=-(100+Math.random()*400),rotation=(Math.random()-0.5)*1080;requestAnimationFrame(()=>{requestAnimationFrame(()=>{piece.style.transition=`all ${duration}s ease-out ${delay}s`;piece.style.transform=`translate(${spreadX*2}px, ${spreadY+600}px) rotate(${rotation}deg) scale(1)`;piece.style.opacity='1';});});setTimeout(()=>{piece.style.transition='opacity 0.8s ease-in';piece.style.opacity='0';setTimeout(()=>piece.remove(),800);},(duration+delay)*1000-400);}}
 
 // === ЭКСПОРТ ===
 function exportAsImage() {
@@ -1044,91 +955,17 @@ function exportAsImage() {
     y=canvas.height-60; ctx.fillStyle=secColor; ctx.font='12px -apple-system, sans-serif'; ctx.textAlign='center';
     ctx.fillText('Создано в Мама Трекер — @MamaFeedBot',width/2,y);
     const dataUrl=canvas.toDataURL('image/png');
-    showOverlay(`<div style="text-align:center;"><img src="${dataUrl}" style="max-width:100%;max-height:80vh;border-radius:12px;"><p style="color:#a8a0b0;font-size:14px;text-align:center;margin-top:16px;">📸 Нажмите и удерживайте картинку, чтобы сохранить</p><button class="btn-skip" id="exportClose" style="margin-top:12px;padding:12px 30px;width:auto;">✕ Закрыть</button></div>`,()=>{$('exportClose').onclick=closeOverlay;});
+    showOverlay(`<div style="text-align:center;"><img src="${dataUrl}" style="max-width:100%;max-height:80vh;border-radius:12px;"><p style="color:#a8a0b0;font-size:14px;text-align:center;margin-top:16px;">📸 Нажмите и удерживайте картинку, чтобы сохранить</p><button class="btn-skip" onclick="closeOverlay()" style="margin-top:12px;padding:12px 30px;width:auto;">✕ Закрыть</button></div>`);
 }
 
-// === СОБЫТИЯ ===
-document.addEventListener('click', e => {
-    const t = e.target;
-    // Табы
-    if (t.closest('#mainTabs .tab-btn')) switchMainTab(t.closest('.tab-btn').dataset.tab);
-    // Подтабы статистики
-    if (t.closest('#statsSubTabs .sub-tab')) switchStatsTab(t.closest('.sub-tab').dataset.stat);
-    // Переключение детей
-    if (t.closest('.baby-chip[data-baby]')) switchBaby(t.closest('.baby-chip').dataset.baby);
-    if (t.closest('#btnOpenBabyPanel')) togglePanel('babyPanel');
-    if (t.closest('#btnAddBaby')) addBaby();
-    if (t.closest('[data-delete-baby]')) deleteBaby(t.closest('[data-delete-baby]').dataset.deleteBaby);
-    // Кормление
-    if (t.closest('#btnLeft')||t.closest('#btnRight')) feedTracker.selectSide(t.closest('.breast-btn').dataset.side);
-    if (t.closest('#feedingBtn')) feedTracker.toggle();
-    // Сон
-    if (t.closest('#sleepBtn')) sleepTracker.toggle();
-    // Подгузники
-    if (t.closest('.diaper-btn[data-type]')) addDiaper(t.closest('.diaper-btn').dataset.type);
-    // Настроение
-    if (t.closest('.mood-btn[data-mood]')) saveMood(t.closest('.mood-btn').dataset.mood);
-    // Лекарства
-    if (t.closest('#medIntervals .interval-btn')) selectMedInterval(+t.closest('.interval-btn').dataset.int);
-    if (t.closest('#btnAddMed')) addMedication();
-    if (t.closest('#btnResetMed')) resetMedTimer();
-    // Рост
-    if (t.closest('#btnAddGrowth')) addGrowth();
-    if (t.closest('[data-edit-growth]')) editGrowth(+t.closest('[data-edit-growth]').dataset.editGrowth);
-    if (t.closest('[data-delete-growth]')) deleteGrowth(+t.closest('[data-delete-growth]').dataset.deleteGrowth);
-    // Календарь
-    if (t.closest('#btnPrevMonth')) changeMonth(-1);
-    if (t.closest('#btnNextMonth')) changeMonth(1);
-    if (t.closest('.calendar-day[data-day]:not(.other-month)')) showDayDetail(+t.closest('.calendar-day').dataset.day);
-    // История (заметки)
-    if (t.closest('[data-note]')) { const [type,idx]=t.closest('[data-note]').dataset.note.split(','); showNote(type,+idx); }
-    // Напоминания
-    if (t.closest('.reminder-btn[data-min]')) startReminder(+t.closest('.reminder-btn').dataset.min);
-    if (t.closest('#btnStopReminder')) stopReminder();
-    // Шаблоны заметок
-    if (t.closest('.note-template[data-template]')) { const [id,txt]=t.closest('.note-template').dataset.template.split(','); const ta=$(id); if(ta){ta.value=ta.value.trim()?ta.value+'; '+txt:txt;ta.focus();} }
-    // Настройки
-    if (t.closest('#btnSettings')) togglePanel('settingsPanel');
-    if (t.closest('#btnCloseSettings')) $('settingsPanel').classList.add('hidden');
-    if (t.closest('#btnDaySummary')) { $('settingsPanel').classList.add('hidden'); showDaySummary(); }
-    if (t.closest('#btnFeedback')) { $('settingsPanel').classList.add('hidden'); toggleFeedbackPanel(); }
-    if (t.closest('#btnTheme')) { $('settingsPanel').classList.add('hidden'); togglePanel('themePanel'); }
-    if (t.closest('#btnSound')) { $('settingsPanel').classList.add('hidden'); togglePanel('soundPanel'); }
-    // Тема
-    if (t.closest('#btnDark')) setThemeMode('dark');
-    if (t.closest('#btnLight')) setThemeMode('light');
-    if (t.closest('.color-btn[data-color]')) setColorScheme(t.closest('.color-btn').dataset.color);
-    if (t.closest('#btnCloseTheme')) $('themePanel').classList.add('hidden');
-    // Звуки
-    if (t.closest('#btnStopSound')) stopSound();
-    if (t.closest('.sound-btn[data-sound]')) playSound(t.closest('.sound-btn').dataset.sound);
-    if (t.closest('#soundTimers button[data-timer]')) setSoundTimer(+t.closest('button').dataset.timer);
-    // PRO
-    if (t.closest('#btnActivatePro')) activatePro();
-    if (t.closest('#btnExport')) exportAsImage();
-    // Baby panel
-    if (t.closest('#btnCloseBaby')) $('babyPanel').classList.add('hidden');
-    // Welcome
-    if (t.closest('#btnWelcome')) closeWelcome();
-});
-
-// Звуки: volume slider
-$('volumeSlider').addEventListener('input', e => setVolume(e.target.value));
-
-// Рост: обновление сравнения при вводе
-['growthDate','growthWeight','growthHeight'].forEach(id => $(id).addEventListener('input', updateGrowthComparison));
-
-// === ИНИЦИАЛИЗАЦИЯ ЗВУКОВОЙ ПАНЕЛИ ===
-$('soundGrid').innerHTML = CFG.SOUNDS.map(s =>
-    `<button class="sound-btn" data-sound="${s.id}"><span class="sound-emoji">${s.emoji}</span>${s.name}</button>`
-).join('');
-
-// === ИНИЦИАЛИЗАЦИЯ ЦВЕТОВОЙ ПАНЕЛИ ===
-$('colorGrid').innerHTML = CFG.COLORS.map(c =>
-    `<button class="color-btn${c===savedColor?' active':''}" data-color="${c}"><span class="color-dot ${c}"></span>${c==='pink'?'🌸':c==='blue'?'🌊':c==='mint'?'🌿':c==='lavender'?'💜':'🍑'}</button>`
-).join('');
+// === ИНИЦИАЛИЗАЦИЯ ===
+$('soundGrid').innerHTML = CFG.SOUNDS.map(s => `<button class="sound-btn" data-sound="${s.id}" onclick="playSound('${s.id}')"><span class="sound-emoji">${s.emoji}</span>${s.name}</button>`).join('');
+$('colorGrid').innerHTML = CFG.COLORS.map(c => `<button class="color-btn${c===savedColor?' active':''}" data-color="${c}" onclick="setColorScheme('${c}')"><span class="color-dot ${c}"></span>${c==='pink'?'🌸':c==='blue'?'🌊':c==='mint'?'🌿':c==='lavender'?'💜':'🍑'}</button>`).join('');
 
 // === СТАРТ ===
-updateFeedStats(); renderFeedHistory(); updateSleepStats(); renderSleepHistory();
+updateBabyUI(); updateFeedStats(); renderFeedHistory(); updateSleepStats(); renderSleepHistory();
 updateDiaperStats(); renderDiaperHistory(); updateGrowthUI(); updateProUI();
 updateCalendar(); updateMoodUI(); updateMedHistory();
+</script>
+</body>
+</html>
