@@ -201,6 +201,7 @@
         <button class="tab-btn" onclick="switchMainTab('calendar')">📅</button>
         <button class="tab-btn" onclick="switchMainTab('mood')">💖</button>
         <button class="tab-btn" onclick="switchMainTab('meds')">💊</button>
+        <button class="tab-btn" onclick="switchMainTab('achievements')">🏆</button>
         <button class="tab-btn" onclick="switchMainTab('pro')">👑</button>
     </div>
 
@@ -261,6 +262,9 @@
             </div>
         </div>
         <div class="card"><div class="card-title">📝 Сегодня</div><div class="history-list" id="medHistory"><div class="empty-state">Нет записей</div></div></div>
+    </div>
+    <div class="tab-content" id="tab-achievements">
+        <div class="card"><div class="card-title">🏆 Достижения мамы-героя</div><div id="achievementsList"><div class="empty-state">Записывайте данные — получайте награды!</div></div></div>
     </div>
     <div class="tab-content" id="tab-pro">
         <div id="proActive" style="display:none;">
@@ -333,7 +337,7 @@ const CFG = {
         {emoji:'😋',text:'Хорошо покушал'},{emoji:'😔',text:'Много срыгнул'},{emoji:'💤',text:'Заснул сразу'},
         {emoji:'😢',text:'Капризничал'},{emoji:'🌡',text:'Температура'},{emoji:'💊',text:'Лекарство'}
     ],
-    TABS: ['feeding','sleep','diaper','stats','growth','calendar','mood','meds','pro']
+    TABS: ['feeding','sleep','diaper','stats','growth','calendar','mood','meds','achievements','pro']
 };
 
 // === DOM-ХЕЛПЕР ===
@@ -448,6 +452,7 @@ function switchMainTab(tab) {
     if (tab==='calendar') updateCalendar();
     if (tab==='mood') updateMoodUI();
     if (tab==='meds') updateMedHistory();
+    if (tab==='achievements') updateAchievementsUI();
     if (tab==='pro') updateProUI();
 }
 function switchStatsTab(tab) {
@@ -499,7 +504,6 @@ if (LS.get(NIGHT_KEY) === true && !nightAutoEnabled) {
     nightMode = true;
     applyNightMode();
 }
-
 // === УНИВЕРСАЛЬНЫЙ ТАЙМЕР ===
 class Tracker {
     constructor(type, config) {
@@ -528,6 +532,7 @@ class Tracker {
         }
     }
 }
+
 const feedTracker = new Tracker('feed', {
     btn: $('feedingBtn'), timerEl: $('feedingTimer'),
     sideButtons: [$('btnLeft'), $('btnRight')],
@@ -588,7 +593,7 @@ function renderDiaperHistory() {
     }).join('') : '<div class="empty-state">Нет записей</div>';
 }
 
-function refreshAll() { updateFeedStats(); renderFeedHistory(); updateSleepStats(); renderSleepHistory(); updateDiaperStats(); renderDiaperHistory(); }
+function refreshAll() { updateFeedStats(); renderFeedHistory(); updateSleepStats(); renderSleepHistory(); updateDiaperStats(); renderDiaperHistory(); checkAchievements(); updateAchievementsUI(); }
 
 // === СТАТИСТИКА ===
 function getWeekData(type) { const days=[]; for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);days.push(getRecords(type,d));} return days; }
@@ -647,6 +652,73 @@ function buildDiaperChart() {
 }
 function buildAllCharts() { buildFeedChart(); buildSleepChart(); buildDiaperChart(); }
 
+// === АЧИВКИ ===
+const ACHIEVEMENTS = [
+    {id:'first_feed',name:'Первое кормление',desc:'Записать первое кормление',emoji:'🌟',cat:'feed',icon:'🍼',max:1},
+    {id:'feed_10',name:'Режим найден',desc:'10 кормлений всего',emoji:'📊',cat:'feed',icon:'🍼',max:10},
+    {id:'feed_50',name:'Мастер кормления',desc:'50 кормлений всего',emoji:'👑',cat:'feed',icon:'🍼',max:50},
+    {id:'night_owl',name:'Ночной дозор',desc:'3 кормления ночью (00:00-06:00)',emoji:'🦉',cat:'feed',icon:'🌙',max:3},
+    {id:'sleep_10',name:'Соня',desc:'10 снов записано',emoji:'⭐',cat:'sleep',icon:'😴',max:10},
+    {id:'sleep_marathon',name:'Режим сна',desc:'Сон больше 8 часов за сутки',emoji:'🎯',cat:'sleep',icon:'😴',max:1},
+    {id:'diaper_5',name:'Сухой день',desc:'5 подгузников за день',emoji:'💫',cat:'diaper',icon:'💧',max:1},
+    {id:'growth_5',name:'Растём',desc:'5 записей роста/веса',emoji:'📈',cat:'growth',icon:'📏',max:5},
+    {id:'mood_3',name:'Хорошее настроение',desc:'3 дня отличного настроения',emoji:'🌈',cat:'mood',icon:'💖',max:3},
+    {id:'meds_5',name:'Здоровый малыш',desc:'5 приёмов лекарств',emoji:'❤️',cat:'meds',icon:'💊',max:5},
+    {id:'week_streak',name:'Неделя заботы',desc:'7 дней подряд с кормлениями',emoji:'🏆',cat:'special',icon:'📅',max:7},
+    {id:'month_streak',name:'Месяц с трекером',desc:'30 дней использования',emoji:'👑',cat:'special',icon:'🗓',max:30}
+];
+
+function getAchievements() { return LS.get('mama_achievements') || {}; }
+function saveAchievement(id) { const a=getAchievements(); if(a[id])return false; a[id]=Date.now(); LS.set('mama_achievements',a); return true; }
+
+function getAchievementProgress(ach) {
+    switch(ach.id){
+        case'first_feed':return getAllRecords('feed',365).length;
+        case'feed_10':return getAllRecords('feed',365).length;
+        case'feed_50':return getAllRecords('feed',365).length;
+        case'night_owl':return getAllRecords('feed',365).filter(r=>{const h=new Date(r.timestamp).getHours();return h>=0&&h<6;}).length;
+        case'sleep_10':return getAllRecords('sleep',365).length;
+        case'sleep_marathon':{let max=0;for(let i=0;i<7;i++){const d=new Date();d.setDate(d.getDate()-i);const total=getRecords('sleep',d).reduce((s,r)=>s+r.duration,0);if(total>max)max=total;}return Math.floor(max/3600)>=8?1:0;}
+        case'diaper_5':{let max=0;for(let i=0;i<7;i++){const d=new Date();d.setDate(d.getDate()-i);const c=getRecords('diaper',d).length;if(c>max)max=c;}return max>=5?1:0;}
+        case'growth_5':return getGrowthRecords().length;
+        case'mood_3':return getAllMoodRecords().filter(r=>r.mood==='great').length;
+        case'meds_5':return getAllRecords('meds',365).length;
+        case'week_streak':{let streak=0;for(let i=0;i<30;i++){const d=new Date();d.setDate(d.getDate()-i);if(getRecords('feed',d).length>0)streak++;else break;}return streak;}
+        case'month_streak':{let days=0;for(let i=0;i<60;i++){const d=new Date();d.setDate(d.getDate()-i);if(getRecords('feed',d).length>0||getRecords('sleep',d).length>0||getRecords('diaper',d).length>0)days++;}return days;}
+        default:return 0;
+    }
+}
+
+function checkAchievements() {
+    const earned=getAchievements();
+    ACHIEVEMENTS.forEach(ach=>{
+        if(earned[ach.id])return;
+        if(getAchievementProgress(ach)>=ach.max){
+            saveAchievement(ach.id);
+            spawnConfetti(window.innerWidth/2,window.innerHeight/2);
+            if(tg?.showPopup)tg.showPopup({title:'🏆 '+ach.emoji,message:'Достижение: '+ach.name+'!',buttons:[{type:'ok'}]});
+        }
+    });
+}
+
+function updateAchievementsUI() {
+    const earned=getAchievements();
+    const list = $('achievementsList');
+    if (!list) return;
+    list.innerHTML = ACHIEVEMENTS.map(ach=>{
+        const done=!!earned[ach.id];
+        const progress=done?ach.max:Math.min(getAchievementProgress(ach),ach.max);
+        const pct=Math.round(progress/ach.max*100);
+        return `<div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);${done?'':'opacity:0.5;'}">
+            <span style="font-size:28px;">${done?ach.emoji:'🔒'}</span>
+            <div style="flex:1;"><div style="font-size:14px;font-weight:600;">${ach.icon} ${ach.name}</div><div style="font-size:11px;color:var(--text-secondary);">${ach.desc}</div>
+                <div class="pro-bar" style="margin-top:6px;"><div class="pro-bar-fill" style="width:${pct}%;background:${done?'var(--pro-gold)':'var(--text-secondary)'};"></div></div>
+                <div style="font-size:10px;color:var(--text-secondary);text-align:right;">${progress}/${ach.max}</div>
+            </div>
+        </div>`;
+    }).join('');
+}
+
 // === КАЛЕНДАРЬ ===
 let calYear=today.getFullYear(), calMonth=today.getMonth();
 const MONTHS=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
@@ -699,7 +771,7 @@ function addGrowth() {
     if(existing>=0) records[existing]=entry; else records.push(entry);
     LS.set('mama'+getBabyPrefix()+'-growth', records);
     $('growthDate').value=''; $('growthWeight').value=''; $('growthHeight').value='';
-    updateGrowthUI(); haptic();
+    updateGrowthUI(); haptic(); checkAchievements(); updateAchievementsUI();
 }
 function deleteGrowth(index) { const records=getGrowthRecords(); records.splice(index,1); LS.set('mama'+getBabyPrefix()+'-growth', records); updateGrowthUI(); }
 function editGrowth(index) {
@@ -785,7 +857,7 @@ function getAllMoodRecords() {
     for(let i=0;i<30;i++){const d=new Date();d.setDate(d.getDate()-i);const val=LS.get(getMoodKey(d));if(val)all.push({date:d.toISOString().split('T')[0],mood:val});}
     return all.sort((a,b)=>b.date.localeCompare(a.date));
 }
-function saveMood(mood) { LS.set(getMoodKey(), mood); updateMoodUI(); haptic(); }
+function saveMood(mood) { LS.set(getMoodKey(), mood); updateMoodUI(); haptic(); checkAchievements(); updateAchievementsUI(); }
 function updateMoodUI() {
     const todayMood = LS.get(getMoodKey());
     $('moodTodayLabel').innerHTML = todayMood&&CFG.MOODS[todayMood] ? `Сегодня: ${CFG.MOODS[todayMood].emoji} ${CFG.MOODS[todayMood].text}` : 'Выберите настроение';
@@ -813,7 +885,7 @@ function addMedication() {
     saveRecord('meds',{name,dose,interval:medInterval,timestamp:Date.now()});
     $('medName').value=''; $('medDose').value='';
     if(medInterval>0) startMedTimer(medInterval);
-    updateMedHistory(); haptic();
+    updateMedHistory(); haptic(); checkAchievements(); updateAchievementsUI();
 }
 function startMedTimer(hours) { medEndTime=Date.now()+hours*3600000; $('medTimer').style.display='block'; updateMedCountdown(); if(medTimerId)clearInterval(medTimerId); medTimerId=setInterval(updateMedCountdown,1000); }
 function updateMedCountdown() {
@@ -1145,7 +1217,7 @@ $('colorGrid').innerHTML = CFG.COLORS.map(c => `<button class="color-btn${c===sa
 // === СТАРТ ===
 updateBabyUI(); updateFeedStats(); renderFeedHistory(); updateSleepStats(); renderSleepHistory();
 updateDiaperStats(); renderDiaperHistory(); updateGrowthUI(); updateProUI();
-updateCalendar(); updateMoodUI(); updateMedHistory();
+updateCalendar(); updateMoodUI(); updateMedHistory(); updateAchievementsUI();
 </script>
 </body>
-</html> 
+</html>
