@@ -263,7 +263,13 @@
         <div class="card"><div class="card-title">📝 Сегодня</div><div class="history-list" id="medHistory"><div class="empty-state">Нет записей</div></div></div>
     </div>
     <div class="tab-content" id="tab-pro">
-        <div id="proActive" style="display:none;"><div class="card pro-card" style="text-align:center;"><div style="font-size:50px;">👑</div><h2>Вы — PRO!</h2><p style="color:var(--text-secondary);">Все функции разблокированы</p></div><div class="card"><div class="card-title">📤 Экспорт</div><button class="export-btn" onclick="exportAsImage()">📸 Скачать отчёт в PNG</button></div></div>
+        <div id="proActive" style="display:none;">
+            <div class="card pro-card" style="text-align:center;"><div style="font-size:50px;">👑</div><h2>Вы — PRO!</h2><p style="color:var(--text-secondary);">Все функции разблокированы</p></div>
+            <div class="card"><div class="card-title">📤 Экспорт</div>
+                <button class="export-btn" onclick="exportAsImage()">📸 Общий отчёт</button>
+                <button class="export-btn" onclick="exportForDoctor()" style="margin-top:8px;">🏥 Отчёт для педиатра</button>
+            </div>
+        </div>
         <div id="proInactive"><div class="card" style="text-align:center;"><div style="font-size:60px;">👑</div><h2>Мама PRO</h2><p style="color:var(--text-secondary);">Разблокируй все возможности</p></div><div class="card" style="text-align:center;"><input type="text" id="activateCode" placeholder="Введите TEST123"><button class="activate-btn" onclick="activatePro()">🔓 Активировать PRO</button></div></div>
     </div>
 </div>
@@ -299,7 +305,11 @@
 <div class="panel hidden" id="babyPanel">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;"><h3 style="font-size:18px;">👶 Управление детьми</h3><button class="icon-btn" onclick="hidePanel('babyPanel')" style="width:32px;height:32px;font-size:16px;">✕</button></div>
     <div id="babyList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;"></div>
-    <div style="display:flex;gap:8px;"><input type="text" id="newBabyName" placeholder="Имя ребёнка" style="flex:1;margin-bottom:0;"><button class="action-btn start" style="width:auto;margin:0;padding:0 20px;height:44px;font-size:14px;" onclick="addBaby()">➕</button></div>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+        <input type="text" id="newBabyName" placeholder="Имя ребёнка" style="flex:1;margin-bottom:0;">
+        <input type="date" id="babyBirthDate" style="height:44px;font-size:14px;text-align:left;padding-left:16px;">
+        <button class="action-btn start" style="width:auto;margin:0;padding:0 20px;height:44px;font-size:14px;" onclick="addBaby()">➕ Добавить</button>
+    </div>
 </div>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -357,7 +367,20 @@ function saveRecord(type, data) { const key = getStorageKey(type); const records
 function getAllRecords(type, days=30) { const all=[]; for(let i=0;i<days;i++){const d=new Date();d.setDate(d.getDate()-i);all.push(...getRecords(type,d));} return all.sort((a,b)=>b.timestamp-a.timestamp); }
 
 function switchBaby(id) { currentBabyId=id; saveBabies(); updateBabyUI(); refreshAll(); updateGrowthUI(); buildAllCharts(); updateCalendar(); updateMoodUI(); updateMedHistory(); }
-function addBaby() { const name=$('newBabyName').value.trim(); if(!name)return; babies.push({id:Date.now().toString(),name}); currentBabyId=babies[babies.length-1].id; saveBabies(); $('newBabyName').value=''; updateBabyUI(); refreshAll(); updateGrowthUI(); buildAllCharts(); updateCalendar(); updateMoodUI(); updateMedHistory(); hidePanel('babyPanel'); }
+function addBaby() { 
+    const name=$('newBabyName').value.trim(); 
+    if(!name)return; 
+    const id = Date.now().toString();
+    babies.push({id, name}); 
+    currentBabyId = id; 
+    const birthDate = $('babyBirthDate').value;
+    if (birthDate) LS.set('mama_birth_date_' + id, birthDate);
+    saveBabies(); 
+    $('newBabyName').value=''; 
+    $('babyBirthDate').value='';
+    updateBabyUI(); refreshAll(); updateGrowthUI(); buildAllCharts(); updateCalendar(); updateMoodUI(); updateMedHistory(); 
+    hidePanel('babyPanel'); 
+}
 function deleteBaby(id) { if(babies.length<=1)return; babies=babies.filter(b=>b.id!==id); if(currentBabyId===id)currentBabyId=babies[0].id; saveBabies(); updateBabyUI(); refreshAll(); updateGrowthUI(); buildAllCharts(); updateCalendar(); updateMoodUI(); updateMedHistory(); }
 
 function updateBabyUI() {
@@ -505,7 +528,6 @@ class Tracker {
         }
     }
 }
-
 const feedTracker = new Tracker('feed', {
     btn: $('feedingBtn'), timerEl: $('feedingTimer'),
     sideButtons: [$('btnLeft'), $('btnRight')],
@@ -1008,6 +1030,112 @@ function exportAsImage() {
     ctx.fillText('Создано в Мама Трекер — @MamaFeedBot',width/2,y);
     const dataUrl=canvas.toDataURL('image/png');
     showOverlay(`<div style="text-align:center;"><img src="${dataUrl}" style="max-width:100%;max-height:80vh;border-radius:12px;"><p style="color:#a8a0b0;font-size:14px;text-align:center;margin-top:16px;">📸 Нажмите и удерживайте картинку, чтобы сохранить</p><button class="btn-skip" onclick="closeOverlay()" style="margin-top:12px;padding:12px 30px;width:auto;">✕ Закрыть</button></div>`);
+}
+
+// === ЭКСПОРТ ДЛЯ ПЕДИАТРА ===
+function exportForDoctor() {
+    if (!isPro()) return;
+    const baby = babies.find(b => b.id === currentBabyId) || {name: 'Малыш'};
+    const growthRecords = getGrowthRecords();
+    const lastGrowth = growthRecords.length > 0 ? growthRecords[growthRecords.length - 1] : null;
+    const birthDateStr = LS.get('mama_birth_date_' + currentBabyId);
+    let ageStr = 'не указан';
+    if (birthDateStr) {
+        const birth = new Date(birthDateStr);
+        const months = Math.floor((today - birth) / (1000 * 60 * 60 * 24 * 30.44));
+        if (months < 1) { const days = Math.floor((today - birth) / (1000 * 60 * 60 * 24)); ageStr = days + ' дн.'; }
+        else if (months < 24) { ageStr = months + ' мес.'; }
+        else { ageStr = Math.floor(months / 12) + ' г. ' + (months % 12) + ' мес.'; }
+    }
+    const feedData7 = getAllRecords('feed', 7), sleepData7 = getAllRecords('sleep', 7), diaperData7 = getAllRecords('diaper', 7), medsData7 = getAllRecords('meds', 7);
+    const avgFeedDuration = feedData7.length > 0 ? Math.floor(feedData7.reduce((s, r) => s + r.duration, 0) / feedData7.length / 60) : 0;
+    const totalSleepHours = Math.floor(sleepData7.reduce((s, r) => s + r.duration, 0) / 3600);
+    const diapersPerDay = (diaperData7.length / 7).toFixed(1);
+    const dirtyCount = diaperData7.filter(r => r.type === 'dirty' || r.type === 'both').length;
+    const isLight = document.body.classList.contains('light-theme');
+    const canvas = document.createElement('canvas'), ctx = canvas.getContext('2d');
+    const width = 800, padding = 40;
+    let y = padding, rowCount = 25 + Math.min(feedData7.length, 14) + Math.min(sleepData7.length, 7) + Math.min(diaperData7.length, 7);
+    if (growthRecords.length > 0) rowCount += 8;
+    if (medsData7.length > 0) rowCount += 3 + medsData7.length;
+    const height = padding * 2 + rowCount * 30 + 200;
+    canvas.width = width; canvas.height = height;
+    const bgColor = isLight ? '#ffffff' : '#1a1a2e', textColor = isLight ? '#2d2d3a' : '#f0e6ef';
+    const secColor = isLight ? '#7a7a8a' : '#a8a0b0', accentColor = '#e8a0bf';
+    ctx.fillStyle = bgColor; ctx.fillRect(0, 0, width, height);
+    ctx.fillStyle = textColor; ctx.font = 'bold 28px -apple-system, sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('🏥 Отчёт для педиатра', width / 2, y); y += 40;
+    ctx.fillStyle = secColor; ctx.font = '14px -apple-system, sans-serif';
+    ctx.fillText(fmtDate(today, {day: 'numeric', month: 'long', year: 'numeric'}), width / 2, y); y += 30;
+    ctx.strokeStyle = isLight ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(padding, y); ctx.lineTo(width - padding, y); ctx.stroke(); y += 25;
+    ctx.fillStyle = textColor; ctx.font = 'bold 18px -apple-system, sans-serif'; ctx.textAlign = 'left';
+    ctx.fillText('👶 ' + baby.name, padding, y); y += 28;
+    ctx.fillStyle = secColor; ctx.font = '15px -apple-system, sans-serif';
+    ctx.fillText('Возраст: ' + ageStr, padding, y); y += 22;
+    if (lastGrowth) {
+        const parts = [];
+        if (lastGrowth.weight) parts.push('Вес: ' + lastGrowth.weight + ' кг');
+        if (lastGrowth.height) parts.push('Рост: ' + lastGrowth.height + ' см');
+        ctx.fillText(parts.join(' | '), padding, y); y += 22;
+    }
+    y += 10;
+    function drawSection(title) { y += 5; ctx.fillStyle = accentColor; ctx.font = 'bold 16px -apple-system, sans-serif'; ctx.fillText('━━ ' + title + ' ━━', padding, y); y += 30; }
+    function drawRow(label, value) { ctx.fillStyle = textColor; ctx.font = '14px -apple-system, sans-serif'; ctx.textAlign = 'left'; ctx.fillText(label, padding, y); ctx.textAlign = 'right'; ctx.fillText(value, width - padding, y); ctx.textAlign = 'left'; y += 26; }
+    function drawSub(text) { ctx.fillStyle = secColor; ctx.font = '12px -apple-system, sans-serif'; ctx.fillText('    ' + text, padding, y); y += 20; }
+    drawSection('🍼 Кормления (последние 7 дней)');
+    drawRow('Всего кормлений', feedData7.length + ' раз');
+    drawRow('В среднем в день', (feedData7.length / 7).toFixed(1) + ' раз');
+    drawRow('Средняя длительность', avgFeedDuration + ' мин');
+    const leftCount = feedData7.filter(r => r.side === 'left').length;
+    drawRow('Левая / Правая грудь', leftCount + ' / ' + (feedData7.length - leftCount));
+    y += 5;
+    if (feedData7.length > 0) {
+        ctx.fillStyle = secColor; ctx.font = '11px -apple-system, sans-serif';
+        ctx.fillText('Последние кормления:', padding, y); y += 20;
+        feedData7.slice(0, 14).sort((a, b) => b.timestamp - a.timestamp).forEach(r => {
+            drawSub(fmtDate(new Date(r.timestamp)) + ' ' + fmtTime(r.timestamp) + ' — ' + Math.floor(r.duration / 60) + ' мин (' + (r.side === 'left' ? 'левая' : 'правая') + ')');
+        });
+    }
+    y += 5;
+    drawSection('😴 Сон (последние 7 дней)');
+    drawRow('Всего снов', sleepData7.length + ' раз');
+    drawRow('Общее время сна', totalSleepHours + ' ч');
+    drawRow('В среднем в день', (totalSleepHours / 7).toFixed(1) + ' ч');
+    y += 5;
+    if (sleepData7.length > 0) {
+        ctx.fillStyle = secColor; ctx.font = '11px -apple-system, sans-serif';
+        ctx.fillText('Последние сны:', padding, y); y += 20;
+        sleepData7.slice(0, 7).sort((a, b) => b.timestamp - a.timestamp).forEach(r => {
+            const min = Math.floor(r.duration / 60), h = Math.floor(min / 60);
+            drawSub(fmtDate(new Date(r.timestamp)) + ' ' + fmtTime(r.timestamp) + ' — ' + (h > 0 ? h + ' ч ' + (min % 60) + ' мин' : min + ' мин'));
+        });
+    }
+    y += 5;
+    drawSection('💧 Подгузники (последние 7 дней)');
+    drawRow('Всего смен', diaperData7.length + ' раз');
+    drawRow('В среднем в день', diapersPerDay + ' раз');
+    drawRow('Грязных', dirtyCount + ' раз');
+    drawRow('Мокрых', (diaperData7.length - dirtyCount) + ' раз');
+    y += 5;
+    if (medsData7.length > 0) {
+        drawSection('💊 Лекарства');
+        medsData7.forEach(r => {
+            const intStr = r.interval > 0 ? ' (каждые ' + r.interval + ' ч)' : ' (разово)';
+            drawSub('💊 ' + r.name + ' ' + (r.dose || '') + ' — ' + fmtDate(new Date(r.timestamp)) + ' ' + fmtTime(r.timestamp) + intStr);
+        });
+        y += 5;
+    }
+    y += 10;
+    ctx.fillStyle = accentColor; ctx.font = 'bold 16px -apple-system, sans-serif'; ctx.textAlign = 'left';
+    ctx.fillText('━━ 📝 Вопросы врачу ━━', padding, y); y += 30;
+    for (let i = 1; i <= 3; i++) { ctx.fillStyle = secColor; ctx.font = '13px -apple-system, sans-serif'; ctx.fillText(i + '. _______________________________', padding, y); y += 28; }
+    y += 10;
+    y = canvas.height - 50;
+    ctx.fillStyle = secColor; ctx.font = '11px -apple-system, sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('Создано в Мама Трекер • ' + fmtDate(today, {day: 'numeric', month: 'long', year: 'numeric'}), width / 2, y);
+    const dataUrl = canvas.toDataURL('image/png');
+    showOverlay(`<div style="text-align:center;"><h3>🏥 Отчёт для педиатра</h3><img src="${dataUrl}" style="max-width:100%;max-height:80vh;border-radius:12px;margin:12px 0;"><p style="color:var(--text-secondary);font-size:13px;margin-bottom:8px;">📸 Нажмите и удерживайте, чтобы сохранить или отправить</p><p style="color:var(--text-secondary);font-size:11px;">✏️ Распечатайте и заполните вопросы врачу перед приёмом</p><button class="btn-skip" onclick="closeOverlay()" style="margin-top:12px;padding:12px 30px;width:auto;">✕ Закрыть</button></div>`);
 }
 
 // === ИНИЦИАЛИЗАЦИЯ ===
