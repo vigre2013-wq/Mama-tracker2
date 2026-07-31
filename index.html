@@ -11,6 +11,18 @@
             --left-breast: #e8a0bf; --right-breast: #a0c4e8; --sleep: #c4a0e8; --diaper: #a0e8c4;
             --border: rgba(255,255,255,0.05); --stat-bg: rgba(255,255,255,0.03);
             --tab-bg: var(--surface); --input-border: rgba(255,255,255,0.1); --btn-ghost: rgba(255,255,255,0.05);
+            --transition-speed: 0.8s;
+        }
+        .night-mode {
+            --bg: #0d0d14; --surface: #16161f; --accent: #cc7a3c; --accent-light: rgba(204,122,60,0.2);
+            --pro-gold: #d4893a; --text: #d4c5b0; --text-secondary: #8a7a6a;
+            --left-breast: #cc7a3c; --right-breast: #b8845c; --sleep: #7a5c8c; --diaper: #5c8a6a;
+            --border: rgba(255,200,150,0.08); --stat-bg: rgba(255,200,150,0.04);
+            --tab-bg: var(--surface); --input-border: rgba(255,200,150,0.15); --btn-ghost: rgba(255,200,150,0.06);
+        }
+        body.night-mode .light-theme {
+            --bg: #1a1814; --surface: #24221e; --text: #d4c5b0; --text-secondary: #8a7a6a;
+            --border: rgba(255,200,150,0.1); --stat-bg: rgba(255,200,150,0.04);
         }
         .light-theme {
             --bg: #f5f0f3; --surface: #ffffff; --text: #2d2d3a; --text-secondary: #7a7a8a;
@@ -28,14 +40,14 @@
             background: var(--bg); color: var(--text); min-height: 100vh;
             padding: env(safe-area-inset-top, 20px) 20px env(safe-area-inset-bottom, 20px);
             max-width: 500px; margin: 0 auto; user-select: none; -webkit-tap-highlight-color: transparent;
-            transition: background 0.3s, color 0.3s; overflow-x: hidden;
+            transition: background var(--transition-speed) ease, color var(--transition-speed) ease; overflow-x: hidden;
         }
         .header { display: flex; align-items: flex-start; justify-content: center; padding: 20px 0 10px; position: relative; flex-direction: column; }
         .header-top { display: flex; align-items: center; justify-content: center; width: 100%; position: relative; }
         .header-center { text-align: center; }
         .header h1 { font-size: 28px; font-weight: 700; }
         .header .date { color: var(--text-secondary); font-size: 14px; }
-        .header-settings { position: absolute; right: 0; top: 0; }
+        .header-settings { position: absolute; right: 0; top: 0; display: flex; gap: 8px; }
         .icon-btn { width: 40px; height: 40px; border-radius: 50%; border: none; background: var(--surface); color: var(--text); font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
         .icon-btn:active { transform: scale(0.9); }
         .baby-switcher { display: flex; gap: 6px; margin-top: 10px; justify-content: center; flex-wrap: wrap; }
@@ -169,7 +181,10 @@
 <div class="header">
     <div class="header-top">
         <div class="header-center"><h1>🤱 Мама Трекер <span id="proBadge" class="pro-badge" style="display:none;">PRO</span></h1><div class="date" id="todayDate"></div></div>
-        <div class="header-settings"><button class="icon-btn" onclick="togglePanel('settingsPanel')" title="Настройки">⚙️</button></div>
+        <div class="header-settings">
+            <button class="icon-btn" id="btnNightMode" onclick="toggleNightMode()" title="Ночной режим" style="font-size:18px;">🌙</button>
+            <button class="icon-btn" onclick="togglePanel('settingsPanel')" title="Настройки">⚙️</button>
+        </div>
     </div>
     <div class="baby-switcher" id="babySwitcher"></div>
 </div>
@@ -424,6 +439,44 @@ function switchStatsTab(tab) {
 function togglePanel(id) { const p=$(id); if(p)p.classList.toggle('hidden'); }
 function hidePanel(id) { const p=$(id); if(p)p.classList.add('hidden'); }
 
+// === НОЧНОЙ РЕЖИМ ===
+const NIGHT_KEY = 'mama_night_mode';
+let nightMode = LS.get(NIGHT_KEY) === true;
+let nightAutoEnabled = LS.get(NIGHT_KEY) === null || LS.get(NIGHT_KEY) === undefined;
+
+function applyNightMode() {
+    document.body.classList.toggle('night-mode', nightMode);
+    const btn = $('btnNightMode');
+    if (btn) btn.textContent = nightMode ? '🌟' : '🌙';
+    if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('soft');
+}
+
+function toggleNightMode() {
+    nightMode = !nightMode;
+    nightAutoEnabled = false;
+    LS.set(NIGHT_KEY, nightMode);
+    applyNightMode();
+}
+
+function checkAutoNight() {
+    if (!nightAutoEnabled) return;
+    const hour = new Date().getHours();
+    const shouldBeNight = hour >= 21 || hour < 7;
+    if (shouldBeNight !== nightMode) {
+        nightMode = shouldBeNight;
+        LS.set(NIGHT_KEY, nightMode);
+        applyNightMode();
+    }
+}
+
+checkAutoNight();
+setInterval(checkAutoNight, 60000);
+
+if (LS.get(NIGHT_KEY) === true && !nightAutoEnabled) {
+    nightMode = true;
+    applyNightMode();
+}
+
 // === УНИВЕРСАЛЬНЫЙ ТАЙМЕР ===
 class Tracker {
     constructor(type, config) {
@@ -453,7 +506,6 @@ class Tracker {
     }
 }
 
-// ГЛОБАЛЬНЫЕ трекеры (должны быть объявлены ДО использования в HTML)
 const feedTracker = new Tracker('feed', {
     btn: $('feedingBtn'), timerEl: $('feedingTimer'),
     sideButtons: [$('btnLeft'), $('btnRight')],
