@@ -202,6 +202,7 @@
         <button class="tab-btn" onclick="switchMainTab('mood')">💖</button>
         <button class="tab-btn" onclick="switchMainTab('meds')">💊</button>
         <button class="tab-btn" onclick="switchMainTab('achievements')">🏆</button>
+        <button class="tab-btn" onclick="switchMainTab('doctor')">🏥</button>
         <button class="tab-btn" onclick="switchMainTab('pro')">👑</button>
     </div>
 
@@ -265,6 +266,38 @@
     </div>
     <div class="tab-content" id="tab-achievements">
         <div class="card"><div class="card-title">🏆 Достижения мамы-героя</div><div id="achievementsList"><div class="empty-state">Записывайте данные — получайте награды!</div></div></div>
+    </div>
+    <div class="tab-content" id="tab-doctor">
+        <div class="sub-tabs">
+            <button class="sub-tab active" onclick="switchDoctorTab('vaccines')">💉 Прививки</button>
+            <button class="sub-tab" onclick="switchDoctorTab('visits')">📋 Визиты</button>
+            <button class="sub-tab" onclick="switchDoctorTab('questions')">📝 Вопросы</button>
+        </div>
+        <div id="doctorVaccines">
+            <div class="card" style="text-align:center;padding:16px;">
+                <p style="color:var(--text-secondary);font-size:13px;margin-bottom:8px;">Возраст ребёнка</p>
+                <p style="font-size:24px;font-weight:700;" id="babyAge"></p>
+            </div>
+            <div class="card"><div class="card-title">💉 Календарь прививок (РФ)</div><div id="vaccineList"></div></div>
+        </div>
+        <div id="doctorVisits" style="display:none;">
+            <div class="card">
+                <div class="card-title">📋 Добавить визит</div>
+                <input type="date" id="visitDate" style="text-align:left;padding-left:16px;height:48px;">
+                <input type="text" id="visitDoctor" placeholder="Врач (педиатр, невролог...)" style="text-align:left;padding-left:16px;">
+                <input type="text" id="visitClinic" placeholder="Клиника" style="text-align:left;padding-left:16px;">
+                <textarea id="visitNotes" placeholder="Заметки о визите..." style="height:80px;margin-bottom:8px;"></textarea>
+                <button class="action-btn start" onclick="addVisit()">💾 Сохранить визит</button>
+            </div>
+            <div class="card"><div class="card-title">📝 История визитов</div><div class="history-list" id="visitsHistory"><div class="empty-state">Нет записей</div></div></div>
+        </div>
+        <div id="doctorQuestions" style="display:none;">
+            <div class="card">
+                <div class="card-title">📝 Вопросы к следующему визиту</div>
+                <textarea id="doctorQuestionsText" placeholder="Запишите вопросы, чтобы не забыть..." style="height:150px;margin-bottom:12px;"></textarea>
+                <button class="action-btn start" onclick="saveDoctorQuestions()">💾 Сохранить</button>
+            </div>
+        </div>
     </div>
     <div class="tab-content" id="tab-pro">
         <div id="proActive" style="display:none;">
@@ -337,7 +370,7 @@ const CFG = {
         {emoji:'😋',text:'Хорошо покушал'},{emoji:'😔',text:'Много срыгнул'},{emoji:'💤',text:'Заснул сразу'},
         {emoji:'😢',text:'Капризничал'},{emoji:'🌡',text:'Температура'},{emoji:'💊',text:'Лекарство'}
     ],
-    TABS: ['feeding','sleep','diaper','stats','growth','calendar','mood','meds','achievements','pro']
+    TABS: ['feeding','sleep','diaper','stats','growth','calendar','mood','meds','achievements','doctor','pro']
 };
 
 // === DOM-ХЕЛПЕР ===
@@ -370,7 +403,7 @@ function getRecords(type, dateObj) { return LS.get(getStorageKey(type, dateObj))
 function saveRecord(type, data) { const key = getStorageKey(type); const records = LS.get(key) || []; records.push({...data, timestamp: Date.now()}); LS.set(key, records); }
 function getAllRecords(type, days=30) { const all=[]; for(let i=0;i<days;i++){const d=new Date();d.setDate(d.getDate()-i);all.push(...getRecords(type,d));} return all.sort((a,b)=>b.timestamp-a.timestamp); }
 
-function switchBaby(id) { currentBabyId=id; saveBabies(); updateBabyUI(); refreshAll(); updateGrowthUI(); buildAllCharts(); updateCalendar(); updateMoodUI(); updateMedHistory(); }
+function switchBaby(id) { currentBabyId=id; saveBabies(); updateBabyUI(); refreshAll(); updateGrowthUI(); buildAllCharts(); updateCalendar(); updateMoodUI(); updateMedHistory(); updateDoctorTab(); }
 function addBaby() { 
     const name=$('newBabyName').value.trim(); 
     if(!name)return; 
@@ -440,7 +473,7 @@ function closeWelcome() { $('welcomeScreen').style.display='none'; $('mainApp').
 if (LS.get('mama-welcome-shown')) { $('welcomeScreen').style.display='none'; $('mainApp').style.display='block'; }
 
 // === НАВИГАЦИЯ ===
-let mainTab = 'feeding', statsSubTab = 'feed';
+let mainTab = 'feeding', statsSubTab = 'feed', doctorSubTab = 'vaccines';
 function switchMainTab(tab) {
     mainTab = tab;
     document.querySelectorAll('.tabs .tab-btn').forEach((b,i) => b.classList.toggle('active', CFG.TABS[i]===tab));
@@ -453,14 +486,25 @@ function switchMainTab(tab) {
     if (tab==='mood') updateMoodUI();
     if (tab==='meds') updateMedHistory();
     if (tab==='achievements') updateAchievementsUI();
+    if (tab==='doctor') updateDoctorTab();
     if (tab==='pro') updateProUI();
 }
 function switchStatsTab(tab) {
     statsSubTab = tab;
-    document.querySelectorAll('.sub-tabs .sub-tab').forEach((b,i) => b.classList.toggle('active', ['feed','sleep','diaper'][i]===tab));
+    document.querySelectorAll('#tab-stats .sub-tab').forEach((b,i) => b.classList.toggle('active', ['feed','sleep','diaper'][i]===tab));
     $('statsFeed').style.display = tab==='feed'?'block':'none';
     $('statsSleep').style.display = tab==='sleep'?'block':'none';
     $('statsDiaper').style.display = tab==='diaper'?'block':'none';
+}
+function switchDoctorTab(tab) {
+    doctorSubTab = tab;
+    document.querySelectorAll('#tab-doctor .sub-tab').forEach((b,i) => b.classList.toggle('active', ['vaccines','visits','questions'][i]===tab));
+    $('doctorVaccines').style.display = tab==='vaccines'?'block':'none';
+    $('doctorVisits').style.display = tab==='visits'?'block':'none';
+    $('doctorQuestions').style.display = tab==='questions'?'block':'none';
+    if (tab==='vaccines') updateVaccineList();
+    if (tab==='visits') updateVisitsHistory();
+    if (tab==='questions') { $('doctorQuestionsText').value = LS.get('mama_doctor_questions_'+currentBabyId) || ''; }
 }
 
 // === ПАНЕЛИ ===
@@ -504,6 +548,7 @@ if (LS.get(NIGHT_KEY) === true && !nightAutoEnabled) {
     nightMode = true;
     applyNightMode();
 }
+
 // === УНИВЕРСАЛЬНЫЙ ТАЙМЕР ===
 class Tracker {
     constructor(type, config) {
@@ -1210,6 +1255,110 @@ function exportForDoctor() {
     showOverlay(`<div style="text-align:center;"><h3>🏥 Отчёт для педиатра</h3><img src="${dataUrl}" style="max-width:100%;max-height:80vh;border-radius:12px;margin:12px 0;"><p style="color:var(--text-secondary);font-size:13px;margin-bottom:8px;">📸 Нажмите и удерживайте, чтобы сохранить или отправить</p><p style="color:var(--text-secondary);font-size:11px;">✏️ Распечатайте и заполните вопросы врачу перед приёмом</p><button class="btn-skip" onclick="closeOverlay()" style="margin-top:12px;padding:12px 30px;width:auto;">✕ Закрыть</button></div>`);
 }
 
+// === ПЛАНИРОВЩИК ВИЗИТОВ ===
+function updateDoctorTab() {
+    updateVaccineList();
+    updateVisitsHistory();
+    $('doctorQuestionsText').value = LS.get('mama_doctor_questions_'+currentBabyId) || '';
+}
+
+function getBabyAge() {
+    const birthDateStr = LS.get('mama_birth_date_' + currentBabyId);
+    if (!birthDateStr) return { months: 0, display: 'Укажите дату рождения' };
+    const birth = new Date(birthDateStr);
+    const months = Math.floor((today - birth) / (1000 * 60 * 60 * 24 * 30.44));
+    if (months < 1) {
+        const days = Math.floor((today - birth) / (1000 * 60 * 60 * 24));
+        return { months: 0, days, display: days + ' дн.' };
+    } else if (months < 24) {
+        return { months, display: months + ' мес.' };
+    } else {
+        return { months, display: Math.floor(months / 12) + ' г. ' + (months % 12) + ' мес.' };
+    }
+}
+
+const VACCINES = [
+    { age: 0, name: 'Гепатит B (1-я вакцинация)', desc: 'В первые 24 часа' },
+    { age: 0, name: 'БЦЖ (туберкулёз)', desc: 'На 3-7 день жизни' },
+    { age: 1, name: 'Гепатит B (2-я вакцинация)', desc: 'В 1 месяц' },
+    { age: 2, name: 'Пневмококковая инфекция (1-я)', desc: 'В 2 месяца' },
+    { age: 3, name: 'АКДС (1-я) + Полиомиелит (1-я) + Гемофильная инфекция (1-я)', desc: 'В 3 месяца' },
+    { age: 4.5, name: 'АКДС (2-я) + Полиомиелит (2-я) + Гемофильная инфекция (2-я)', desc: 'В 4.5 месяца' },
+    { age: 6, name: 'АКДС (3-я) + Полиомиелит (3-я) + Гемофильная инфекция (3-я) + Гепатит B (3-я)', desc: 'В 6 месяцев' },
+    { age: 12, name: 'Корь, краснуха, паротит (1-я)', desc: 'В 12 месяцев' },
+    { age: 15, name: 'Пневмококковая инфекция (ревакцинация)', desc: 'В 15 месяцев' },
+    { age: 18, name: 'АКДС (ревакцинация) + Полиомиелит (ревакцинация) + Гемофильная инфекция (ревакцинация)', desc: 'В 18 месяцев' },
+    { age: 20, name: 'Полиомиелит (2-я ревакцинация)', desc: 'В 20 месяцев' },
+    { age: 72, name: 'Корь, краснуха, паротит (ревакцинация)', desc: 'В 6 лет' },
+    { age: 84, name: 'АКДС (2-я ревакцинация) + Туберкулёз (ревакцинация)', desc: 'В 7 лет' }
+];
+
+function updateVaccineList() {
+    const age = getBabyAge();
+    $('babyAge').textContent = age.display;
+    
+    if (!LS.get('mama_birth_date_' + currentBabyId)) {
+        $('vaccineList').innerHTML = '<div class="empty-state">Укажите дату рождения ребёнка в разделе 👶</div>';
+        return;
+    }
+    
+    $('vaccineList').innerHTML = VACCINES.map(v => {
+        const doneMonths = v.age;
+        const babyMonths = age.months;
+        const done = babyMonths >= doneMonths;
+        const soon = !done && (doneMonths - babyMonths <= 1);
+        const icon = done ? '✅' : soon ? '⏰' : '⬜';
+        const style = done ? 'color:#7ecb8a;' : soon ? 'color:var(--pro-gold);' : 'opacity:0.6;';
+        return `<div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);${style}">
+            <span style="font-size:20px;">${icon}</span>
+            <div style="flex:1;">
+                <div style="font-size:14px;font-weight:600;">${v.name}</div>
+                <div style="font-size:11px;color:var(--text-secondary);">${v.desc}</div>
+            </div>
+            <span style="font-size:12px;color:var(--text-secondary);">${v.age === 0 ? '0' : v.age + ' мес.'}</span>
+        </div>`;
+    }).join('');
+}
+
+function getVisits() { return LS.get('mama_visits_'+currentBabyId) || []; }
+function saveVisit(visit) { const visits = getVisits(); visits.push({...visit, timestamp: Date.now()}); LS.set('mama_visits_'+currentBabyId, visits); }
+
+function addVisit() {
+    const date = $('visitDate').value;
+    const doctor = $('visitDoctor').value.trim();
+    if (!date || !doctor) return alert('Введите дату и врача');
+    saveVisit({ date, doctor, clinic: $('visitClinic').value.trim(), notes: $('visitNotes').value.trim() });
+    $('visitDate').value = ''; $('visitDoctor').value = ''; $('visitClinic').value = ''; $('visitNotes').value = '';
+    updateVisitsHistory(); haptic();
+}
+
+function deleteVisit(index) {
+    const visits = getVisits(); visits.splice(index, 1);
+    LS.set('mama_visits_'+currentBabyId, visits); updateVisitsHistory();
+}
+
+function updateVisitsHistory() {
+    const visits = getVisits().sort((a,b) => new Date(b.date) - new Date(a.date));
+    $('visitsHistory').innerHTML = visits.length ? visits.map((v,i) => {
+        const d = new Date(v.date);
+        return `<div class="history-item">
+            <div style="flex:1;"><span style="font-size:14px;font-weight:600;">🏥 ${v.doctor}</span>
+                <div style="font-size:11px;color:var(--text-secondary);">${fmtDate(d, {day:'numeric',month:'long',year:'numeric'})}${v.clinic ? ' · ' + v.clinic : ''}</div>
+                ${v.notes ? `<div style="font-size:12px;color:var(--text);margin-top:4px;">${v.notes}</div>` : ''}
+            </div>
+            <span onclick="deleteVisit(${i})" style="color:#e8606e;cursor:pointer;font-size:18px;">🗑</span>
+        </div>`;
+    }).join('') : '<div class="empty-state">Нет записей</div>';
+}
+
+function saveDoctorQuestions() {
+    const text = $('doctorQuestionsText').value;
+    LS.set('mama_doctor_questions_'+currentBabyId, text);
+    haptic();
+    if (tg?.showPopup) tg.showPopup({title:'✅ Сохранено!',message:'Вопросы сохранены',buttons:[{type:'ok'}]});
+    else alert('Сохранено!');
+}
+
 // === ИНИЦИАЛИЗАЦИЯ ===
 $('soundGrid').innerHTML = CFG.SOUNDS.map(s => `<button class="sound-btn" data-sound="${s.id}" onclick="playSound('${s.id}')"><span class="sound-emoji">${s.emoji}</span>${s.name}</button>`).join('');
 $('colorGrid').innerHTML = CFG.COLORS.map(c => `<button class="color-btn${c===savedColor?' active':''}" data-color="${c}" onclick="setColorScheme('${c}')"><span class="color-dot ${c}"></span>${c==='pink'?'🌸':c==='blue'?'🌊':c==='mint'?'🌿':c==='lavender'?'💜':'🍑'}</button>`).join('');
@@ -1217,7 +1366,7 @@ $('colorGrid').innerHTML = CFG.COLORS.map(c => `<button class="color-btn${c===sa
 // === СТАРТ ===
 updateBabyUI(); updateFeedStats(); renderFeedHistory(); updateSleepStats(); renderSleepHistory();
 updateDiaperStats(); renderDiaperHistory(); updateGrowthUI(); updateProUI();
-updateCalendar(); updateMoodUI(); updateMedHistory(); updateAchievementsUI();
+updateCalendar(); updateMoodUI(); updateMedHistory(); updateAchievementsUI(); updateDoctorTab();
 </script>
 </body>
 </html>
