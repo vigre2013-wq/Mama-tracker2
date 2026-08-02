@@ -1298,7 +1298,7 @@ function updateVaccineList() {
     $('babyAge').textContent = age.display;
     
     if (!LS.get('mama_birth_date_' + currentBabyId)) {
-        $('vaccineList').innerHTML = '<div class="empty-state">Укажите дату рождения ребёнка в разделе 👶</div>';
+        $('vaccineList').innerHTML = '<div class="empty-state" onclick="togglePanel(\'babyPanel\')" style="cursor:pointer;color:var(--accent);">👆 Нажмите, чтобы указать дату рождения</div>';
         return;
     }
     
