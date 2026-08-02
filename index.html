@@ -647,7 +647,6 @@ function exportForDoctor(){
     function drawRow(label,value){ctx.fillStyle=textColor;ctx.font='14px -apple-system, sans-serif';ctx.textAlign='left';ctx.fillText(label,padding,y);ctx.textAlign='right';ctx.fillText(value,width-padding,y);ctx.textAlign='left';y+=26;}
     function drawSub(text,color){ctx.fillStyle=color||secColor;ctx.font='12px -apple-system, sans-serif';ctx.fillText('    '+text,padding,y);y+=20;}
 
-    // Симптомы
     if(sympData7.length>0){
         drawSection('🩺 Симптомы (последние 7 дней)',symptomColor);
         drawRow('Всего записей',sympData7.length+' раз');
@@ -666,7 +665,6 @@ function exportForDoctor(){
     drawSection('💧 Подгузники (последние 7 дней)');drawRow('Всего смен',diaperData7.length+' раз');drawRow('В среднем в день',diapersPerDay+' раз');drawRow('Грязных',dirtyCount+' раз');drawRow('Мокрых',(diaperData7.length-dirtyCount)+' раз');y+=5;
     if(medsData7.length>0){drawSection('💊 Лекарства');medsData7.forEach(r=>{const intStr=r.interval>0?' (каждые '+r.interval+' ч)':' (разово)';drawSub('💊 '+r.name+' '+(r.dose||'')+' — '+fmtDate(new Date(r.timestamp))+' '+fmtTime(r.timestamp)+intStr);});y+=5;}
 
-    // Вопросы из вкладки
     if(doctorQuestions){
         drawSection('📝 Вопросы врачу (из приложения)');
         const lines=doctorQuestions.split('\n');
@@ -684,7 +682,24 @@ function exportForDoctor(){
 }
 
 // === РЕЗЕРВНОЕ КОПИРОВАНИЕ ===
-function backupData(){if(!isPro())return;const allData={};for(let i=0;i<localStorage.length;i++){const key=localStorage.key(i);if(key.startsWith('mama')){allData[key]=JSON.parse(localStorage.getItem(key));}}const blob=new Blob([JSON.stringify(allData,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='mama-tracker-backup-'+new Date().toISOString().split('T')[0]+'.json';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);haptic();if(tg?.showPopup)tg.showPopup({title:'✅ Готово!',message:'Резервная копия сохранена',buttons:[{type:'ok'}]});}
+function backupData(){
+    if(!isPro())return;
+    const allData={};
+    for(let i=0;i<localStorage.length;i++){
+        const key=localStorage.key(i);
+        if(key.startsWith('mama')){allData[key]=JSON.parse(localStorage.getItem(key));}
+    }
+    const jsonStr=JSON.stringify(allData,null,2);
+    const blob=new Blob([jsonStr],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;a.download='mama-tracker-backup-'+new Date().toISOString().split('T')[0]+'.json';
+    a.style.display='none';document.body.appendChild(a);
+    setTimeout(()=>{a.click();document.body.removeChild(a);URL.revokeObjectURL(url);},100);
+    showOverlay(`<h3>📥 Резервная копия</h3><p style="color:var(--text-secondary);font-size:13px;margin-bottom:12px;">Скопируйте текст ниже и сохраните в файл .json</p><textarea id="backupText" style="height:200px;font-size:11px;font-family:monospace;margin-bottom:12px;" readonly>${jsonStr.replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/&/g,'&amp;')}</textarea><div class="dialog-buttons"><button class="btn-skip" onclick="closeOverlay()">Закрыть</button><button class="btn-save" onclick="copyBackupText()">📋 Копировать</button></div>`);
+    setTimeout(()=>{const ta=$('backupText');if(ta){ta.select();ta.focus();}},200);haptic();
+}
+function copyBackupText(){const ta=$('backupText');if(!ta)return;navigator.clipboard.writeText(ta.value).then(()=>{if(tg?.showPopup)tg.showPopup({title:'✅ Скопировано!',message:'Вставьте текст в файл .json',buttons:[{type:'ok'}]});else alert('Скопировано! Вставьте в файл .json');});}
 function restoreData(input){if(!isPro())return;const file=input.files[0];if(!file)return;const reader=new FileReader();reader.onload=function(e){try{const data=JSON.parse(e.target.result);const count=Object.keys(data).length;if(tg?.showPopup){tg.showPopup({title:'⚠️ Восстановить данные?',message:'Будет восстановлено '+count+' записей. Текущие данные будут заменены.',buttons:[{type:'cancel',text:'Отмена'},{type:'ok',text:'Восстановить'}]},function(btn){if(btn==='ok'){for(let i=localStorage.length-1;i>=0;i--){const key=localStorage.key(i);if(key.startsWith('mama'))localStorage.removeItem(key);}Object.entries(data).forEach(([key,value])=>{localStorage.setItem(key,JSON.stringify(value));});location.reload();}});}else if(confirm('Восстановить '+count+' записей? Текущие данные будут заменены.')){for(let i=localStorage.length-1;i>=0;i--){const key=localStorage.key(i);if(key.startsWith('mama'))localStorage.removeItem(key);}Object.entries(data).forEach(([key,value])=>{localStorage.setItem(key,JSON.stringify(value));});location.reload();}}catch(err){alert('Ошибка: неверный формат файла');}};reader.readAsText(file);}
 function clearOldData(){if(!isPro())return;showOverlay(`<h3>🗑 Очистка старых записей</h3><p style="color:var(--text-secondary);font-size:13px;margin-bottom:12px;">Удалить записи старше:</p><div class="dialog-buttons" style="flex-direction:column;gap:8px;"><button class="btn-skip" onclick="doClearOldData(30)">30 дней</button><button class="btn-skip" onclick="doClearOldData(60)">60 дней</button><button class="btn-skip" onclick="doClearOldData(90)">90 дней</button><button class="btn-skip" onclick="closeOverlay()">Отмена</button></div>`);}
 function doClearOldData(days){closeOverlay();const cutoff=new Date();cutoff.setDate(cutoff.getDate()-days);let removed=0;for(let i=localStorage.length-1;i>=0;i--){const key=localStorage.key(i);if(!key.startsWith('mama'))continue;if(key.includes('mama_theme')||key.includes('mama_color')||key.includes('mama_night')||key.includes('mama_pro')||key.includes('mama_babies')||key.includes('mama_current')||key.includes('mama_achievements')||key.includes('mama_birth')||key.includes('mama_doctor_questions')||key.includes('mama_visits')||key.includes('mama-welcome')||key.includes('-growth')||key.includes('mama_common_meds'))continue;try{const records=JSON.parse(localStorage.getItem(key));if(!Array.isArray(records))continue;const filtered=records.filter(r=>new Date(r.timestamp)>cutoff);if(filtered.length<records.length){removed+=records.length-filtered.length;if(filtered.length===0){localStorage.removeItem(key);}else{localStorage.setItem(key,JSON.stringify(filtered));}}}catch(e){}}refreshAll();if(tg?.showPopup)tg.showPopup({title:'✅ Очищено!',message:'Удалено '+removed+' старых записей',buttons:[{type:'ok'}]});else alert('Удалено '+removed+' старых записей');}
