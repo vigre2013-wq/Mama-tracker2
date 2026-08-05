@@ -40,7 +40,8 @@
             background: var(--bg); color: var(--text); min-height: 100vh;
             padding: env(safe-area-inset-top, 20px) 20px env(safe-area-inset-bottom, 20px);
             max-width: 500px; margin: 0 auto; user-select: none; -webkit-tap-highlight-color: transparent;
-            transition: background var(--transition-speed) ease, color var(--transition-speed) ease; overflow-x: hidden;
+            transition: background var(--transition-speed) ease, color var(--transition-speed) ease;
+            overflow-x: hidden; touch-action: pan-y;
         }
         .header { display: flex; align-items: flex-start; justify-content: center; padding: 20px 0 10px; position: relative; flex-direction: column; }
         .header-top { display: flex; align-items: center; justify-content: center; width: 100%; position: relative; }
@@ -198,19 +199,19 @@
 <div id="welcomeScreen"><div class="card" style="text-align:center;"><div style="font-size:60px;">👋</div><h2>Привет, мама!</h2><p style="color:var(--text-secondary);">Я помогу следить за режимом малыша</p><button onclick="closeWelcome()" class="welcome-btn" style="margin-top:16px;">Понятно, начнём! 🚀</button></div></div>
 
 <div id="mainApp" style="display:none;">
-    <div class="tabs">
-        <button class="tab-btn active" onclick="switchMainTab('feeding')">🍼</button>
-        <button class="tab-btn" onclick="switchMainTab('sleep')">😴</button>
-        <button class="tab-btn" onclick="switchMainTab('diaper')">💧</button>
-        <button class="tab-btn" onclick="switchMainTab('stats')">📊</button>
-        <button class="tab-btn" onclick="switchMainTab('growth')">📏</button>
-        <button class="tab-btn" onclick="switchMainTab('calendar')">📅</button>
-        <button class="tab-btn" onclick="switchMainTab('mood')">💖</button>
-        <button class="tab-btn" onclick="switchMainTab('meds')">💊</button>
-        <button class="tab-btn" onclick="switchMainTab('symptoms')">🩺</button>
-        <button class="tab-btn" onclick="switchMainTab('achievements')">🏆</button>
-        <button class="tab-btn" onclick="switchMainTab('doctor')">🏥</button>
-        <button class="tab-btn" onclick="switchMainTab('pro')">👑</button>
+    <div class="tabs" id="mainTabs">
+        <button class="tab-btn active" data-tab="feeding">🍼</button>
+        <button class="tab-btn" data-tab="sleep">😴</button>
+        <button class="tab-btn" data-tab="diaper">💧</button>
+        <button class="tab-btn" data-tab="stats">📊</button>
+        <button class="tab-btn" data-tab="growth">📏</button>
+        <button class="tab-btn" data-tab="calendar">📅</button>
+        <button class="tab-btn" data-tab="mood">💖</button>
+        <button class="tab-btn" data-tab="meds">💊</button>
+        <button class="tab-btn" data-tab="symptoms">🩺</button>
+        <button class="tab-btn" data-tab="achievements">🏆</button>
+        <button class="tab-btn" data-tab="doctor">🏥</button>
+        <button class="tab-btn" data-tab="pro">👑</button>
     </div>
 
     <div class="tab-content active" id="tab-feeding">
@@ -448,13 +449,26 @@ function closeWelcome() { $('welcomeScreen').style.display='none'; $('mainApp').
 if (LS.get('mama-welcome-shown')) { $('welcomeScreen').style.display='none'; $('mainApp').style.display='block'; }
 
 let mainTab = 'feeding', statsSubTab = 'feed', doctorSubTab = 'vaccines', symptomsSubTab = 'add';
-function switchMainTab(tab) { mainTab = tab; document.querySelectorAll('.tabs .tab-btn').forEach((b,i) => b.classList.toggle('active', CFG.TABS[i]===tab)); document.querySelectorAll('.tab-content').forEach(c => { c.classList.remove('active'); c.style.display='none'; }); const target = $('tab-'+tab); if (target) { target.style.display='block'; requestAnimationFrame(() => requestAnimationFrame(() => target.classList.add('active'))); } if (tab==='stats') buildAllCharts(); if (tab==='growth') updateGrowthUI(); if (tab==='calendar') updateCalendar(); if (tab==='mood') updateMoodUI(); if (tab==='meds') updateMedHistory(); if (tab==='symptoms') updateSymptomsUI(); if (tab==='achievements') updateAchievementsUI(); if (tab==='doctor') updateDoctorTab(); if (tab==='pro') updateProUI(); }
+function switchMainTab(tab) { mainTab = tab; document.querySelectorAll('#mainTabs .tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab===tab)); document.querySelectorAll('.tab-content').forEach(c => { c.classList.remove('active'); c.style.display='none'; }); const target = $('tab-'+tab); if (target) { target.style.display='block'; requestAnimationFrame(() => requestAnimationFrame(() => target.classList.add('active'))); } if (tab==='stats') buildAllCharts(); if (tab==='growth') updateGrowthUI(); if (tab==='calendar') updateCalendar(); if (tab==='mood') updateMoodUI(); if (tab==='meds') updateMedHistory(); if (tab==='symptoms') updateSymptomsUI(); if (tab==='achievements') updateAchievementsUI(); if (tab==='doctor') updateDoctorTab(); if (tab==='pro') updateProUI(); }
 function switchStatsTab(tab) { statsSubTab = tab; document.querySelectorAll('#tab-stats .sub-tab').forEach((b,i)=>b.classList.toggle('active',['feed','sleep','diaper'][i]===tab)); $('statsFeed').style.display=tab==='feed'?'block':'none'; $('statsSleep').style.display=tab==='sleep'?'block':'none'; $('statsDiaper').style.display=tab==='diaper'?'block':'none'; }
 function switchDoctorTab(tab) { doctorSubTab=tab; document.querySelectorAll('#tab-doctor .sub-tab').forEach((b,i)=>b.classList.toggle('active',['vaccines','visits','questions'][i]===tab)); $('doctorVaccines').style.display=tab==='vaccines'?'block':'none'; $('doctorVisits').style.display=tab==='visits'?'block':'none'; $('doctorQuestions').style.display=tab==='questions'?'block':'none'; if(tab==='vaccines')updateVaccineList(); if(tab==='visits')updateVisitsHistory(); if(tab==='questions'){$('doctorQuestionsText').value=LS.get('mama_doctor_questions_'+currentBabyId)||'';} }
 function switchSymptomsTab(tab) { symptomsSubTab=tab; document.querySelectorAll('#tab-symptoms .sub-tab').forEach((b,i)=>b.classList.toggle('active',['add','history','chart'][i]===tab)); $('symptomsAdd').style.display=tab==='add'?'block':'none'; $('symptomsHistory').style.display=tab==='history'?'block':'none'; $('symptomsChart').style.display=tab==='chart'?'block':'none'; if(tab==='history')updateSymptomsHistory(); if(tab==='chart')buildSymptomChart(); }
 
 function togglePanel(id) { const p=$(id); if(p)p.classList.toggle('hidden'); }
 function hidePanel(id) { const p=$(id); if(p)p.classList.add('hidden'); }
+
+// === СВАЙПЫ ===
+let touchStartX=0, touchStartY=0;
+document.addEventListener('touchstart', e => { touchStartX=e.touches[0].clientX; touchStartY=e.touches[0].clientY; }, {passive:true});
+document.addEventListener('touchend', e => {
+    const dx=e.changedTouches[0].clientX-touchStartX;
+    const dy=e.changedTouches[0].clientY-touchStartY;
+    if(Math.abs(dx)>Math.abs(dy)&&Math.abs(dx)>60){
+        const idx=CFG.TABS.indexOf(mainTab);
+        if(dx<-40&&idx<CFG.TABS.length-1){switchMainTab(CFG.TABS[idx+1]);haptic();}
+        if(dx>40&&idx>0){switchMainTab(CFG.TABS[idx-1]);haptic();}
+    }
+});
 
 const NIGHT_KEY='mama_night_mode'; let nightMode=LS.get(NIGHT_KEY)===true; let nightAutoEnabled=LS.get(NIGHT_KEY)===null||LS.get(NIGHT_KEY)===undefined;
 function applyNightMode(){document.body.classList.toggle('night-mode',nightMode);const btn=$('btnNightMode');if(btn)btn.textContent=nightMode?'🌟':'🌙';if(tg?.HapticFeedback)tg.HapticFeedback.impactOccurred('soft');}
