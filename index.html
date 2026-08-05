@@ -449,6 +449,15 @@ function closeWelcome() { $('welcomeScreen').style.display='none'; $('mainApp').
 if (LS.get('mama-welcome-shown')) { $('welcomeScreen').style.display='none'; $('mainApp').style.display='block'; }
 
 let mainTab = 'feeding', statsSubTab = 'feed', doctorSubTab = 'vaccines', symptomsSubTab = 'add';
+
+// Обработчик кликов на табы
+document.getElementById('mainTabs').addEventListener('click', function(e) {
+    const btn = e.target.closest('.tab-btn');
+    if (btn && btn.dataset.tab) {
+        switchMainTab(btn.dataset.tab);
+    }
+});
+
 function switchMainTab(tab) { mainTab = tab; document.querySelectorAll('#mainTabs .tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab===tab)); document.querySelectorAll('.tab-content').forEach(c => { c.classList.remove('active'); c.style.display='none'; }); const target = $('tab-'+tab); if (target) { target.style.display='block'; requestAnimationFrame(() => requestAnimationFrame(() => target.classList.add('active'))); } if (tab==='stats') buildAllCharts(); if (tab==='growth') updateGrowthUI(); if (tab==='calendar') updateCalendar(); if (tab==='mood') updateMoodUI(); if (tab==='meds') updateMedHistory(); if (tab==='symptoms') updateSymptomsUI(); if (tab==='achievements') updateAchievementsUI(); if (tab==='doctor') updateDoctorTab(); if (tab==='pro') updateProUI(); }
 function switchStatsTab(tab) { statsSubTab = tab; document.querySelectorAll('#tab-stats .sub-tab').forEach((b,i)=>b.classList.toggle('active',['feed','sleep','diaper'][i]===tab)); $('statsFeed').style.display=tab==='feed'?'block':'none'; $('statsSleep').style.display=tab==='sleep'?'block':'none'; $('statsDiaper').style.display=tab==='diaper'?'block':'none'; }
 function switchDoctorTab(tab) { doctorSubTab=tab; document.querySelectorAll('#tab-doctor .sub-tab').forEach((b,i)=>b.classList.toggle('active',['vaccines','visits','questions'][i]===tab)); $('doctorVaccines').style.display=tab==='vaccines'?'block':'none'; $('doctorVisits').style.display=tab==='visits'?'block':'none'; $('doctorQuestions').style.display=tab==='questions'?'block':'none'; if(tab==='vaccines')updateVaccineList(); if(tab==='visits')updateVisitsHistory(); if(tab==='questions'){$('doctorQuestionsText').value=LS.get('mama_doctor_questions_'+currentBabyId)||'';} }
