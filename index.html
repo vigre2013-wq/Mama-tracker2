@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Мама Трекер — Тест</title>
+    <style>
+        body {
+            font-family: -apple-system, sans-serif;
+            background: #1a1a2e;
+            color: #f0e6ef;
+            padding: 20px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        button {
+            width: 100%;
+            height: 50px;
+            border-radius: 14px;
+            border: none;
+            background: #e8a0bf;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 700;
+            margin: 8px 0;
+            cursor: pointer;
+        }
+        .card {
+            background: #16213e;
+            border-radius: 20px;
+            padding: 20px;
+            margin: 16px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>🤱 Мама Трекер — ТЕСТ</h1>
+        <p id="status">Загрузка...</p>
+    </div>
+    
+    <button onclick="testClick()">🧪 ТЕСТ: Нажми меня</button>
+    <button onclick="saveTest()">💾 Сохранить в память</button>
+    <button onclick="loadTest()">📥 Загрузить из памяти</button>
+    
+    <div class="card">
+        <p>Результат: <span id="result">—</span></p>
+    </div>
+
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script>
+        // Telegram WebApp
+        const tg = window.Telegram?.WebApp;
+        if (tg) {
+            tg.ready();
+            tg.expand();
+            document.getElementById('status').textContent = '✅ Telegram WebApp работает!';
+        } else {
+            document.getElementById('status').textContent = '❌ Не в Telegram';
+        }
+
+        // Тест кнопки
+        function testClick() {
+            document.getElementById('result').textContent = '✅ Кнопка работает! ' + new Date().toLocaleTimeString();
+            if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+        }
+
+        // Тест localStorage
+        function saveTest() {
+            localStorage.setItem('mama_test', 'Данные сохранены: ' + new Date().toLocaleTimeString());
+            document.getElementById('result').textContent = '💾 Сохранено!';
+        }
+
+        function loadTest() {
+            const data = localStorage.getItem('mama_test');
+            document.getElementById('result').textContent = data || 'Нет данных';
+        }
+
+        console.log('=== ТЕСТ ЗАГРУЖЕН ===');
+    </script>
+</body>
+</html>
