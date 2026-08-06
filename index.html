@@ -231,15 +231,6 @@
 
 <div id="welcomeScreen"><div class="card" style="text-align:center;"><div style="font-size:60px;">👋</div><h2>Привет, мама!</h2><p style="color:var(--text-secondary);">Я помогу следить за режимом малыша</p><button onclick="closeWelcome()" class="welcome-btn" style="margin-top:16px;">Понятно, начнём! 🚀</button></div></div>
 
-<div id="pinLockScreen" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:var(--bg);z-index:10001;flex-direction:column;align-items:center;justify-content:center;padding:20px;">
-    <div style="font-size:60px;margin-bottom:20px;">🔐</div>
-    <h2 style="margin-bottom:24px;">Введите PIN-код</h2>
-    <div style="display:flex;gap:8px;margin-bottom:20px;" id="pinDots"></div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-width:240px;" id="pinKeypad"></div>
-    <p id="pinError" style="color:#e8606e;margin-top:16px;min-height:20px;"></p>
-    <button onclick="resetPin()" style="margin-top:16px;background:transparent;border:none;color:var(--text-secondary);font-size:14px;cursor:pointer;">Сбросить PIN</button>
-</div>
-
 <div id="mainApp" style="display:none;">
     <div class="widget-bar" id="mainWidget">
         <div class="widget-item" onclick="switchMainTab('feeding')"><div class="widget-emoji">🍼</div><div class="widget-value" id="wFeed">—</div><div class="widget-label">Кормление</div></div>
@@ -476,35 +467,11 @@ function getRecords(type,dateObj){return LS.get(getStorageKey(type,dateObj))||[]
 function saveRecord(type,data){const key=getStorageKey(type);const records=LS.get(key)||[];records.push({...data,timestamp:Date.now()});LS.set(key,records);}
 function getAllRecords(type,days=30){const all=[];for(let i=0;i<days;i++){const d=new Date();d.setDate(d.getDate()-i);all.push(...getRecords(type,d));}return all.sort((a,b)=>b.timestamp-a.timestamp);}
 
-// === PIN-CODE ===
-let pinCode = LS.get('mama_pin_code') || null;
+// === PIN-CODE (ОТКЛЮЧЁН) ===
+let pinCode = null;
 let pinAttempt = '';
-let pinEnabled = pinCode !== null;
-if(pinEnabled && !sessionStorage.getItem('mama_unlocked')){
-    document.getElementById('pinLockScreen').style.display = 'flex';
-    document.getElementById('welcomeScreen').style.display = 'none';
-    document.getElementById('mainApp').style.display = 'none';
-    buildPinUI();
-}
-function buildPinUI(){
-    const dots = $('#pinDots'); dots.innerHTML = '';
-    for(let i=0;i<4;i++) dots.innerHTML += `<span class="pin-dot" id="pinDot${i}"></span>`;
-    const keypad = $('#pinKeypad'); keypad.innerHTML = '';
-    for(let i=1;i<=9;i++) keypad.innerHTML += `<button class="action-btn start" style="height:60px;font-size:22px;margin:0;" onclick="pressPin(${i})">${i}</button>`;
-    keypad.innerHTML += `<button class="action-btn" style="height:60px;font-size:14px;margin:0;background:var(--btn-ghost);" onclick="resetPinAttempt()">✕</button>`;
-    keypad.innerHTML += `<button class="action-btn start" style="height:60px;font-size:22px;margin:0;" onclick="pressPin(0)">0</button>`;
-    keypad.innerHTML += `<button class="action-btn start" style="height:60px;font-size:14px;margin:0;" onclick="submitPin()">→</button>`;
-}
-function pressPin(digit){if(pinAttempt.length>=4)return;pinAttempt+=digit;updatePinDots();if(pinAttempt.length===4)setTimeout(submitPin,200);}
-function updatePinDots(){for(let i=0;i<4;i++){const dot=$('#pinDot'+i);if(dot)dot.classList.toggle('filled',i<pinAttempt.length);}}
-function submitPin(){
-    if(pinAttempt===pinCode){sessionStorage.setItem('mama_unlocked','1');$('#pinLockScreen').style.display='none';$('#pinError').textContent='';
-        if(LS.get('mama-welcome-shown')){$('#welcomeScreen').style.display='none';$('#mainApp').style.display='block';setTimeout(startTooltips,500);}
-        else{$('#welcomeScreen').style.display='block';$('#mainApp').style.display='none';}
-    }else{$('#pinError').textContent='❌ Неверный PIN';pinAttempt='';updatePinDots();setTimeout(()=>{$('#pinError').textContent='';},1500);}
-}
-function resetPinAttempt(){pinAttempt='';updatePinDots();}
-function resetPin(){if(confirm('Сбросить PIN-код?')){LS.set('mama_pin_code',null);pinCode=null;pinEnabled=false;$('#pinLockScreen').style.display='none';sessionStorage.setItem('mama_unlocked','1');if(LS.get('mama-welcome-shown')){$('#welcomeScreen').style.display='none';$('#mainApp').style.display='block';}else{$('#welcomeScreen').style.display='block';}}}
+let pinEnabled = false;
+
 function setupPin(){
     showOverlay(`<h3>🔐 Установить PIN-код</h3><p style="color:var(--text-secondary);font-size:13px;margin-bottom:12px;">Введите 4 цифры</p><div style="display:flex;gap:8px;justify-content:center;margin-bottom:12px;" id="newPinDots"></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:200px;margin:0 auto;" id="newPinKeypad"></div>`);
     let np='';const ud=()=>{let h='';for(let i=0;i<4;i++)h+=`<span class="pin-dot ${i<np.length?'filled':''}"></span>`;$('#newPinDots').innerHTML=h;};ud();
@@ -539,7 +506,7 @@ function updateProUI(){const p=isPro();$('proBadge').style.display=p?'inline-blo
 function activatePro(){const c=$('activateCode').value.trim().toUpperCase();if(CFG.PRO_CODES.includes(c)){LS.set(PRO_KEY,true);updateProUI();tg?.showPopup?tg.showPopup({title:'🎉 PRO активирован!',message:'Все функции разблокированы!',buttons:[{type:'ok'}]}):alert('PRO активирован!');}else{tg?.showPopup?tg.showPopup({title:'❌ Неверный код',message:'Попробуйте TEST123',buttons:[{type:'ok'}]}):alert('Неверный код.');}}
 
 function closeWelcome(){$('welcomeScreen').style.display='none';$('mainApp').style.display='block';LS.set('mama-welcome-shown',true);startTooltips();}
-if(LS.get('mama-welcome-shown')&&!pinEnabled||(pinEnabled&&sessionStorage.getItem('mama_unlocked'))){$('#welcomeScreen').style.display='none';$('#mainApp').style.display='block';if(!pinEnabled)setTimeout(startTooltips,500);}
+if(LS.get('mama-welcome-shown')){$('#welcomeScreen').style.display='none';$('#mainApp').style.display='block';setTimeout(startTooltips,500);}
 
 // === TOOLTIPS ===
 const TOOLTIPS=[{selector:'#mainTabs .tab-btn[data-tab="feeding"]',text:'Начните с кормления 🍼'},{selector:'#mainTabs .tab-btn[data-tab="sleep"]',text:'Записывайте сон 😴'},{selector:'#mainTabs .tab-btn[data-tab="diaper"]',text:'Отмечайте подгузники 💧'},{selector:'#mainTabs .tab-btn[data-tab="achievements"]',text:'Получайте достижения! 🏆'}];
