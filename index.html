@@ -292,8 +292,7 @@
         <div class="card"><div class="card-title">📊 Сегодня</div><div class="stats-grid"><div class="stat-item"><div class="stat-value" id="feedCount">0</div><div class="stat-label">Кормлений</div></div><div class="stat-item"><div class="stat-value" id="feedDuration">0 мин</div><div class="stat-label">Общее время</div></div></div>
             <div style="display:flex;gap:8px;margin-top:12px;"><button onclick="startReminder(120)" class="reminder-btn" style="background:rgba(232,160,191,0.2);color:var(--left-breast);">🔔 2 ч</button><button onclick="startReminder(180)" class="reminder-btn" style="background:rgba(160,196,232,0.2);color:var(--right-breast);">🔔 3 ч</button><button onclick="startReminder(30)" class="reminder-btn" style="background:rgba(240,192,96,0.2);color:var(--pro-gold);">🔔 30 мин</button><button onclick="stopReminder()" class="reminder-btn" style="background:var(--btn-ghost);color:var(--text-secondary);">🔕</button></div>
             <div id="reminderStatus" style="text-align:center;font-size:13px;margin-top:8px;min-height:20px;"></div>
-            <button onclick="copyStatsAsText('feed')" class="reminder-btn" style="margin-top:8px;background:rgba(126,184,218,0.15);color:#7eb8da;width:100%;">📋 Копировать статистику</button>
-            <button onclick="clearTodayData('feed')" class="reminder-btn" style="margin-top:4px;background:rgba(232,96,110,0.1);color:#e8606e;width:100%;">🗑 Очистить сегодня</button>
+            <button onclick="clearTodayData('feed')" class="reminder-btn" style="margin-top:8px;background:rgba(232,96,110,0.1);color:#e8606e;width:100%;">🗑 Очистить сегодня</button>
         </div>
         <div class="card">
             <div class="collapsible-header" onclick="toggleCollapsible('feedHistoryCard')"><span class="card-title" style="margin:0;">📝 История</span><span class="collapsible-arrow" id="feedHistoryArrow">▼</span></div>
@@ -304,8 +303,7 @@
     <div class="tab-content" id="tab-sleep">
         <div class="card"><div class="card-title">😴 Сон</div><div class="timer-display" id="sleepTimer">00:00</div><button class="action-btn start-sleep" id="sleepBtn" onclick="sleepTracker.toggle()">▶️ Уложить спать</button></div>
         <div class="card"><div class="card-title">📊 Сегодня</div><div class="stats-grid"><div class="stat-item"><div class="stat-value" id="sleepCount">0</div><div class="stat-label">Снов</div></div><div class="stat-item"><div class="stat-value" id="sleepDuration">0 мин</div><div class="stat-label">Общее время</div></div></div>
-            <button onclick="copyStatsAsText('sleep')" class="reminder-btn" style="margin-top:8px;background:rgba(196,160,232,0.15);color:var(--sleep);width:100%;">📋 Копировать статистику</button>
-            <button onclick="clearTodayData('sleep')" class="reminder-btn" style="margin-top:4px;background:rgba(232,96,110,0.1);color:#e8606e;width:100%;">🗑 Очистить сегодня</button>
+            <button onclick="clearTodayData('sleep')" class="reminder-btn" style="margin-top:8px;background:rgba(232,96,110,0.1);color:#e8606e;width:100%;">🗑 Очистить сегодня</button>
         </div>
         <div class="card">
             <div class="collapsible-header" onclick="toggleCollapsible('sleepHistoryCard')"><span class="card-title" style="margin:0;">📝 История</span><span class="collapsible-arrow" id="sleepHistoryArrow">▼</span></div>
@@ -316,8 +314,7 @@
     <div class="tab-content" id="tab-diaper">
         <div class="card"><div class="card-title">💧 Сменить подгузник</div><div class="diaper-types"><button class="diaper-btn wet" onclick="addDiaper('wet')">💦<br>Мокрый</button><button class="diaper-btn dirty" onclick="addDiaper('dirty')">💩<br>Грязный</button><button class="diaper-btn both" onclick="addDiaper('both')">💦💩<br>Всё вместе</button><button class="diaper-btn" onclick="addDiaper('dry')">✅<br>Сменили</button></div></div>
         <div class="card"><div class="card-title">📊 Сегодня</div><div class="stats-grid"><div class="stat-item"><div class="stat-value" id="diaperCount">0</div><div class="stat-label">Всего смен</div></div><div class="stat-item"><div class="stat-value" id="diaperDirty">0</div><div class="stat-label">Грязных</div></div></div><div id="diaperWarning"></div>
-            <button onclick="copyStatsAsText('diaper')" class="reminder-btn" style="margin-top:8px;background:rgba(160,232,196,0.15);color:var(--diaper);width:100%;">📋 Копировать статистику</button>
-            <button onclick="clearTodayData('diaper')" class="reminder-btn" style="margin-top:4px;background:rgba(232,96,110,0.1);color:#e8606e;width:100%;">🗑 Очистить сегодня</button>
+            <button onclick="clearTodayData('diaper')" class="reminder-btn" style="margin-top:8px;background:rgba(232,96,110,0.1);color:#e8606e;width:100%;">🗑 Очистить сегодня</button>
         </div>
         <div class="card"><div class="card-title">📝 История</div><div class="history-list" id="diaperHistory"><div class="empty-state">Нет записей</div></div></div>
     </div>
@@ -491,30 +488,39 @@ function activatePro(){const code=$('activateCode').value.trim().toUpperCase();i
 function closeWelcome(){$('welcomeScreen').style.display='none';$('mainApp').style.display='block';LS.set('mama-welcome-shown',true);startTooltips();}
 if(LS.get('mama-welcome-shown')){$('welcomeScreen').style.display='none';$('mainApp').style.display='block';setTimeout(startTooltips,500);}
 
+// === ПОДСКАЗКИ ===
 const TOOLTIPS=[{selector:'#mainTabs .tab-btn[data-tab="feeding"]',text:'Начните с кормления — нажмите 🍼'},{selector:'#mainTabs .tab-btn[data-tab="sleep"]',text:'Записывайте сон малыша 😴'},{selector:'#mainTabs .tab-btn[data-tab="diaper"]',text:'Отмечайте смену подгузников 💧'},{selector:'#mainTabs .tab-btn[data-tab="achievements"]',text:'Получайте достижения за заботу! 🏆'}];
 let tooltipIndex=0,currentTooltip=null;
 function startTooltips(){if(LS.get('mama_tooltips_shown'))return;showNextTooltip();}
 function showNextTooltip(){if(currentTooltip){document.body.removeChild(currentTooltip);currentTooltip=null;}if(tooltipIndex>=TOOLTIPS.length){LS.set('mama_tooltips_shown',true);return;}const tip=TOOLTIPS[tooltipIndex];const el=document.querySelector(tip.selector);if(!el){tooltipIndex++;showNextTooltip();return;}const rect=el.getBoundingClientRect();const tooltip=document.createElement('div');tooltip.className='tooltip';tooltip.textContent=tip.text+' ('+(tooltipIndex+1)+'/'+TOOLTIPS.length+')';tooltip.style.left=Math.max(10,rect.left+rect.width/2-100)+'px';tooltip.style.top=(rect.bottom+10)+'px';document.body.appendChild(tooltip);currentTooltip=tooltip;el.style.position='relative';el.style.zIndex='9999';setTimeout(()=>{tooltipIndex++;showNextTooltip();},3000);}
 
+// === ВИДЖЕТ С ЦВЕТОВОЙ ИНДИКАЦИЕЙ ===
 function updateWidget(){
     const feedRecs=getRecords('feed');const sleepRecs=getRecords('sleep');const diaperRecs=getRecords('diaper');const todayMood=LS.get('mama-mood-'+today.toISOString().split('T')[0]);
+    // Кормление
     const wFeed=$('wFeed');const wFeedItem=$('wFeedItem');
     if(feedRecs.length>0){const last=feedRecs[feedRecs.length-1];const minAgo=Math.floor((Date.now()-last.timestamp)/60000);wFeed.textContent=minAgo<60?minAgo+' мин':Math.floor(minAgo/60)+' ч';wFeedItem.className='widget-item '+(minAgo<90?'status-normal':minAgo<180?'status-warning':'status-danger');}else{wFeed.textContent='—';wFeedItem.className='widget-item';}
+    // Сон
     const wSleep=$('wSleep');const wSleepItem=$('wSleepItem');
     if(sleepRecs.length>0){const totalMin=Math.floor(sleepRecs.reduce((s,r)=>s+r.duration,0)/60);wSleep.textContent=totalMin<60?totalMin+' мин':Math.floor(totalMin/60)+' ч';wSleepItem.className='widget-item status-normal';}else{wSleep.textContent='—';wSleepItem.className='widget-item';}
+    // Подгузники
     const wDiaper=$('wDiaper');const wDiaperItem=$('wDiaperItem');const wetCount=diaperRecs.filter(r=>r.type==='wet'||r.type==='both').length;
     wDiaper.textContent=diaperRecs.length>0?diaperRecs.length:'—';wDiaperItem.className='widget-item '+(diaperRecs.length===0?'':wetCount<5?'status-warning':'status-normal');
+    // Настроение
     const wMood=$('wMood');const wMoodItem=$('wMoodItem');wMood.textContent=todayMood&&CFG.MOODS[todayMood]?CFG.MOODS[todayMood].emoji:'—';
     wMoodItem.className='widget-item '+(todayMood==='tired'||todayMood==='bad'?'status-danger':todayMood?'status-normal':'');
 }
 
+// === ОЧИСТКА ДАННЫХ ЗА СЕГОДНЯ ===
 function clearTodayData(type){
     showOverlay(`<h3>🗑 Очистить сегодня?</h3><p style="color:var(--text-secondary);font-size:13px;margin-bottom:12px;">Удалить все записи ${type==='feed'?'кормлений':type==='sleep'?'сна':'подгузников'} за сегодня?</p><div class="dialog-buttons"><button class="btn-skip" onclick="closeOverlay()">Отмена</button><button class="btn-save" style="background:#e8606e;" id="confirmClear">Удалить</button></div>`);
     $('confirmClear').onclick=()=>{const key=getStorageKey(type);LS.set(key,[]);closeOverlay();refreshAll();if(tg?.showPopup)tg.showPopup({title:'✅ Очищено!',message:'Записи за сегодня удалены',buttons:[{type:'ok'}]});};
 }
 
+// === СВОРАЧИВАЕМЫЕ КАРТОЧКИ ===
 function toggleCollapsible(id){const body=document.getElementById(id);const arrowId=id.replace('Card','Arrow');const arrow=document.getElementById(arrowId);if(!body)return;const isOpen=body.classList.contains('open');if(isOpen){body.classList.remove('open');if(arrow)arrow.classList.remove('open');}else{body.classList.add('open');if(arrow)arrow.classList.add('open');}}
 
+// === НОЧНОЙ РЕЖИМ ===
 const NIGHT_KEY='mama_night_mode',NIGHT_START='mama_night_start',NIGHT_END='mama_night_end';
 let nightMode=LS.get(NIGHT_KEY)===true;let nightAutoEnabled=LS.get(NIGHT_KEY)===null||LS.get(NIGHT_KEY)===undefined;
 let nightStart=LS.get(NIGHT_START)||'21:00',nightEnd=LS.get(NIGHT_END)||'07:00';
@@ -536,6 +542,7 @@ function switchMoodTab(tab){moodSubTab=tab;document.querySelectorAll('#tab-mood 
 function togglePanel(id){const p=$(id);if(p){p.classList.toggle('hidden');if(id==='themePanel'&&!p.classList.contains('hidden'))loadNightSettings();}}
 function hidePanel(id){const p=$(id);if(p)p.classList.add('hidden');}
 
+// === ЧЕК-ЛИСТ ===
 function getChecklist(){return LS.get('mama_checklist_'+currentBabyId)||[...CFG.DEFAULT_CHECKLIST];}
 function saveChecklist(list){LS.set('mama_checklist_'+currentBabyId,list);}
 function updateVisitChecklist(){const items=getChecklist();const container=$('visitChecklist');if(!container)return;container.innerHTML=items.map((item,i)=>`<div style="display:flex;align-items:center;gap:8px;"><input type="checkbox" id="chk_${i}" style="width:20px;height:20px;margin:0;accent-color:var(--accent);" onchange="toggleCheckItem(${i},this.checked)"><span style="font-size:13px;flex:1;">${item}</span><span onclick="deleteCheckItem(${i})" style="cursor:pointer;font-size:14px;">🗑</span></div>`).join('')+`<div style="display:flex;gap:8px;margin-top:8px;"><input type="text" id="newCheckItem" placeholder="Добавить пункт" style="flex:1;height:36px;font-size:13px;margin:0;text-align:left;padding-left:12px;"><button class="reminder-btn" onclick="addCheckItem()" style="width:40px;background:var(--accent);color:#fff;">+</button></div>`;items.forEach((item,i)=>{$('chk_'+i).checked=item.startsWith('✅');});}
@@ -544,6 +551,7 @@ function deleteCheckItem(i){const items=getChecklist();items.splice(i,1);saveChe
 function addCheckItem(){const input=$('newCheckItem');if(!input||!input.value.trim())return;const items=getChecklist();items.push(input.value.trim());saveChecklist(items);input.value='';updateVisitChecklist();}
 function updateDoctorAutofill(){const visits=getVisits();const doctors=[...new Set(visits.map(v=>v.doctor).filter(Boolean))];const clinics=[...new Set(visits.map(v=>v.clinic).filter(Boolean))];$('doctorList').innerHTML=doctors.map(d=>`<option value="${d}">`).join('');$('clinicList').innerHTML=clinics.map(c=>`<option value="${c}">`).join('');}
 
+// === СВАЙПЫ ===
 let touchStartX=0,touchStartY=0;
 document.addEventListener('touchstart',e=>{touchStartX=e.touches[0].clientX;touchStartY=e.touches[0].clientY;},{passive:true});
 document.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-touchStartX,dy=e.changedTouches[0].clientY-touchStartY;if(Math.abs(dx)>Math.abs(dy)&&Math.abs(dx)>60){const idx=CFG.TABS.indexOf(mainTab);if(dx<-40&&idx<CFG.TABS.length-1){switchMainTab(CFG.TABS[idx+1]);haptic();}if(dx>40&&idx>0){switchMainTab(CFG.TABS[idx-1]);haptic();}}});
@@ -552,16 +560,19 @@ class Tracker{constructor(type,config){this.type=type;this.cfg=config;this.runni
 const feedTracker=new Tracker('feed',{btn:$('feedingBtn'),timerEl:$('feedingTimer'),sideButtons:[$('btnLeft'),$('btnRight')],startLabel:'▶️ Начать',startClass:'action-btn start'});
 const sleepTracker=new Tracker('sleep',{btn:$('sleepBtn'),timerEl:$('sleepTimer'),startLabel:'▶️ Уложить спать',startClass:'action-btn start-sleep'});
 
+// === УМНЫЕ НАПОМИНАНИЯ ===
 let feedingStatusInterval=null;
 function updateFeedingStatus(){const recs=getRecords('feed');const card=$('feedingStatusCard');if(!card)return;if(recs.length===0){card.style.display='none';return;}const lastFeed=recs[recs.length-1];const minutesAgo=Math.floor((Date.now()-lastFeed.timestamp)/60000);const hoursAgo=Math.floor(minutesAgo/60),minsAgo=minutesAgo%60;let sc='normal',st='',se='🕐';if(minutesAgo<90){sc='normal';se='✅';st=`Прошло ${hoursAgo>0?hoursAgo+' ч ':''}${minsAgo} мин — всё хорошо`;}else if(minutesAgo<180){sc='warning';se='⏰';st=`Прошло ${hoursAgo} ч ${minsAgo} мин — скоро кормить`;}else{sc='danger';se='🔴';st=`Прошло ${hoursAgo} ч ${minsAgo} мин — пора кормить!`;}card.style.display='block';card.className='feeding-status '+sc;card.innerHTML=`${se} ${st}`;}
 function startFeedingStatusUpdates(){updateFeedingStatus();if(feedingStatusInterval)clearInterval(feedingStatusInterval);feedingStatusInterval=setInterval(updateFeedingStatus,30000);}
 startFeedingStatusUpdates();
 
+// === ИСТОРИЯ С ПОИСКОМ ===
 function filterRecords(recs,search,filter){let filtered=recs;if(search){const s=search.toLowerCase();filtered=filtered.filter(r=>(r.note&&r.note.toLowerCase().includes(s))||(r.side&&r.side.includes(s))||(r.type&&r.type.includes(s)));}if(filter==='today'){const td=today.toISOString().split('T')[0];filtered=filtered.filter(r=>new Date(r.timestamp).toISOString().split('T')[0]===td);}else if(filter==='week'){const wa=new Date();wa.setDate(wa.getDate()-7);filtered=filtered.filter(r=>new Date(r.timestamp)>=wa);}else if(filter==='month'){const ma=new Date();ma.setMonth(ma.getMonth()-1);filtered=filtered.filter(r=>new Date(r.timestamp)>=ma);}return filtered;}
 
 function updateFeedStats(){const recs=getRecords('feed');$('feedCount').textContent=recs.length;const min=Math.floor(recs.reduce((s,r)=>s+r.duration,0)/60);$('feedDuration').textContent=min<60?min+' мин':Math.floor(min/60)+' ч '+(min%60)+' мин';updateFeedingStatus();updateWidget();}
 function renderFeedHistory(){const search=$('feedSearch')?.value||'';const filter=$('feedFilter')?.value||'all';let recs=isPro()?getAllRecords('feed',90).slice(0,100):getRecords('feed').sort((a,b)=>b.timestamp-a.timestamp);recs=filterRecords(recs,search,filter);$('feedHistory').innerHTML=recs.length?recs.map((r,i)=>{const min=Math.floor(r.duration/60),sec=r.duration%60;const dp=isPro()?`<span style="font-size:10px;color:var(--text-secondary);">${fmtDate(new Date(r.timestamp))} </span>`:'';const ni=(r.note||r.photo)?`<span class="history-note-icon">${r.photo?'🖼 ':''}${r.note?'📝':''}</span>`:'';return`<div class="history-item" onclick="showNote('feed',${i})">${dp}<span>${fmtTime(r.timestamp)}</span><span class="history-duration">${min}:${pad2(sec)}${ni}</span><span class="history-side"><span class="side-dot ${r.side}"></span>${r.side==='left'?'Левая':'Правая'}</span></div>`;}).join(''):'<div class="empty-state">Нет записей</div>';}
 
+// === СОН: НОЧНОЙ VS ДНЕВНОЙ ===
 function isNightSleep(ts){const h=new Date(ts).getHours();return h>=21||h<7;}
 function updateSleepStats(){const recs=getRecords('sleep');$('sleepCount').textContent=recs.length;const min=Math.floor(recs.reduce((s,r)=>s+r.duration,0)/60);$('sleepDuration').textContent=min<60?min+' мин':Math.floor(min/60)+' ч '+(min%60)+' мин';updateWidget();}
 function renderSleepHistory(){const search=$('sleepSearch')?.value||'';const filter=$('sleepFilter')?.value||'all';let recs=isPro()?getAllRecords('sleep',90).slice(0,100):getRecords('sleep').sort((a,b)=>b.timestamp-a.timestamp);recs=filterRecords(recs,search,filter);$('sleepHistory').innerHTML=recs.length?recs.map((r,i)=>{const min=Math.floor(r.duration/60);const durStr=Math.floor(min/60)>0?Math.floor(min/60)+' ч '+(min%60)+' мин':min+' мин';const dp=isPro()?`<span style="font-size:10px;color:var(--text-secondary);">${fmtDate(new Date(r.timestamp))} </span>`:'';const ni=(r.note||r.photo)?`<span class="history-note-icon">${r.photo?'🖼 ':''}${r.note?'📝':''}</span>`:'';const night=isNightSleep(r.timestamp);const typeBadge=night?'<span class="sleep-type-badge night">🌙 ночь</span>':'<span class="sleep-type-badge day">☀️ день</span>';return`<div class="history-item" onclick="showNote('sleep',${i})">${dp}<span>${fmtTime(r.timestamp)}</span><span class="history-duration">${durStr}${typeBadge}${ni}</span><span class="history-side"><span class="side-dot sleep"></span>Сон</span></div>`;}).join(''):'<div class="empty-state">Нет записей</div>';}
@@ -591,6 +602,7 @@ function buildFeedChart(){
 function buildSleepChart(){
     const week=getWeekData('sleep'),prevWeek=getPrevWeekData('sleep');
     const counts=week.map(r=>r.length),durations=week.map(r=>Math.floor(r.reduce((s,f)=>s+f.duration,0)/60));
+    // Разделение ночного/дневного сна
     const nightDurations=week.map(recs=>Math.floor(recs.filter(r=>isNightSleep(r.timestamp)).reduce((s,r)=>s+r.duration,0)/60));
     const dayDurations=week.map(recs=>Math.floor(recs.filter(r=>!isNightSleep(r.timestamp)).reduce((s,r)=>s+r.duration,0)/60));
     const container=$('sleepChart');if(container){
@@ -629,6 +641,7 @@ function buildSymptomChart(){
     else{const maxTemp=Math.max(...validTemps);const minTemp=36;const range=maxTemp-minTemp||1;container.innerHTML='<div class="chart-row">'+week.map((t,i)=>{const h=t?Math.max(((t-minTemp)/range)*90,8):4;const color=t>=38?'#e8606e':t>=37.5?'#f0c060':'var(--accent)';return`<div class="chart-bar-wrapper"><div class="chart-value">${t?t+'°':'-'}</div><div class="chart-bar" style="height:${h}px;background:${color};"></div></div>`;}).join('')+'</div>';}
     const allRecs=getAllRecords('symptoms',7);const symptomCounts={};allRecs.forEach(r=>{r.symptoms.forEach(s=>{symptomCounts[s]=(symptomCounts[s]||0)+1;});});
     $('symptomStats').innerHTML=Object.keys(symptomCounts).length?Object.entries(symptomCounts).sort((a,b)=>b[1]-a[1]).map(([s,c])=>`<div class="avg-row"><span>${symptomLabels[s]||s}</span><span class="avg-value">${c} раз</span></div>`).join(''):'<div class="empty-state">Нет данных за неделю</div>';
+    // Сравнение симптомов с прошлой неделей
     const prevRecs=[];for(let i=13;i>=7;i--){const d=new Date();d.setDate(d.getDate()-i);prevRecs.push(...getRecords('symptoms',d));}
     const prevCounts={};prevRecs.forEach(r=>{r.symptoms.forEach(s=>{prevCounts[s]=(prevCounts[s]||0)+1;});});
     const comparisons=Object.keys({...symptomCounts,...prevCounts});
@@ -641,6 +654,7 @@ function buildSymptomChart(){
     }else{$('symptomComparisonCard').style.display='none';}
 }
 
+// === АЧИВКИ 2.0 ===
 const ACHIEVEMENTS=[{id:'first_feed',name:'Первое кормление',desc:'Записать первое кормление',emoji:'🌟',cat:'feed',tier:'bronze',max:1},{id:'feed_10',name:'Режим найден',desc:'10 кормлений всего',emoji:'📊',cat:'feed',tier:'bronze',max:10},{id:'feed_50',name:'Мастер кормления',desc:'50 кормлений всего',emoji:'👑',cat:'feed',tier:'silver',max:50},{id:'feed_100',name:'Эксперт питания',desc:'100 кормлений всего',emoji:'🏅',cat:'feed',tier:'gold',max:100},{id:'night_owl',name:'Ночной дозор',desc:'3 кормления ночью (00:00-06:00)',emoji:'🦉',cat:'feed',tier:'bronze',max:3},{id:'night_hero',name:'Ночной герой',desc:'10 кормлений ночью',emoji:'🌙',cat:'feed',tier:'silver',max:10},{id:'left_right',name:'Баланс',desc:'Поровну левой и правой (±5)',emoji:'⚖️',cat:'feed',tier:'silver',max:1},{id:'sleep_10',name:'Соня',desc:'10 снов записано',emoji:'⭐',cat:'sleep',tier:'bronze',max:10},{id:'sleep_marathon',name:'Режим сна',desc:'Сон больше 8 часов за сутки',emoji:'🎯',cat:'sleep',tier:'bronze',max:1},{id:'sleep_30',name:'Спящая красавица',desc:'30 снов записано',emoji:'💤',cat:'sleep',tier:'silver',max:30},{id:'sleep_8h_7d',name:'Идеальный режим',desc:'7 дней подряд сон > 8 ч',emoji:'✨',cat:'sleep',tier:'gold',max:7},{id:'diaper_5',name:'Сухой день',desc:'5 подгузников за день',emoji:'💫',cat:'care',tier:'bronze',max:1},{id:'diaper_50',name:'Чистый малыш',desc:'50 смен подгузников',emoji:'🧷',cat:'care',tier:'silver',max:50},{id:'diaper_200',name:'Мастер пеленания',desc:'200 смен подгузников',emoji:'👶',cat:'care',tier:'gold',max:200},{id:'growth_5',name:'Растём',desc:'5 записей роста/веса',emoji:'📈',cat:'care',tier:'bronze',max:5},{id:'growth_20',name:'Постоянный рост',desc:'20 записей роста/веса',emoji:'📏',cat:'care',tier:'silver',max:20},{id:'mood_3',name:'Хорошее настроение',desc:'3 дня отличного настроения',emoji:'🌈',cat:'care',tier:'bronze',max:3},{id:'mood_14',name:'Позитивная мама',desc:'14 дней отличного настроения',emoji:'🌞',cat:'care',tier:'gold',max:14},{id:'meds_5',name:'Здоровый малыш',desc:'5 приёмов лекарств',emoji:'❤️',cat:'care',tier:'bronze',max:5},{id:'meds_20',name:'Домашний доктор',desc:'20 приёмов лекарств',emoji:'💉',cat:'care',tier:'silver',max:20},{id:'week_streak',name:'Неделя заботы',desc:'7 дней подряд с кормлениями',emoji:'🏆',cat:'special',tier:'silver',max:7},{id:'month_streak',name:'Месяц с трекером',desc:'30 дней использования',emoji:'👑',cat:'special',tier:'gold',max:30},{id:'all_in_one',name:'Идеальный день',desc:'Кормление + сон + подгузник + настроение за день',emoji:'🎪',cat:'special',tier:'silver',max:1},{id:'collector',name:'Коллекционер',desc:'Получить 15 достижений',emoji:'🎖️',cat:'special',tier:'gold',max:15}];
 function getAchievements(){return LS.get('mama_achievements')||{};}
 function saveAchievement(id){const a=getAchievements();if(a[id])return false;a[id]=Date.now();LS.set('mama_achievements',a);return true;}
@@ -672,6 +686,7 @@ function getAllMoodRecords(){const all=[];for(let i=0;i<90;i++){const d=new Date
 function saveMood(mood){LS.set(getMoodKey(),mood);updateMoodUI();haptic();checkAchievements();updateAchievementsUI();updateAchievementLevelUI();updateWidget();}
 function updateMoodUI(){const todayMood=LS.get(getMoodKey());$('moodTodayLabel').innerHTML=todayMood&&CFG.MOODS[todayMood]?`Сегодня: ${CFG.MOODS[todayMood].emoji} ${CFG.MOODS[todayMood].text}`:'Выберите настроение';const allMoods=getAllMoodRecords();const days=moodSubTab==='week'?7:30;const periodMoods=allMoods.filter(r=>{const d=new Date(r.date),wa=new Date();wa.setDate(wa.getDate()-days);return d>=wa;});$('moodHistory').innerHTML=allMoods.slice(0,30).map(r=>{const m=CFG.MOODS[r.mood]||{emoji:'❓',text:'Неизвестно'};return`<div class="mood-history-item"><span class="mood-emoji-big">${m.emoji}</span><span class="mood-label">${m.text}</span><span class="mood-date" style="margin-left:auto;">${fmtDate(new Date(r.date),{weekday:'short',day:'numeric',month:'short'})}</span></div>`;}).join('');if(periodMoods.length===0){$('moodWeekStats').innerHTML='—';$('moodWeekLabel').textContent='Нет данных';}else{const counts={};periodMoods.forEach(r=>{counts[r.mood]=(counts[r.mood]||0)+1;});const top=Object.entries(counts).sort((a,b)=>b[1]-a[1])[0],m=CFG.MOODS[top[0]];$('moodWeekStats').innerHTML=`${m.emoji} ${m.text}`;$('moodWeekLabel').textContent=`Чаще всего за ${days} дн. (${top[1]} из ${periodMoods.length})`;}}
 
+// === ЛЕКАРСТВА С БЫСТРЫМИ КНОПКАМИ ===
 let medInterval=4,medTimerId=null,medEndTime=null,lastMedName='',lastMedDose='',lastMedCourse=0;
 let commonMeds=LS.get('mama_common_meds')||[];
 function updateCommonMedsList(){const list=$('commonMedsList');if(list)list.innerHTML=commonMeds.map(m=>`<option value="${m}">`).join('');}
@@ -685,6 +700,7 @@ function resetMedTimer(){medEndTime=Date.now()+medInterval*3600000;updateMedCoun
 function markMedTaken(){saveRecord('meds',{name:lastMedName||'Лекарство',dose:lastMedDose,interval:medInterval,courseDays:lastMedCourse,timestamp:Date.now()});resetMedTimer();updateMedHistory();haptic();}
 function updateMedHistory(){const recs=getAllRecords('meds',7);$('medHistory').innerHTML=recs.length?recs.map(r=>{const t=fmtTime(r.timestamp);const d=fmtDate(new Date(r.timestamp));const intStr=r.interval>0?` (каждые ${r.interval} ч)`:' (разово)';let courseStr='';if(r.courseDays>0){const courseStart=new Date(r.timestamp);const daysPassed=Math.floor((today-courseStart)/(86400000))+1;const remaining=Math.max(0,r.courseDays-daysPassed);courseStr=` <span class="med-course-badge">курс: ${daysPassed}/${r.courseDays}</span>`;if(remaining===0)courseStr=' <span class="med-course-badge" style="background:#7ecb8a;">✅ завершён</span>';}return`<div class="history-item"><span>💊 ${r.name} ${r.dose}${courseStr}</span><span style="font-size:12px;color:var(--text-secondary);">${d} ${t}${intStr}</span></div>`;}).join(''):'<div class="empty-state">Нет записей</div>';}
 
+// === НАПОМИНАНИЯ С СОХРАНЕНИЕМ ===
 let reminderInterval=null,reminderMinutes=null;
 function getMinutesSinceLastFeeding(){const recs=getRecords('feed');return recs.length?Math.floor((Date.now()-recs[recs.length-1].timestamp)/60000):null;}
 function startReminder(min){stopReminder();reminderMinutes=min;LS.set('mama_last_reminder',min);$('reminderStatus').innerHTML='⏰ Напоминание через '+min+' мин';$('reminderStatus').style.color='#f0c060';reminderInterval=setInterval(()=>{const m=getMinutesSinceLastFeeding();if(m!==null&&m>=reminderMinutes){if('Notification' in window&&Notification.permission==='granted'){new Notification('🍼 Время кормления!',{body:'Прошло '+m+' минут',tag:'feed-reminder',vibrate:[200,100,200]});}stopReminder();}},30000);}
@@ -700,34 +716,20 @@ function playSound(type){initAudio();stopAllNodes();if(soundTimer)clearTimeout(s
 function setVolume(val){currentVolume=val/100;$('volumeLabel').textContent=val+'%';soundNodes.forEach(n=>{if(n.gain?.value!==undefined)n.gain.value=currentVolume;});}
 function setSoundTimer(minutes){if(soundTimer)clearTimeout(soundTimer);document.querySelectorAll('#soundTimers button').forEach(b=>b.classList.toggle('active',parseInt(b.textContent)===minutes||(minutes===0&&b.textContent==='∞')));if(minutes>0)soundTimer=setTimeout(stopSound,minutes*60*1000);}
 
+// === ЗАМЕТКИ С ШАБЛОНАМИ ===
 let pendingSave=null,pendingPhoto=null;
 let customTemplates=LS.get('mama_custom_templates')||[];
 function getAllTemplates(){return[...CFG.NOTE_TEMPLATES,...customTemplates.map(t=>({emoji:'✏️',text:t}))];}
 function addCustomTemplate(text){if(!text.trim())return;if(customTemplates.includes(text.trim()))return;customTemplates.push(text.trim());LS.set('mama_custom_templates',customTemplates);}
 function handlePhotoSelect(input,previewId,labelId){const file=input.files[0];if(!file)return;const reader=new FileReader();reader.onload=function(e){pendingPhoto=e.target.result;const p=$(previewId);if(p){p.style.display='block';p.innerHTML=`<img src="${e.target.result}" style="max-width:100%;max-height:120px;border-radius:12px;">`;}const l=$(labelId);if(l)l.textContent='✅ Фото выбрано';};reader.readAsDataURL(file);}
 function showNoteDialog(type,data){pendingSave={type,data};pendingPhoto=null;const emoji={'feed':'🍼','sleep':'😴','diaper':'💧'}[type];const title={'feed':'Кормление','sleep':'Сон','diaper':'Подгузник'}[type];const allTemplates=getAllTemplates();showOverlay(`<h3>${emoji} ${title} сохранено!</h3><p style="color:var(--text-secondary);font-size:13px;margin-bottom:8px;">Добавить заметку:</p><textarea id="noteText" placeholder="Напишите или выберите шаблон..."></textarea><div class="note-templates">${allTemplates.map(t=>`<span class="note-template${customTemplates.includes(t.text)?' custom':''}" onclick="addTemplate('noteText','${t.text}')">${t.emoji} ${t.text}</span>`).join('')}<span class="note-template custom" onclick="addCustomFromNote('noteText')" style="border-style:dashed;">➕ Свой</span></div><div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;"><input type="file" id="notePhotoInput" accept="image/*" capture="camera" style="display:none;" onchange="handlePhotoSelect(this,'notePhotoPreview','notePhotoLabel')"><button class="note-template" onclick="$('notePhotoInput').click()" style="display:flex;align-items:center;gap:4px;">📷 Фото</button><span id="notePhotoLabel" style="font-size:12px;color:var(--text-secondary);"></span></div><div id="notePhotoPreview" style="display:none;margin-bottom:8px;text-align:center;"></div><div class="dialog-buttons"><button class="btn-skip" onclick="skipNote()">Пропустить</button><button class="btn-save" onclick="saveNote()">💾 Сохранить</button></div>`);setTimeout(()=>$('noteText')?.focus(),100);}
-function addCustomFromNote(textareaId){const ta=$(textareaId);if(!ta)return;const text=ta.value.trim();if(!text)return;addCustomTemplate(text);closeOverlay();showNoteDialog(pendingSave.type,pendingSave.data);}
+function addCustomFromNote(textareaId){const ta=$(textareaId);if(!ta)return;const text=ta.value.trim();if(!text)return;addCustomTemplate(text);const emoji={'feed':'🍼','sleep':'😴','diaper':'💧'}[pendingSave?.type]||'📝';const title={'feed':'Кормление','sleep':'Сон','diaper':'Подгузник'}[pendingSave?.type]||'Запись';closeOverlay();showNoteDialog(pendingSave.type,pendingSave.data);}
 function addTemplate(textareaId,text){const ta=$(textareaId);if(ta){ta.value=ta.value.trim()?ta.value+'; '+text:text;ta.focus();}}
 function skipNote(){if(pendingSave){if(pendingPhoto)pendingSave.data.photo=pendingPhoto;saveRecord(pendingSave.type,pendingSave.data);refreshAll();}closeOverlay();}
 function saveNote(){const note=$('noteText')?.value.trim();if(pendingSave){pendingSave.data.note=note;if(pendingPhoto)pendingSave.data.photo=pendingPhoto;saveRecord(pendingSave.type,pendingSave.data);refreshAll();}closeOverlay();}
 function showNote(type,index){const recsAll=type==='feed'?(isPro()?getAllRecords('feed',30).slice(0,50):getRecords('feed').sort((a,b)=>b.timestamp-a.timestamp)):type==='sleep'?(isPro()?getAllRecords('sleep',30).slice(0,50):getRecords('sleep').sort((a,b)=>b.timestamp-a.timestamp)):getRecords('diaper').sort((a,b)=>b.timestamp-a.timestamp);const record=recsAll[index];if(!record)return;const emoji={'feed':'🍼','sleep':'😴','diaper':'💧'}[type];const noteText=record.note||'';const allTemplates=getAllTemplates();showOverlay(`<h3>${emoji} ${fmtDate(new Date(record.timestamp))} ${fmtTime(record.timestamp)}</h3><textarea id="editNoteText" placeholder="Заметка...">${noteText}</textarea><div class="note-templates">${allTemplates.map(t=>`<span class="note-template${customTemplates.includes(t.text)?' custom':''}" onclick="addTemplate('editNoteText','${t.text}')">${t.emoji} ${t.text}</span>`).join('')}</div><div class="dialog-buttons">${noteText||record.photo?`<button class="btn-skip" style="color:#e8606e;" onclick="deleteNote('${type}',${record.timestamp})">🗑 Удалить</button>`:''}<button class="btn-skip" onclick="closeOverlay()">Закрыть</button><button class="btn-save" onclick="updateNote('${type}',${record.timestamp})">💾 Сохранить</button></div>`);setTimeout(()=>$('editNoteText')?.focus(),100);}
 function updateNote(type,ts){const nn=$('editNoteText')?.value.trim();const key=getStorageKey(type,new Date(ts));const all=LS.get(key)||[];for(let i=all.length-1;i>=0;i--){if(all[i].timestamp===ts){all[i].note=nn||undefined;if(!nn)delete all[i].note;break;}}LS.set(key,all);closeOverlay();refreshAll();}
 function deleteNote(type,ts){const key=getStorageKey(type,new Date(ts));const all=LS.get(key)||[];for(let i=all.length-1;i>=0;i--){if(all[i].timestamp===ts){delete all[i].note;delete all[i].photo;break;}}LS.set(key,all);closeOverlay();refreshAll();}
-
-function copyStatsAsText(type){
-    var t = '';
-    if(type === 'feed'){
-        var recs = getRecords('feed');
-        t = '🍼 Кормлений сегодня: ' + recs.length;
-    } else if(type === 'sleep'){
-        var recs = getRecords('sleep');
-        t = '😴 Снов сегодня: ' + recs.length;
-    } else if(type === 'diaper'){
-        var recs = getRecords('diaper');
-        t = '💧 Подгузников сегодня: ' + recs.length;
-    }
-    alert(t);
-}
 
 let overlayEl=null;
 function showOverlay(html){closeOverlay();overlayEl=document.createElement('div');overlayEl.className='overlay';const dialog=document.createElement('div');dialog.className='dialog';dialog.innerHTML=html;overlayEl.appendChild(dialog);document.body.appendChild(overlayEl);overlayEl.addEventListener('click',e=>{if(e.target===overlayEl)closeOverlay();});}
@@ -747,7 +749,7 @@ function clearOldData(){if(!isPro())return;showOverlay(`<h3>🗑 Очистка 
 function doClearOldData(days){closeOverlay();const cutoff=new Date();cutoff.setDate(cutoff.getDate()-days);let removed=0;for(let i=localStorage.length-1;i>=0;i--){const key=localStorage.key(i);if(!key.startsWith('mama'))continue;if(key.includes('mama_theme')||key.includes('mama_color')||key.includes('mama_night')||key.includes('mama_pro')||key.includes('mama_babies')||key.includes('mama_current')||key.includes('mama_achievements')||key.includes('mama_birth')||key.includes('mama_doctor_questions')||key.includes('mama_visits')||key.includes('mama-welcome')||key.includes('-growth')||key.includes('mama_common_meds')||key.includes('mama_checklist')||key.includes('mama_tooltips')||key.includes('mama_last_reminder')||key.includes('mama_custom_templates'))continue;try{const records=JSON.parse(localStorage.getItem(key));if(!Array.isArray(records))continue;const filtered=records.filter(r=>new Date(r.timestamp)>cutoff);if(filtered.length<records.length){removed+=records.length-filtered.length;if(filtered.length===0){localStorage.removeItem(key);}else{localStorage.setItem(key,JSON.stringify(filtered));}}}catch(e){}}refreshAll();if(tg?.showPopup)tg.showPopup({title:'✅ Очищено!',message:'Удалено '+removed+' старых записей',buttons:[{type:'ok'}]});else alert('Удалено '+removed+' старых записей');}
 
 function updateDoctorTab(){updateVaccineList();updateVisitsHistory();updateVisitChecklist();updateDoctorAutofill();$('doctorQuestionsText').value=LS.get('mama_doctor_questions_'+currentBabyId)||'';}
-function getBabyAge(){const birthDateStr=LS.get('mama_birth_date_'+currentBabyId);if(!birthDateStr)return{months:0,display:'Укажите дату рождения'};const birth=new Date(birthDateStr);const months=Math.floor((today-birth)/(1000*60*60*24*30.44));if(months<1){const days=Math.floor((today-birth)/(1000*60*60*24));return{months:0,days,display:days+' дн.'};}else if(months<24){return{months,display:months+' мес.'};}else{return{months,display:Math.floor(months/12)+' г. '+(months%12)+' мес.';}}
+function getBabyAge(){const birthDateStr=LS.get('mama_birth_date_'+currentBabyId);if(!birthDateStr)return{months:0,display:'Укажите дату рождения'};const birth=new Date(birthDateStr);const months=Math.floor((today-birth)/(1000*60*60*24*30.44));if(months<1){const days=Math.floor((today-birth)/(1000*60*60*24));return{months:0,days,display:days+' дн.'};}else if(months<24){return{months,display:months+' мес.'};}else{return{months,display:Math.floor(months/12)+' г. '+(months%12)+' мес.'};}}
 const VACCINES=[{age:0,name:'Гепатит B (1-я вакцинация)',desc:'В первые 24 часа'},{age:0,name:'БЦЖ (туберкулёз)',desc:'На 3-7 день жизни'},{age:1,name:'Гепатит B (2-я вакцинация)',desc:'В 1 месяц'},{age:2,name:'Пневмококковая инфекция (1-я)',desc:'В 2 месяца'},{age:3,name:'АКДС (1-я) + Полиомиелит (1-я) + Гемофильная инфекция (1-я)',desc:'В 3 месяца'},{age:4.5,name:'АКДС (2-я) + Полиомиелит (2-я) + Гемофильная инфекция (2-я)',desc:'В 4.5 месяца'},{age:6,name:'АКДС (3-я) + Полиомиелит (3-я) + Гемофильная инфекция (3-я) + Гепатит B (3-я)',desc:'В 6 месяцев'},{age:12,name:'Корь, краснуха, паротит (1-я)',desc:'В 12 месяцев'},{age:15,name:'Пневмококковая инфекция (ревакцинация)',desc:'В 15 месяцев'},{age:18,name:'АКДС (ревакцинация) + Полиомиелит (ревакцинация) + Гемофильная инфекция (ревакцинация)',desc:'В 18 месяцев'},{age:20,name:'Полиомиелит (2-я ревакцинация)',desc:'В 20 месяцев'},{age:72,name:'Корь, краснуха, паротит (ревакцинация)',desc:'В 6 лет'},{age:84,name:'АКДС (2-я ревакцинация) + Туберкулёз (ревакцинация)',desc:'В 7 лет'}];
 function updateVaccineList(){const age=getBabyAge();$('babyAge').textContent=age.display;if(!LS.get('mama_birth_date_'+currentBabyId)){$('vaccineList').innerHTML='<div class="empty-state" onclick="togglePanel(\'babyPanel\')" style="cursor:pointer;color:var(--accent);">👆 Нажмите, чтобы указать дату рождения</div>';return;}$('vaccineList').innerHTML=VACCINES.map(v=>{const doneMonths=v.age;const babyMonths=age.months;const done=babyMonths>=doneMonths;const soon=!done&&(doneMonths-babyMonths<=1);const icon=done?'✅':soon?'⏰':'⬜';const style=done?'color:#7ecb8a;':soon?'color:var(--pro-gold);':'opacity:0.6;';return`<div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);${style}"><span style="font-size:20px;">${icon}</span><div style="flex:1;"><div style="font-size:14px;font-weight:600;">${v.name}</div><div style="font-size:11px;color:var(--text-secondary);">${v.desc}</div></div><span style="font-size:12px;color:var(--text-secondary);">${v.age===0?'0':v.age+' мес.'}</span></div>`;}).join('');}
 function getVisits(){return LS.get('mama_visits_'+currentBabyId)||[];}
