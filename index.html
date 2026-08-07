@@ -5,433 +5,453 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Мама Трекер</title>
     <style>
-        :root { --bg: #1a1a2e; --surface: #16213e; --accent: #e8a0bf; --text: #f0e6ef; --text-secondary: #a8a0b0; --border: rgba(255,255,255,0.08); --stat-bg: rgba(255,255,255,0.04); }
+        :root {
+            --bg: #1a1a2e; --surface: #16213e; --accent: #e8a0bf; --accent-light: rgba(232,160,191,0.15);
+            --pro-gold: #f0c060; --text: #f0e6ef; --text-secondary: #a8a0b0;
+            --left-breast: #e8a0bf; --right-breast: #a0c4e8; --sleep: #c4a0e8; --diaper: #a0e8c4;
+            --bronze: #cd7f32; --silver: #c0c0c0; --gold: #ffd700;
+            --border: rgba(255,255,255,0.05); --stat-bg: rgba(255,255,255,0.03);
+            --tab-bg: var(--surface); --input-border: rgba(255,255,255,0.1); --btn-ghost: rgba(255,255,255,0.05);
+        }
+        .night-mode {
+            --bg: #0d0d14; --surface: #16161f; --accent: #cc7a3c; --accent-light: rgba(204,122,60,0.2);
+            --pro-gold: #d4893a; --text: #d4c5b0; --text-secondary: #8a7a6a;
+            --left-breast: #cc7a3c; --right-breast: #b8845c; --sleep: #7a5c8c; --diaper: #5c8a6a;
+            --border: rgba(255,200,150,0.08); --stat-bg: rgba(255,200,150,0.04);
+        }
+        .light-theme {
+            --bg: #f5f0f3; --surface: #ffffff; --text: #2d2d3a; --text-secondary: #7a7a8a;
+            --border: rgba(0,0,0,0.06); --stat-bg: rgba(0,0,0,0.02); --tab-bg: #ffffff;
+            --input-border: rgba(0,0,0,0.1); --btn-ghost: rgba(0,0,0,0.03);
+        }
+        .color-pink { --accent: #e8a0bf; --accent-light: rgba(232,160,191,0.15); --left-breast: #e8a0bf; --sleep: #c4a0e8; --diaper: #a0e8c4; }
+        .color-blue { --accent: #7eb8da; --accent-light: rgba(126,184,218,0.15); --left-breast: #7eb8da; --sleep: #a0b8e8; --diaper: #7ec9a0; }
+        .color-mint { --accent: #7ec9a0; --accent-light: rgba(126,201,160,0.15); --left-breast: #7ec9a0; --sleep: #a0c4e8; --diaper: #7ec9a0; }
+        .color-lavender { --accent: #b8a0e0; --accent-light: rgba(184,160,224,0.15); --left-breast: #b8a0e0; --sleep: #c4a0e8; --diaper: #8ec9a0; }
+        .color-peach { --accent: #f0b890; --accent-light: rgba(240,184,144,0.15); --left-breast: #f0b890; --sleep: #d4a8c8; --diaper: #a0d4b8; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 20px; max-width: 500px; margin: 0 auto; }
-        .card { background: var(--surface); border-radius: 20px; padding: 24px; margin: 16px 0; }
-        .card-title { font-size: 12px; color: var(--text-secondary); margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px; }
-        .btn { width: 100%; height: 56px; border-radius: 16px; border: none; font-size: 17px; font-weight: 700; cursor: pointer; margin-top: 12px; }
-        .btn-primary { background: var(--accent); color: #fff; }
-        .btn-stop { background: #e8606e; color: #fff; }
-        .timer-display { text-align: center; font-size: 56px; font-weight: 300; margin: 16px 0; font-family: 'SF Mono', monospace; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg); color: var(--text); min-height: 100vh;
+            padding: env(safe-area-inset-top, 20px) 20px env(safe-area-inset-bottom, 20px);
+            max-width: 500px; margin: 0 auto; user-select: none; -webkit-tap-highlight-color: transparent;
+            transition: background 0.8s ease, color 0.8s ease;
+            overflow-x: hidden; touch-action: pan-y;
+        }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        .widget-bar { background: var(--surface); border-radius: 16px; padding: 14px 16px; margin: 12px 0; display: flex; gap: 10px; align-items: center; font-size: 13px; flex-wrap: wrap; }
+        .widget-item { flex: 1; min-width: 60px; text-align: center; padding: 6px; border-radius: 10px; background: var(--stat-bg); cursor: pointer; transition: all 0.2s; }
+        .widget-item:active { transform: scale(0.95); }
+        .widget-item .widget-emoji { font-size: 20px; }
+        .widget-item .widget-value { font-size: 14px; font-weight: 700; }
+        .widget-item .widget-label { font-size: 10px; color: var(--text-secondary); }
+        .widget-item.status-normal .widget-value { color: #7ecb8a; }
+        .widget-item.status-warning .widget-value { color: #f0c060; }
+        .widget-item.status-danger .widget-value { color: #e8606e; }
+        .collapsible-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .collapsible-arrow { transition: transform 0.3s; font-size: 12px; }
+        .collapsible-arrow.open { transform: rotate(180deg); }
+        .collapsible-body { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+        .collapsible-body.open { max-height: 2000px; }
+        .header { display: flex; align-items: flex-start; justify-content: center; padding: 20px 0 10px; position: relative; flex-direction: column; }
+        .header-top { display: flex; align-items: center; justify-content: center; width: 100%; position: relative; }
+        .header-center { text-align: center; }
+        .header h1 { font-size: 28px; font-weight: 700; }
+        .header .date { color: var(--text-secondary); font-size: 14px; }
+        .header-settings { position: absolute; right: 0; top: 0; display: flex; gap: 8px; }
+        .icon-btn { width: 40px; height: 40px; border-radius: 50%; border: none; background: var(--surface); color: var(--text); font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+        .icon-btn:active { transform: scale(0.9); }
+        .baby-switcher { display: flex; gap: 6px; margin-top: 10px; justify-content: center; flex-wrap: wrap; }
+        .baby-chip { padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border); background: var(--surface); color: var(--text-secondary); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+        .baby-chip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+        .tabs { display: flex; gap: 3px; margin: 16px 0; flex-wrap: wrap; }
+        .tab-btn { flex: 1; min-width: 36px; height: 44px; border-radius: 12px; border: none; font-size: 14px; cursor: pointer; background: var(--tab-bg); color: var(--text-secondary); display: flex; align-items: center; justify-content: center; transition: all 0.2s; position: relative; overflow: hidden; }
+        .tab-btn.active { background: var(--accent); color: #fff; }
+        .tab-btn:active::after { content: ''; position: absolute; top: 50%; left: 50%; width: 200px; height: 200px; border-radius: 50%; background: rgba(255,255,255,0.3); transform: translate(-50%, -50%); }
+        .tab-content { display: none; opacity: 0; transform: translateY(8px); transition: opacity 0.25s ease, transform 0.25s ease; }
+        .tab-content.active { display: block; opacity: 1; transform: translateY(0); }
+        .card { background: var(--surface); border-radius: 24px; padding: 24px; margin: 16px 0; transition: transform 0.2s; }
+        .card:active { transform: scale(0.99); }
+        .card-title { font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px; }
+        .timer-display { text-align: center; font-size: 64px; font-weight: 300; font-family: 'SF Mono', 'Menlo', monospace; margin: 16px 0 24px; letter-spacing: 2px; }
         .breast-select { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
-        .breast-btn { height: 56px; border-radius: 16px; border: 2px solid transparent; font-size: 16px; cursor: pointer; background: rgba(232,160,191,0.15); color: var(--accent); }
-        .breast-btn.selected { border-color: var(--accent); }
+        .breast-btn { height: 64px; border-radius: 20px; border: 2px solid transparent; font-size: 17px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s; }
+        .breast-btn.left { background: var(--accent-light); color: var(--left-breast); }
+        .breast-btn.right { background: rgba(160,196,232,0.15); color: var(--right-breast); }
+        .breast-btn.selected { border-color: currentColor; transform: scale(1.02); }
+        .action-btn { width: 100%; height: 60px; border-radius: 20px; border: none; font-size: 18px; font-weight: 700; cursor: pointer; margin-top: 8px; transition: all 0.2s; position: relative; overflow: hidden; }
+        .action-btn:active::after { content: ''; position: absolute; top: 50%; left: 50%; width: 400px; height: 400px; border-radius: 50%; background: rgba(255,255,255,0.2); transform: translate(-50%, -50%); }
+        .action-btn.start { background: var(--accent); color: #fff; }
+        .action-btn.stop { background: #e8606e; color: white; }
+        .action-btn.start-sleep { background: var(--sleep); color: #fff; }
+        .action-btn:active { transform: scale(0.97); } .action-btn:disabled { opacity: 0.4; pointer-events: none; }
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .stat-item { background: var(--stat-bg); border-radius: 14px; padding: 16px; text-align: center; }
-        .stat-value { font-size: 26px; font-weight: 700; color: var(--accent); }
-        .stat-label { font-size: 11px; color: var(--text-secondary); margin-top: 4px; }
-        .history-list { max-height: 250px; overflow-y: auto; }
-        .history-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); }
-        .empty-state { text-align: center; color: var(--text-secondary); padding: 30px; }
-        .tabs { display: flex; gap: 6px; margin: 16px 0; flex-wrap: wrap; }
-        .tab-btn { flex: 1; min-width: 50px; height: 44px; border-radius: 12px; border: none; font-size: 18px; cursor: pointer; background: var(--surface); }
-        .tab-btn.active { background: var(--accent); }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        .cloud-status { font-size: 10px; text-align: center; margin-top: 4px; }
-        .cloud-status.synced { color: #7ecb8a; }
-        .cloud-status.local { color: var(--text-secondary); }
-        .cloud-status.saving { color: #f0c060; }
+        .stat-item { background: var(--stat-bg); border-radius: 16px; padding: 16px; text-align: center; transition: transform 0.2s; }
+        .stat-item:active { transform: scale(0.96); }
+        .stat-value { font-size: 28px; font-weight: 700; color: var(--accent); }
+        .stat-label { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+        .diaper-types { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+        .diaper-btn { height: 80px; border-radius: 20px; border: 2px solid transparent; font-size: 15px; font-weight: 600; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s; }
+        .diaper-btn.wet { background: rgba(160,196,232,0.1); color: #7a9ec4; }
+        .diaper-btn.dirty { background: rgba(200,180,140,0.1); color: #b8a070; }
+        .diaper-btn.both { background: rgba(232,160,191,0.1); color: #d4899f; }
+        .diaper-btn:active { transform: scale(0.95); }
+        .diaper-warning { color: #f0c060; font-size: 12px; text-align: center; margin-top: 8px; }
+        .diaper-danger { color: #e8606e; font-size: 12px; text-align: center; margin-top: 8px; }
+        .history-list { max-height: 300px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+        .history-item, .growth-list-item { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.2s; }
+        .history-item:active { background: var(--stat-bg); border-radius: 12px; padding-left: 8px; padding-right: 8px; }
+        .history-item:last-child { border-bottom: none; }
+        .history-duration { font-weight: 600; font-size: 15px; }
+        .history-side { font-size: 12px; color: var(--text-secondary); }
+        .side-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; }
+        .side-dot.left { background: var(--left-breast); } .side-dot.right { background: var(--right-breast); }
+        .side-dot.sleep { background: var(--sleep); } .side-dot.wet { background: #7a9ec4; }
+        .side-dot.dirty { background: #b8a070; } .side-dot.both { background: #d4899f; }
+        .empty-state { text-align: center; color: var(--text-secondary); padding: 30px; font-size: 14px; }
+        .reminder-btn { flex: 1; height: 44px; border-radius: 14px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .reminder-btn:active { transform: scale(0.95); }
+        .feeding-status { text-align: center; padding: 8px 12px; border-radius: 12px; font-size: 13px; font-weight: 600; margin-top: 8px; }
+        .feeding-status.normal { background: rgba(126,203,138,0.15); color: #7ecb8a; }
+        .feeding-status.warning { background: rgba(240,192,96,0.15); color: #f0c060; }
+        .feeding-status.danger { background: rgba(232,96,110,0.15); color: #e8606e; }
+        .sub-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+        .sub-tab { flex: 1; height: 36px; border-radius: 10px; border: none; font-size: 13px; font-weight: 600; cursor: pointer; background: var(--btn-ghost); color: var(--text-secondary); transition: all 0.2s; }
+        .sub-tab.active { background: var(--accent); color: #fff; }
+        .pro-badge { display: inline-block; background: linear-gradient(135deg, var(--pro-gold), #e0a030); color: #fff; font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 8px; margin-left: 4px; }
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .dialog { background: var(--surface); border-radius: 20px; padding: 24px; width: 100%; max-width: 400px; max-height: 90vh; overflow-y: auto; }
+        .dialog h3 { margin-bottom: 16px; font-size: 18px; }
+        .dialog-buttons { display: flex; gap: 8px; }
+        .dialog-buttons button { flex: 1; height: 44px; border-radius: 12px; border: none; font-size: 15px; font-weight: 600; cursor: pointer; }
+        .btn-save { background: var(--accent); color: #fff; }
+        .btn-skip { background: var(--btn-ghost); color: var(--text-secondary); }
+        .panel { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 500px; background: var(--surface); border-radius: 24px 24px 0 0; padding: 24px; z-index: 1000; box-shadow: 0 -4px 30px rgba(0,0,0,0.3); transition: transform 0.3s ease; }
+        .panel.hidden { transform: translateX(-50%) translateY(100%); }
+        .pro-bar { height: 8px; border-radius: 4px; overflow: hidden; margin: 8px 0; background: var(--btn-ghost); }
+        .pro-bar-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
+        .achievement-card { padding: 12px; border-radius: 16px; margin-bottom: 8px; border: 1px solid var(--border); }
+        .achievement-card.bronze { border-color: var(--bronze); background: rgba(205,127,50,0.08); }
+        .achievement-card.silver { border-color: var(--silver); background: rgba(192,192,192,0.08); }
+        .achievement-card.gold { border-color: var(--gold); background: rgba(255,215,0,0.08); }
+        .sleep-type-badge { display: inline-block; padding: 2px 6px; border-radius: 6px; font-size: 9px; font-weight: 600; margin-left: 4px; }
+        .sleep-type-badge.night { background: #7a5c8c; color: #fff; }
+        .sleep-type-badge.day { background: #f0c060; color: #1a1a2e; }
+        .mood-grid { display: flex; gap: 8px; justify-content: space-between; margin-bottom: 16px; }
+        .mood-btn { flex: 1; aspect-ratio: 1; border-radius: 20px; border: 2px solid transparent; font-size: 36px; cursor: pointer; background: var(--stat-bg); transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
+        .mood-btn:active { transform: scale(0.9); }
+        .calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; }
+        .calendar-day-header { font-size: 11px; color: var(--text-secondary); padding: 8px 0; font-weight: 600; }
+        .calendar-day { aspect-ratio: 1; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; position: relative; background: var(--stat-bg); color: var(--text-secondary); }
+        .calendar-day.today { border: 2px solid var(--accent); color: var(--accent); }
+        .calendar-day.other-month { opacity: 0.3; }
+        .month-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+        .month-nav button { background: var(--stat-bg); border: none; color: var(--text); width: 36px; height: 36px; border-radius: 10px; font-size: 18px; cursor: pointer; }
+        .month-nav span { font-size: 16px; font-weight: 700; }
     </style>
 </head>
-<body>
+<body class="color-pink">
 
-<div style="text-align:center;padding:20px 0;">
-    <h1 style="font-size:24px;">🤱 Мама Трекер</h1>
-    <div class="date" id="todayDate"></div>
-    <div class="cloud-status local" id="cloudStatus">📱 локально</div>
-</div>
-
-<div style="background:red;color:white;padding:10px;text-align:center;font-size:12px;" id="testBox">
-    Тест: если видишь это — HTML загружен
-</div>
-
-<div id="welcomeScreen">
-    <div class="card" style="text-align:center;">
-        <div style="font-size:60px;">👋</div>
-        <h2>Привет, мама!</h2>
-        <p style="color:var(--text-secondary);margin:12px 0;">Я помогу следить за режимом малыша</p>
-        <button class="btn btn-primary" onclick="startApp()">Понятно, начнём! 🚀</button>
+<div class="header">
+    <div class="header-top">
+        <div class="header-center"><h1>🤱 Мама Трекер <span id="proBadge" class="pro-badge" style="display:none;">PRO</span></h1><div class="date" id="todayDate"></div></div>
+        <div class="header-settings">
+            <button class="icon-btn" id="btnNightMode" onclick="toggleNightMode()">🌙</button>
+            <button class="icon-btn" onclick="togglePanel('settingsPanel')">⚙️</button>
+        </div>
     </div>
+    <div class="baby-switcher" id="babySwitcher"></div>
 </div>
+
+<div id="welcomeScreen"><div class="card" style="text-align:center;"><div style="font-size:60px;">👋</div><h2>Привет, мама!</h2><p style="color:var(--text-secondary);">Я помогу следить за режимом малыша</p><button onclick="closeWelcome()" class="action-btn start" style="margin-top:16px;">Понятно, начнём! 🚀</button></div></div>
 
 <div id="mainApp" style="display:none;">
+    <div class="widget-bar" id="mainWidget">
+        <div class="widget-item" id="wFeedItem" onclick="switchMainTab('feeding')"><div class="widget-emoji">🍼</div><div class="widget-value" id="wFeed">—</div><div class="widget-label">Кормление</div></div>
+        <div class="widget-item" id="wSleepItem" onclick="switchMainTab('sleep')"><div class="widget-emoji">😴</div><div class="widget-value" id="wSleep">—</div><div class="widget-label">Сон</div></div>
+        <div class="widget-item" id="wDiaperItem" onclick="switchMainTab('diaper')"><div class="widget-emoji">💧</div><div class="widget-value" id="wDiaper">—</div><div class="widget-label">Подгузники</div></div>
+        <div class="widget-item" id="wMoodItem" onclick="switchMainTab('mood')"><div class="widget-emoji">💖</div><div class="widget-value" id="wMood">—</div><div class="widget-label">Настроение</div></div>
+    </div>
     <div class="tabs" id="mainTabs">
         <button class="tab-btn active" data-tab="feeding">🍼</button>
         <button class="tab-btn" data-tab="sleep">😴</button>
         <button class="tab-btn" data-tab="diaper">💧</button>
+        <button class="tab-btn" data-tab="stats">📊</button>
+        <button class="tab-btn" data-tab="growth">📏</button>
+        <button class="tab-btn" data-tab="calendar">📅</button>
+        <button class="tab-btn" data-tab="mood">💖</button>
+        <button class="tab-btn" data-tab="meds">💊</button>
+        <button class="tab-btn" data-tab="symptoms">🩺</button>
+        <button class="tab-btn" data-tab="achievements">🏆</button>
+        <button class="tab-btn" data-tab="doctor">🏥</button>
+        <button class="tab-btn" data-tab="pro">👑</button>
     </div>
 
     <div class="tab-content active" id="tab-feeding">
-        <div class="card">
-            <div class="card-title">🍼 Кормление</div>
-            <div class="breast-select">
-                <button class="breast-btn left" id="btnLeft" onclick="selectSide('left')">⬅️ Левая</button>
-                <button class="breast-btn right" id="btnRight" onclick="selectSide('right')">➡️ Правая</button>
-            </div>
-            <div class="timer-display" id="feedTimer">00:00</div>
-            <button class="btn btn-primary" id="feedBtn" onclick="toggleFeed()" disabled>▶️ Начать</button>
-        </div>
-        <div class="card">
-            <div class="card-title">📊 Сегодня</div>
-            <div class="stats-grid">
-                <div class="stat-item"><div class="stat-value" id="feedCount">0</div><div class="stat-label">Кормлений</div></div>
-                <div class="stat-item"><div class="stat-value" id="feedTotal">0 мин</div><div class="stat-label">Общее время</div></div>
-            </div>
-        </div>
-        <div class="card">
-            <div class="card-title">📝 История</div>
-            <div class="history-list" id="feedHistory"><div class="empty-state">Нет записей</div></div>
-        </div>
+        <div class="card"><div class="card-title">🍼 Кормление</div><div id="feedingStatusCard" style="text-align:center;padding:10px;border-radius:12px;margin-bottom:12px;font-size:13px;font-weight:600;display:none;"></div><div class="breast-select"><button class="breast-btn left" id="btnLeft" onclick="feedTracker.selectSide('left')">⬅️ Левая</button><button class="breast-btn right" id="btnRight" onclick="feedTracker.selectSide('right')">➡️ Правая</button></div><div class="timer-display" id="feedingTimer">00:00</div><button class="action-btn start" id="feedingBtn" onclick="feedTracker.toggle()" disabled>▶️ Начать</button></div>
+        <div class="card"><div class="card-title">📊 Сегодня</div><div class="stats-grid"><div class="stat-item"><div class="stat-value" id="feedCount">0</div><div class="stat-label">Кормлений</div></div><div class="stat-item"><div class="stat-value" id="feedDuration">0 мин</div><div class="stat-label">Общее время</div></div></div><div style="display:flex;gap:8px;margin-top:12px;"><button onclick="startReminder(120)" class="reminder-btn" style="background:rgba(232,160,191,0.2);color:var(--left-breast);">🔔 2 ч</button><button onclick="startReminder(180)" class="reminder-btn" style="background:rgba(160,196,232,0.2);color:var(--right-breast);">🔔 3 ч</button><button onclick="stopReminder()" class="reminder-btn" style="background:var(--btn-ghost);color:var(--text-secondary);">🔕</button></div><div id="reminderStatus" style="text-align:center;font-size:13px;margin-top:8px;min-height:20px;"></div></div>
+        <div class="card"><div class="card-title">📝 История</div><div class="history-list" id="feedHistory"><div class="empty-state">Нет записей</div></div></div>
     </div>
 
     <div class="tab-content" id="tab-sleep">
-        <div class="card">
-            <div class="card-title">😴 Сон</div>
-            <div class="timer-display" id="sleepTimer">00:00</div>
-            <button class="btn btn-primary" id="sleepBtn" onclick="toggleSleep()">▶️ Уложить спать</button>
-        </div>
-        <div class="card">
-            <div class="card-title">📊 Сегодня</div>
-            <div class="stats-grid">
-                <div class="stat-item"><div class="stat-value" id="sleepCount">0</div><div class="stat-label">Снов</div></div>
-                <div class="stat-item"><div class="stat-value" id="sleepTotal">0 мин</div><div class="stat-label">Общее время</div></div>
-            </div>
-        </div>
-        <div class="card">
-            <div class="card-title">📝 История</div>
-            <div class="history-list" id="sleepHistory"><div class="empty-state">Нет записей</div></div>
-        </div>
+        <div class="card"><div class="card-title">😴 Сон</div><div class="timer-display" id="sleepTimer">00:00</div><button class="action-btn start-sleep" id="sleepBtn" onclick="sleepTracker.toggle()">▶️ Уложить спать</button></div>
+        <div class="card"><div class="card-title">📊 Сегодня</div><div class="stats-grid"><div class="stat-item"><div class="stat-value" id="sleepCount">0</div><div class="stat-label">Снов</div></div><div class="stat-item"><div class="stat-value" id="sleepDuration">0 мин</div><div class="stat-label">Общее время</div></div></div></div>
+        <div class="card"><div class="card-title">📝 История</div><div class="history-list" id="sleepHistory"><div class="empty-state">Нет записей</div></div></div>
     </div>
 
     <div class="tab-content" id="tab-diaper">
-        <div class="card">
-            <div class="card-title">💧 Сменить подгузник</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-                <button class="btn" style="background:rgba(160,196,232,0.2);color:#7a9ec4;" onclick="addDiaper('wet')">💦 Мокрый</button>
-                <button class="btn" style="background:rgba(200,180,140,0.2);color:#b8a070;" onclick="addDiaper('dirty')">💩 Грязный</button>
-                <button class="btn" style="background:rgba(232,160,191,0.2);color:#d4899f;" onclick="addDiaper('both')">💦💩 Всё вместе</button>
-                <button class="btn" style="background:var(--stat-bg);" onclick="addDiaper('dry')">✅ Сменили</button>
-            </div>
-        </div>
-        <div class="card">
-            <div class="card-title">📊 Сегодня</div>
-            <div class="stats-grid">
-                <div class="stat-item"><div class="stat-value" id="diaperCount">0</div><div class="stat-label">Всего</div></div>
-                <div class="stat-item"><div class="stat-value" id="diaperDirty">0</div><div class="stat-label">Грязных</div></div>
-            </div>
-        </div>
-        <div class="card">
-            <div class="card-title">📝 История</div>
-            <div class="history-list" id="diaperHistory"><div class="empty-state">Нет записей</div></div>
-        </div>
+        <div class="card"><div class="card-title">💧 Сменить подгузник</div><div class="diaper-types"><button class="diaper-btn wet" onclick="addDiaper('wet')">💦<br>Мокрый</button><button class="diaper-btn dirty" onclick="addDiaper('dirty')">💩<br>Грязный</button><button class="diaper-btn both" onclick="addDiaper('both')">💦💩<br>Всё вместе</button><button class="diaper-btn" onclick="addDiaper('dry')">✅<br>Сменили</button></div></div>
+        <div class="card"><div class="card-title">📊 Сегодня</div><div class="stats-grid"><div class="stat-item"><div class="stat-value" id="diaperCount">0</div><div class="stat-label">Всего смен</div></div><div class="stat-item"><div class="stat-value" id="diaperDirty">0</div><div class="stat-label">Грязных</div></div></div><div id="diaperWarning"></div></div>
+        <div class="card"><div class="card-title">📝 История</div><div class="history-list" id="diaperHistory"><div class="empty-state">Нет записей</div></div></div>
+    </div>
+
+    <div class="tab-content" id="tab-stats">
+        <div class="sub-tabs"><button class="sub-tab active" onclick="switchStatsTab('feed')">🍼 Кормления</button><button class="sub-tab" onclick="switchStatsTab('sleep')">😴 Сон</button><button class="sub-tab" onclick="switchStatsTab('diaper')">💧 Подгузники</button></div>
+        <div id="statsFeed"><div class="card"><div class="card-title">📊 Статистика кормлений</div><div id="feedAverages"></div></div></div>
+        <div id="statsSleep" style="display:none;"><div class="card"><div class="card-title">📊 Статистика сна</div><div id="sleepAverages"></div></div></div>
+        <div id="statsDiaper" style="display:none;"><div class="card"><div class="card-title">📊 Статистика подгузников</div><div id="diaperAverages"></div></div></div>
+    </div>
+
+    <div class="tab-content" id="tab-growth">
+        <div class="card"><div class="card-title">📏 Рост и вес</div><input type="date" id="growthDate"><input type="number" id="growthWeight" placeholder="Вес (кг)" step="0.1"><input type="number" id="growthHeight" placeholder="Рост (см)" step="0.1"><button class="action-btn start" onclick="addGrowth()">💾 Сохранить</button></div>
+        <div class="card"><div class="card-title">📝 История</div><div class="history-list" id="growthHistory"><div class="empty-state">Нет записей</div></div></div>
+    </div>
+
+    <div class="tab-content" id="tab-calendar">
+        <div class="card"><div class="card-title">📅 Календарь</div><div class="month-nav"><button onclick="changeMonth(-1)">◀</button><span id="monthLabel"></span><button onclick="changeMonth(1)">▶</button></div><div class="calendar" id="calendarGrid"></div></div>
+    </div>
+
+    <div class="tab-content" id="tab-mood">
+        <div class="card"><div class="card-title">💖 Настроение мамы</div><div class="mood-grid"><button class="mood-btn" onclick="saveMood('great')">😊</button><button class="mood-btn" onclick="saveMood('good')">😀</button><button class="mood-btn" onclick="saveMood('okay')">😐</button><button class="mood-btn" onclick="saveMood('tired')">😔</button><button class="mood-btn" onclick="saveMood('bad')">😢</button></div><div id="moodTodayLabel" style="text-align:center;font-size:14px;color:var(--text-secondary);min-height:20px;"></div></div>
+    </div>
+
+    <div class="tab-content" id="tab-meds">
+        <div class="card"><div class="card-title">💊 Лекарства</div><input type="text" id="medName" placeholder="Название"><input type="text" id="medDose" placeholder="Дозировка"><div class="interval-btns" style="display:flex;gap:6px;margin-bottom:12px;"><button class="sub-tab active" onclick="selectMedInterval(4)">4 ч</button><button class="sub-tab" onclick="selectMedInterval(6)">6 ч</button><button class="sub-tab" onclick="selectMedInterval(8)">8 ч</button><button class="sub-tab" onclick="selectMedInterval(12)">12 ч</button></div><button class="action-btn" style="background:#e8c080;color:#1a1a2e;" onclick="addMedication()">💾 Записать приём</button></div>
+        <div class="card"><div class="card-title">📝 История</div><div class="history-list" id="medHistory"><div class="empty-state">Нет записей</div></div></div>
+    </div>
+
+    <div class="tab-content" id="tab-symptoms">
+        <div class="card"><div class="card-title">🩺 Симптомы</div><input type="number" id="symptomTemp" placeholder="Температура" step="0.1"><textarea id="symptomNotes" placeholder="Заметки..."></textarea><button class="action-btn start" onclick="saveSymptom()">💾 Сохранить</button></div>
+        <div class="card"><div class="card-title">📝 История</div><div class="history-list" id="symptomsHistory"><div class="empty-state">Нет записей</div></div></div>
+    </div>
+
+    <div class="tab-content" id="tab-achievements">
+        <div class="card" style="text-align:center;"><div style="font-size:40px;" id="achievementIcon">🏆</div><div style="font-size:18px;font-weight:700;margin-top:8px;" id="achievementTitle">Начинающая мама</div><div class="pro-bar"><div class="pro-bar-fill" id="achievementBar" style="width:0%;background:var(--gold);"></div></div></div>
+        <div class="card"><div class="card-title">🏆 Достижения</div><div id="achievementsList"></div></div>
+    </div>
+
+    <div class="tab-content" id="tab-doctor">
+        <div class="card"><div class="card-title">🏥 Визиты к врачу</div><input type="date" id="visitDate"><input type="text" id="visitDoctor" placeholder="Врач"><input type="text" id="visitClinic" placeholder="Клиника"><button class="action-btn start" onclick="addVisit()">💾 Сохранить</button></div>
+        <div class="card"><div class="card-title">📝 История визитов</div><div class="history-list" id="visitsHistory"><div class="empty-state">Нет записей</div></div></div>
+    </div>
+
+    <div class="tab-content" id="tab-pro">
+        <div class="card" style="text-align:center;"><div style="font-size:60px;">👑</div><h2>Мама PRO</h2><p style="color:var(--text-secondary);">Активируйте PRO-версию</p><input type="text" id="activateCode" placeholder="Введите TEST123"><button class="action-btn start" onclick="activatePro()">🔓 Активировать</button></div>
     </div>
 </div>
 
+<div class="panel hidden" id="settingsPanel">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;"><h3>⚙️ Настройки</h3><button class="icon-btn" onclick="hidePanel('settingsPanel')">✕</button></div>
+    <button class="action-btn" onclick="showDaySummary()">📋 Итоги дня</button>
+    <button class="action-btn start" onclick="togglePanel('themePanel')" style="margin-top:8px;">🎨 Оформление</button>
+    <button class="action-btn start-sleep" onclick="togglePanel('babyPanel')" style="margin-top:8px;">👶 Управление детьми</button>
+</div>
+
+<div class="panel hidden" id="themePanel">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;"><h3>🎨 Оформление</h3><button class="icon-btn" onclick="hidePanel('themePanel')">✕</button></div>
+    <div style="display:flex;gap:8px;margin-bottom:12px;"><button class="sub-tab active" onclick="setThemeMode('dark')">🌙 Тёмная</button><button class="sub-tab" onclick="setThemeMode('light')">☀️ Светлая</button></div>
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:8px;">Цвет:</p>
+    <div style="display:flex;gap:8px;" id="colorGrid"></div>
+</div>
+
+<div class="panel hidden" id="babyPanel">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;"><h3>👶 Дети</h3><button class="icon-btn" onclick="hidePanel('babyPanel')">✕</button></div>
+    <input type="text" id="newBabyName" placeholder="Имя ребёнка">
+    <input type="date" id="babyBirthDate" placeholder="Дата рождения">
+    <button class="action-btn start" onclick="addBaby()">➕ Добавить</button>
+</div>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script>
-// ===== ДИАГНОСТИКА =====
-document.getElementById('testBox').textContent = 'Тест: JS ещё не загружен...';
-
-// ===== ИНИЦИАЛИЗАЦИЯ TELEGRAM =====
+// ===== БАЗОВЫЕ УТИЛИТЫ =====
+const $ = id => document.getElementById(id);
 const tg = window.Telegram?.WebApp;
 if (tg) { tg.ready(); tg.expand(); }
-
-// ===== ОБЛАЧНОЕ ХРАНИЛИЩЕ =====
-const CloudSync = {
-    _ok: false,
-    _queue: [],
-    _timer: null,
-
-    init() {
-        document.getElementById('testBox').textContent = 'Тест: CloudSync.init() вызван';
-        if (!tg || !tg.CloudStorage) {
-            this._setStatus('local');
-            document.getElementById('testBox').textContent = 'Тест: CloudStorage недоступен';
-            return;
-        }
-        tg.CloudStorage.getKeys()
-            .then(keys => {
-                this._ok = true;
-                document.getElementById('testBox').textContent = 'Тест: CloudStorage работает! Ключей: ' + keys.length;
-                const jobs = keys.map(key =>
-                    tg.CloudStorage.getItem(key).then(val => {
-                        if (val) localStorage.setItem(key, val);
-                    }).catch(() => {})
-                );
-                return Promise.all(jobs);
-            })
-            .then(() => {
-                this._setStatus('synced');
-                this._startFlush();
-            })
-            .catch((err) => {
-                document.getElementById('testBox').textContent = 'Тест: Ошибка CloudStorage: ' + err.message;
-                this._setStatus('local');
-            });
-    },
-
-    set(key, value) {
-        localStorage.setItem(key, value);
-        if (this._ok) {
-            this._queue.push({ key, value });
-            this._setStatus('saving');
-        }
-    },
-
-    _startFlush() {
-        if (this._timer) clearInterval(this._timer);
-        this._timer = setInterval(() => this._flush(), 500);
-    },
-
-    _flush() {
-        if (this._queue.length === 0) return;
-        const batch = this._queue.splice(0, 5);
-        const jobs = batch.map(item =>
-            tg.CloudStorage.setItem(item.key, item.value).catch(() => {})
-        );
-        Promise.all(jobs).then(() => {
-            if (this._queue.length === 0) this._setStatus('synced');
-        }).catch(() => {
-            this._setStatus('local');
-        });
-    },
-
-    _setStatus(mode) {
-        const el = document.getElementById('cloudStatus');
-        if (!el) return;
-        if (mode === 'synced') {
-            el.textContent = '☁️ синхронизировано';
-            el.className = 'cloud-status synced';
-        } else if (mode === 'saving') {
-            el.textContent = '☁️ сохранение...';
-            el.className = 'cloud-status saving';
-        } else {
-            el.textContent = '📱 локально';
-            el.className = 'cloud-status local';
-        }
-    }
-};
-
-CloudSync.init();
-
-// ===== ХРАНИЛИЩЕ =====
-const LS = {
-    get(key) {
-        const raw = localStorage.getItem(key);
-        if (!raw) return null;
-        try { return JSON.parse(raw); } catch (e) { return null; }
-    },
-    set(key, val) {
-        CloudSync.set(key, JSON.stringify(val));
-    }
-};
-
-// ===== УТИЛИТЫ =====
-const $ = id => document.getElementById(id);
 const today = new Date();
 $('todayDate').textContent = today.toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' });
-const fmtTime = ts => new Date(ts).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
-const pad2 = n => String(n).padStart(2, '0');
-const fmtTimer = sec => pad2(Math.floor(sec / 60)) + ':' + pad2(sec % 60);
+const fmtDate = (d, opt) => (d||today).toLocaleDateString('ru-RU', opt||{day:'2-digit',month:'2-digit'});
+const fmtTime = ts => new Date(ts).toLocaleTimeString('ru-RU', {hour:'2-digit',minute:'2-digit'});
+const pad2 = n => String(n).padStart(2,'0');
+const fmtTimer = sec => pad2(Math.floor(sec/60))+':'+pad2(sec%60);
+const haptic = () => tg?.HapticFeedback?.notificationOccurred('success');
 
-// ===== ДАННЫЕ =====
-function getStorageKey(type) {
-    return 'mama-' + type + '-' + today.toISOString().split('T')[0];
+// ===== ЛОКАЛЬНОЕ ХРАНИЛИЩЕ =====
+const LS = {
+    get(key){ try { return JSON.parse(localStorage.getItem(key)); } catch(e) { return null; } },
+    set(key, val){ localStorage.setItem(key, JSON.stringify(val)); }
+};
+
+// ===== КОНФИГ =====
+const CFG = {
+    PRO_CODES: ['TEST123','MAMA2024'],
+    COLORS: ['pink','blue','mint','lavender','peach'],
+    MOODS: { great:'😊 Отлично', good:'😀 Хорошо', okay:'😐 Нормально', tired:'😔 Устала', bad:'😢 Плохо' },
+    DIAPER_LABELS: { wet:'💦 Мокрый', dirty:'💩 Грязный', both:'💦💩 Всё вместе', dry:'✅ Сменили' },
+    TABS: ['feeding','sleep','diaper','stats','growth','calendar','mood','meds','symptoms','achievements','doctor','pro']
+};
+
+// ===== ДАННЫЕ ДЕТЕЙ =====
+let babies = LS.get('mama_babies') || [{id:'0',name:'Малыш'}];
+let currentBabyId = LS.get('mama_current_baby') || '0';
+function saveBabies(){ LS.set('mama_babies',babies); LS.set('mama_current_baby',currentBabyId); }
+function getBabyPrefix(){ return currentBabyId==='0'?'':'-'+currentBabyId; }
+function getStorageKey(type,dateObj){ return 'mama'+getBabyPrefix()+'-'+type+'-'+(dateObj||today).toISOString().split('T')[0]; }
+function getRecords(type,dateObj){ return LS.get(getStorageKey(type,dateObj))||[]; }
+function saveRecord(type,data){ const key=getStorageKey(type); const records=LS.get(key)||[]; records.push({...data,timestamp:Date.now()}); LS.set(key,records); }
+function getAllRecords(type,days=30){ const all=[]; for(let i=0;i<days;i++){ const d=new Date(); d.setDate(d.getDate()-i); all.push(...getRecords(type,d)); } return all.sort((a,b)=>b.timestamp-a.timestamp); }
+function switchBaby(id){ currentBabyId=id; saveBabies(); updateBabyUI(); refreshAll(); updateGrowthUI(); updateCalendar(); updateMoodUI(); updateWidget(); }
+function addBaby(){ const name=$('newBabyName').value.trim(); if(!name)return; const id=Date.now().toString(); babies.push({id,name}); currentBabyId=id; saveBabies(); $('newBabyName').value=''; updateBabyUI(); refreshAll(); hidePanel('babyPanel'); }
+function updateBabyUI(){ $('babySwitcher').innerHTML=babies.map(b=>`<span class="baby-chip${b.id===currentBabyId?' active':''}" onclick="switchBaby('${b.id}')">${b.name}</span>`).join('')+(babies.length<5?`<span class="baby-chip" onclick="togglePanel('babyPanel')">➕</span>`:''); }
+
+// ===== ТЕМЫ =====
+const THEME_KEY='mama_theme',COLOR_KEY='mama_color';
+function applyTheme(theme){ document.body.classList.toggle('light-theme',theme==='light'); }
+function setThemeMode(mode){ LS.set(THEME_KEY,mode); applyTheme(mode); }
+function setColorScheme(scheme){ CFG.COLORS.forEach(c=>document.body.classList.remove('color-'+c)); document.body.classList.add('color-'+scheme); LS.set(COLOR_KEY,scheme); }
+const savedColor=LS.get(COLOR_KEY)||'pink'; document.body.classList.add('color-'+savedColor); applyTheme(LS.get(THEME_KEY)||'dark');
+
+// ===== PRO =====
+function isPro(){ return LS.get('mama_pro_active')===true; }
+function updateProUI(){ const pro=isPro(); $('proBadge').style.display=pro?'inline-block':'none'; }
+function activatePro(){ if(CFG.PRO_CODES.includes($('activateCode').value.trim().toUpperCase())){ LS.set('mama_pro_active',true); updateProUI(); alert('PRO активирован!'); } }
+
+// ===== WELCOME =====
+function closeWelcome(){ $('welcomeScreen').style.display='none'; $('mainApp').style.display='block'; LS.set('mama-welcome-shown',true); }
+if(LS.get('mama-welcome-shown')){ $('welcomeScreen').style.display='none'; $('mainApp').style.display='block'; }
+
+// ===== НОЧНОЙ РЕЖИМ =====
+let nightMode=LS.get('mama_night_mode')===true;
+function applyNightMode(){ document.body.classList.toggle('night-mode',nightMode); $('btnNightMode').textContent=nightMode?'🌟':'🌙'; }
+function toggleNightMode(){ nightMode=!nightMode; LS.set('mama_night_mode',nightMode); applyNightMode(); }
+applyNightMode();
+
+// ===== ВИДЖЕТ =====
+function updateWidget(){
+    const feedRecs=getRecords('feed'),sleepRecs=getRecords('sleep'),diaperRecs=getRecords('diaper');
+    const todayMood=LS.get('mama-mood-'+today.toISOString().split('T')[0]);
+    if(feedRecs.length>0){ const last=feedRecs[feedRecs.length-1]; const minAgo=Math.floor((Date.now()-last.timestamp)/60000); $('wFeed').textContent=minAgo<60?minAgo+' мин':Math.floor(minAgo/60)+' ч'; $('wFeedItem').className='widget-item '+(minAgo<90?'status-normal':minAgo<180?'status-warning':'status-danger'); }else{ $('wFeed').textContent='—'; $('wFeedItem').className='widget-item'; }
+    if(sleepRecs.length>0){ const totalMin=Math.floor(sleepRecs.reduce((s,r)=>s+r.duration,0)/60); $('wSleep').textContent=totalMin<60?totalMin+' мин':Math.floor(totalMin/60)+' ч'; $('wSleepItem').className='widget-item status-normal'; }else{ $('wSleep').textContent='—'; $('wSleepItem').className='widget-item'; }
+    $('wDiaper').textContent=diaperRecs.length>0?diaperRecs.length:'—';
+    $('wMood').textContent=todayMood&&CFG.MOODS[todayMood]?CFG.MOODS[todayMood].split(' ')[0]:'—';
 }
 
-function getRecords(type) {
-    return LS.get(getStorageKey(type)) || [];
-}
-
-function saveRecord(type, data) {
-    const key = getStorageKey(type);
-    const records = LS.get(key) || [];
-    records.push({ ...data, timestamp: Date.now() });
-    LS.set(key, records);
-}
+// ===== НАВИГАЦИЯ =====
+let mainTab='feeding',statsSubTab='feed';
+document.getElementById('mainTabs').addEventListener('click',function(e){ const btn=e.target.closest('.tab-btn'); if(btn&&btn.dataset.tab)switchMainTab(btn.dataset.tab); });
+function switchMainTab(tab){ mainTab=tab; document.querySelectorAll('#mainTabs .tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab)); document.querySelectorAll('.tab-content').forEach(c=>{c.classList.remove('active');c.style.display='none';}); const target=$('tab-'+tab); if(target){target.style.display='block';requestAnimationFrame(()=>target.classList.add('active'));} if(tab==='stats')buildAllCharts(); if(tab==='growth')updateGrowthUI(); if(tab==='calendar')updateCalendar(); if(tab==='mood')updateMoodUI(); if(tab==='achievements')updateAchievementsUI(); updateWidget(); }
+function switchStatsTab(tab){ statsSubTab=tab; $('statsFeed').style.display=tab==='feed'?'block':'none'; $('statsSleep').style.display=tab==='sleep'?'block':'none'; $('statsDiaper').style.display=tab==='diaper'?'block':'none'; }
+function togglePanel(id){ const p=$(id); if(p)p.classList.toggle('hidden'); }
+function hidePanel(id){ const p=$(id); if(p)p.classList.add('hidden'); }
 
 // ===== ТРЕКЕР КОРМЛЕНИЯ =====
-let feedRunning = false;
-let feedStartTime = null;
-let feedInterval = null;
-let feedSide = null;
-
-function selectSide(side) {
-    if (feedRunning) return;
-    feedSide = side;
-    $('feedBtn').disabled = false;
-    $('btnLeft').classList.toggle('selected', side === 'left');
-    $('btnRight').classList.toggle('selected', side === 'right');
+class Tracker{
+    constructor(type,config){ this.type=type; this.cfg=config; this.running=false; this.startTime=null; this.interval=null; this.side=null; }
+    selectSide(side){ if(!this.running){ this.side=side; this.cfg.btn.disabled=false; this.cfg.sideButtons?.forEach(b=>b.classList.toggle('selected',b.dataset.side===side)); } }
+    toggle(){ this.running?this.stop():this.start(); }
+    start(){ if(this.type==='feed'&&!this.side)return; this.running=true; this.startTime=Date.now(); this.cfg.btn.textContent='⏹ Завершить'; this.cfg.btn.className='action-btn stop'; this.interval=setInterval(()=>{this.cfg.timerEl.textContent=fmtTimer(Math.floor((Date.now()-this.startTime)/1000));},200); }
+    stop(){ this.running=false; clearInterval(this.interval); const dur=Math.floor((Date.now()-this.startTime)/1000); this.cfg.timerEl.textContent='00:00'; this.cfg.btn.textContent=this.cfg.startLabel; this.cfg.btn.className=this.cfg.startClass; if(this.type==='feed'){this.cfg.btn.disabled=true;this.side=null;this.cfg.sideButtons?.forEach(b=>b.classList.remove('selected'));} if(dur>=(this.type==='feed'?10:60)){ saveRecord(this.type,this.type==='feed'?{side:this.side||'left',duration:dur}:{duration:dur}); refreshAll(); } }
 }
-
-function toggleFeed() {
-    if (feedRunning) {
-        stopFeed();
-    } else {
-        startFeed();
-    }
-}
-
-function startFeed() {
-    if (!feedSide) return;
-    feedRunning = true;
-    feedStartTime = Date.now();
-    $('feedBtn').textContent = '⏹ Завершить';
-    $('feedBtn').className = 'btn btn-stop';
-    $('btnLeft').style.pointerEvents = 'none';
-    $('btnRight').style.pointerEvents = 'none';
-    feedInterval = setInterval(() => {
-        $('feedTimer').textContent = fmtTimer(Math.floor((Date.now() - feedStartTime) / 1000));
-    }, 200);
-}
-
-function stopFeed() {
-    feedRunning = false;
-    clearInterval(feedInterval);
-    const dur = Math.floor((Date.now() - feedStartTime) / 1000);
-    $('feedTimer').textContent = '00:00';
-    $('feedBtn').textContent = '▶️ Начать';
-    $('feedBtn').className = 'btn btn-primary';
-    $('feedBtn').disabled = true;
-    $('btnLeft').style.pointerEvents = 'auto';
-    $('btnRight').style.pointerEvents = 'auto';
-    $('btnLeft').classList.remove('selected');
-    $('btnRight').classList.remove('selected');
-    feedSide = null;
-
-    if (dur >= 10) {
-        saveRecord('feed', { side: feedSide || 'left', duration: dur });
-        updateFeedUI();
-    }
-}
-
-// ===== ТРЕКЕР СНА =====
-let sleepRunning = false;
-let sleepStartTime = null;
-let sleepInterval = null;
-
-function toggleSleep() {
-    if (sleepRunning) {
-        stopSleep();
-    } else {
-        startSleep();
-    }
-}
-
-function startSleep() {
-    sleepRunning = true;
-    sleepStartTime = Date.now();
-    $('sleepBtn').textContent = '⏹ Разбудить';
-    $('sleepBtn').className = 'btn btn-stop';
-    sleepInterval = setInterval(() => {
-        $('sleepTimer').textContent = fmtTimer(Math.floor((Date.now() - sleepStartTime) / 1000));
-    }, 200);
-}
-
-function stopSleep() {
-    sleepRunning = false;
-    clearInterval(sleepInterval);
-    const dur = Math.floor((Date.now() - sleepStartTime) / 1000);
-    $('sleepTimer').textContent = '00:00';
-    $('sleepBtn').textContent = '▶️ Уложить спать';
-    $('sleepBtn').className = 'btn btn-primary';
-
-    if (dur >= 60) {
-        saveRecord('sleep', { duration: dur });
-        updateSleepUI();
-    }
-}
+const feedTracker=new Tracker('feed',{btn:$('feedingBtn'),timerEl:$('feedingTimer'),sideButtons:[$('btnLeft'),$('btnRight')],startLabel:'▶️ Начать',startClass:'action-btn start'});
+const sleepTracker=new Tracker('sleep',{btn:$('sleepBtn'),timerEl:$('sleepTimer'),startLabel:'▶️ Уложить спать',startClass:'action-btn start-sleep'});
 
 // ===== ПОДГУЗНИКИ =====
-function addDiaper(type) {
-    saveRecord('diaper', { type: type });
-    updateDiaperUI();
-}
+function addDiaper(type){ saveRecord('diaper',{type}); refreshAll(); }
 
 // ===== ОБНОВЛЕНИЕ UI =====
-function updateFeedUI() {
-    const recs = getRecords('feed');
-    $('feedCount').textContent = recs.length;
-    const totalMin = Math.floor(recs.reduce((s, r) => s + r.duration, 0) / 60);
-    $('feedTotal').textContent = totalMin < 60 ? totalMin + ' мин' : Math.floor(totalMin / 60) + ' ч ' + (totalMin % 60) + ' мин';
+function updateFeedStats(){ const recs=getRecords('feed'); $('feedCount').textContent=recs.length; const min=Math.floor(recs.reduce((s,r)=>s+r.duration,0)/60); $('feedDuration').textContent=min<60?min+' мин':Math.floor(min/60)+' ч '+(min%60)+' мин'; updateWidget(); }
+function renderFeedHistory(){ const recs=getRecords('feed').sort((a,b)=>b.timestamp-a.timestamp); $('feedHistory').innerHTML=recs.length?recs.map(r=>{const min=Math.floor(r.duration/60),sec=r.duration%60;return`<div class="history-item"><span>${fmtTime(r.timestamp)}</span><span class="history-duration">${min}:${pad2(sec)}</span><span class="history-side"><span class="side-dot ${r.side}"></span>${r.side==='left'?'Левая':'Правая'}</span></div>`;}).join(''):'<div class="empty-state">Нет записей</div>'; }
+function updateSleepStats(){ const recs=getRecords('sleep'); $('sleepCount').textContent=recs.length; const min=Math.floor(recs.reduce((s,r)=>s+r.duration,0)/60); $('sleepDuration').textContent=min<60?min+' мин':Math.floor(min/60)+' ч '+(min%60)+' мин'; updateWidget(); }
+function renderSleepHistory(){ const recs=getRecords('sleep').sort((a,b)=>b.timestamp-a.timestamp); $('sleepHistory').innerHTML=recs.length?recs.map(r=>{const min=Math.floor(r.duration/60),h=Math.floor(min/60);return`<div class="history-item"><span>${fmtTime(r.timestamp)}</span><span class="history-duration">${h>0?h+' ч '+(min%60)+' мин':min+' мин'}</span></div>`;}).join(''):'<div class="empty-state">Нет записей</div>'; }
+function updateDiaperStats(){ const recs=getRecords('diaper'); $('diaperCount').textContent=recs.length; $('diaperDirty').textContent=recs.filter(r=>r.type==='dirty'||r.type==='both').length; updateWidget(); }
+function renderDiaperHistory(){ const recs=getRecords('diaper').sort((a,b)=>b.timestamp-a.timestamp); $('diaperHistory').innerHTML=recs.length?recs.map(r=>`<div class="history-item"><span>${fmtTime(r.timestamp)}</span><span>${CFG.DIAPER_LABELS[r.type]}</span></div>`).join(''):'<div class="empty-state">Нет записей</div>'; }
+function refreshAll(){ updateFeedStats(); renderFeedHistory(); updateSleepStats(); renderSleepHistory(); updateDiaperStats(); renderDiaperHistory(); updateWidget(); }
 
-    $('feedHistory').innerHTML = recs.length > 0
-        ? recs.sort((a, b) => b.timestamp - a.timestamp).map(r => {
-            const min = Math.floor(r.duration / 60);
-            const sec = r.duration % 60;
-            return `<div class="history-item"><span>${fmtTime(r.timestamp)} — ${min}:${pad2(sec)}</span><span>${r.side === 'left' ? '⬅️' : '➡️'}</span></div>`;
-        }).join('')
-        : '<div class="empty-state">Нет записей</div>';
+// ===== СТАТИСТИКА =====
+function buildAllCharts(){
+    const feedRecs=getAllRecords('feed',7),sleepRecs=getAllRecords('sleep',7),diaperRecs=getAllRecords('diaper',7);
+    const totalFeed=feedRecs.length,totalFeedMin=Math.floor(feedRecs.reduce((s,r)=>s+r.duration,0)/60);
+    $('feedAverages').innerHTML=`<div class="avg-row"><span>Кормлений за 7 дней</span><span class="avg-value">${totalFeed}</span></div><div class="avg-row"><span>Общее время</span><span class="avg-value">${totalFeedMin<60?totalFeedMin+' мин':Math.floor(totalFeedMin/60)+' ч'}</span></div>`;
+    const totalSleep=sleepRecs.length,totalSleepMin=Math.floor(sleepRecs.reduce((s,r)=>s+r.duration,0)/60);
+    $('sleepAverages').innerHTML=`<div class="avg-row"><span>Снов за 7 дней</span><span class="avg-value">${totalSleep}</span></div><div class="avg-row"><span>Общее время</span><span class="avg-value">${Math.floor(totalSleepMin/60)} ч ${totalSleepMin%60} мин</span></div>`;
+    const totalDiaper=diaperRecs.length;
+    $('diaperAverages').innerHTML=`<div class="avg-row"><span>Подгузников за 7 дней</span><span class="avg-value">${totalDiaper}</span></div><div class="avg-row"><span>В среднем в день</span><span class="avg-value">${(totalDiaper/7).toFixed(1)}</span></div>`;
 }
 
-function updateSleepUI() {
-    const recs = getRecords('sleep');
-    $('sleepCount').textContent = recs.length;
-    const totalMin = Math.floor(recs.reduce((s, r) => s + r.duration, 0) / 60);
-    $('sleepTotal').textContent = totalMin < 60 ? totalMin + ' мин' : Math.floor(totalMin / 60) + ' ч ' + (totalMin % 60) + ' мин';
+// ===== РОСТ/ВЕС =====
+function getGrowthRecords(){ return (LS.get('mama'+getBabyPrefix()+'-growth')||[]).sort((a,b)=>a.date.localeCompare(b.date)); }
+function addGrowth(){ const date=$('growthDate').value,weight=parseFloat($('growthWeight').value),height=parseFloat($('growthHeight').value); if(!date)return; const recs=getGrowthRecords(); recs.push({date,weight:weight||null,height:height||null,timestamp:Date.now()}); LS.set('mama'+getBabyPrefix()+'-growth',recs); updateGrowthUI(); }
+function updateGrowthUI(){ const recs=getGrowthRecords(); $('growthHistory').innerHTML=recs.length?recs.map(r=>{const p=[];if(r.weight)p.push('⚖️ '+r.weight+' кг');if(r.height)p.push('📏 '+r.height+' см');return`<div class="history-item"><span>${r.date}</span><span>${p.join(' · ')}</span></div>`;}).join(''):'<div class="empty-state">Нет записей</div>'; if($('growthDate'))$('growthDate').value=today.toISOString().split('T')[0]; }
 
-    $('sleepHistory').innerHTML = recs.length > 0
-        ? recs.sort((a, b) => b.timestamp - a.timestamp).map(r => {
-            const min = Math.floor(r.duration / 60);
-            const h = Math.floor(min / 60);
-            const durStr = h > 0 ? h + ' ч ' + (min % 60) + ' мин' : min + ' мин';
-            return `<div class="history-item"><span>${fmtTime(r.timestamp)}</span><span>${durStr}</span></div>`;
-        }).join('')
-        : '<div class="empty-state">Нет записей</div>';
+// ===== КАЛЕНДАРЬ =====
+let calYear=today.getFullYear(),calMonth=today.getMonth();
+const MONTHS=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+function changeMonth(d){ calMonth+=d; if(calMonth<0){calMonth=11;calYear--;}if(calMonth>11){calMonth=0;calYear++;} updateCalendar(); }
+function updateCalendar(){
+    $('monthLabel').textContent=MONTHS[calMonth]+' '+calYear;
+    let h='';const first=new Date(calYear,calMonth,1),last=new Date(calYear,calMonth+1,0);
+    for(let i=1;i<(first.getDay()||7);i++)h+=`<div class="calendar-day other-month"></div>`;
+    for(let d=1;d<=last.getDate();d++){const cls=(d===today.getDate()&&calMonth===today.getMonth()&&calYear===today.getFullYear())?' today':'';h+=`<div class="calendar-day${cls}">${d}</div>`;}
+    $('calendarGrid').innerHTML=h;
 }
 
-function updateDiaperUI() {
-    const recs = getRecords('diaper');
-    $('diaperCount').textContent = recs.length;
-    $('diaperDirty').textContent = recs.filter(r => r.type === 'dirty' || r.type === 'both').length;
+// ===== НАСТРОЕНИЕ =====
+function getMoodKey(d){ return'mama-mood-'+(d||today).toISOString().split('T')[0]; }
+function saveMood(mood){ LS.set(getMoodKey(),mood); updateMoodUI(); updateWidget(); }
+function updateMoodUI(){ const tm=LS.get(getMoodKey()); $('moodTodayLabel').textContent=tm?'Сегодня: '+CFG.MOODS[tm]:'Выберите настроение'; }
 
-    const labels = { wet: '💦 Мокрый', dirty: '💩 Грязный', both: '💦💩 Всё вместе', dry: '✅ Сменили' };
-    $('diaperHistory').innerHTML = recs.length > 0
-        ? recs.sort((a, b) => b.timestamp - a.timestamp).map(r =>
-            `<div class="history-item"><span>${fmtTime(r.timestamp)}</span><span>${labels[r.type] || r.type}</span></div>`
-        ).join('')
-        : '<div class="empty-state">Нет записей</div>';
-}
+// ===== ЛЕКАРСТВА =====
+let medInterval=4;
+function selectMedInterval(h){ medInterval=h; document.querySelectorAll('#tab-meds .sub-tab').forEach(b=>b.classList.toggle('active',parseInt(b.textContent)===h)); }
+function addMedication(){ const name=$('medName').value.trim(); if(!name)return; saveRecord('meds',{name,dose:$('medDose').value.trim(),interval:medInterval}); $('medName').value='';$('medDose').value=''; updateMedHistory(); }
+function updateMedHistory(){ const recs=getAllRecords('meds',7); $('medHistory').innerHTML=recs.length?recs.map(r=>`<div class="history-item"><span>💊 ${r.name} ${r.dose||''}</span><span>${fmtTime(r.timestamp)}</span></div>`).join(''):'<div class="empty-state">Нет записей</div>'; }
 
-// ===== СТАРТ ПРИЛОЖЕНИЯ =====
-function startApp() {
-    document.getElementById('testBox').textContent = 'Тест: startApp() вызвана!';
-    $('welcomeScreen').style.display = 'none';
-    $('mainApp').style.display = 'block';
-    LS.set('mama_welcome_done', true);
-    updateFeedUI();
-    updateSleepUI();
-    updateDiaperUI();
-}
+// ===== СИМПТОМЫ =====
+function saveSymptom(){ const temp=parseFloat($('symptomTemp').value),notes=$('symptomNotes').value.trim(); if(!temp&&!notes)return; saveRecord('symptoms',{temp:temp||null,notes}); $('symptomTemp').value='';$('symptomNotes').value=''; updateSymptomsUI(); }
+function updateSymptomsUI(){ const recs=getAllRecords('symptoms',14); $('symptomsHistory').innerHTML=recs.length?recs.map(r=>{const parts=[];if(r.temp)parts.push('🌡 '+r.temp+'°C');if(r.notes)parts.push(r.notes);return`<div class="history-item"><span>${fmtTime(r.timestamp)}</span><span>${parts.join(' · ')}</span></div>`;}).join(''):'<div class="empty-state">Нет записей</div>'; }
 
-// Проверяем, был ли уже пройден welcome
-if (LS.get('mama_welcome_done')) {
-    startApp();
-}
+// ===== ДОСТИЖЕНИЯ =====
+const ACHIEVEMENTS=[{id:'first_feed',name:'Первое кормление',emoji:'🌟',max:1},{id:'feed_10',name:'10 кормлений',emoji:'📊',max:10},{id:'sleep_10',name:'10 снов',emoji:'⭐',max:10},{id:'diaper_50',name:'50 подгузников',emoji:'🧷',max:50}];
+function getAchievements(){ return LS.get('mama_achievements')||{}; }
+function checkAchievements(){ const earned=getAchievements(); ACHIEVEMENTS.forEach(ach=>{if(!earned[ach.id]&&getAchievementProgress(ach)>=ach.max){earned[ach.id]=Date.now();LS.set('mama_achievements',earned);}}); }
+function getAchievementProgress(ach){ switch(ach.id){case'first_feed':return getAllRecords('feed',365).length;case'feed_10':return getAllRecords('feed',365).length;case'sleep_10':return getAllRecords('sleep',365).length;case'diaper_50':return getAllRecords('diaper',365).length;default:return 0;} }
+function updateAchievementsUI(){ const earned=getAchievements(); const total=Object.keys(earned).length; $('achievementTitle').textContent=total>=4?'🏆 Мастер':total>=2?'⭐ Продвинутая':'🔰 Начинающая'; $('achievementBar').style.width=(total/4*100)+'%'; $('achievementsList').innerHTML=ACHIEVEMENTS.map(ach=>{const done=!!earned[ach.id];return`<div class="achievement-card ${done?'gold':''}" style="${done?'':'opacity:0.5;'}"><span>${done?ach.emoji:'🔒'}</span> ${ach.name} — ${done?'✅':'⏳'}</div>`;}).join(''); }
 
-// ===== ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК =====
-document.getElementById('mainTabs').addEventListener('click', function(e) {
-    const btn = e.target.closest('.tab-btn');
-    if (!btn || !btn.dataset.tab) return;
+// ===== ВИЗИТЫ =====
+function addVisit(){ const date=$('visitDate').value,doctor=$('visitDoctor').value.trim(); if(!date||!doctor)return; saveRecord('visits',{date,doctor,clinic:$('visitClinic').value.trim()}); $('visitDate').value='';$('visitDoctor').value='';$('visitClinic').value=''; updateVisitsHistory(); }
+function updateVisitsHistory(){ const recs=getAllRecords('visits',365); $('visitsHistory').innerHTML=recs.length?recs.map(r=>`<div class="history-item"><span>🏥 ${r.doctor}</span><span>${r.date}</span></div>`).join(''):'<div class="empty-state">Нет записей</div>'; }
 
-    document.querySelectorAll('#mainTabs .tab-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
+// ===== НАПОМИНАНИЯ =====
+let reminderInterval=null;
+function startReminder(min){ stopReminder(); $('reminderStatus').textContent='⏰ Через '+min+' мин'; reminderInterval=setInterval(()=>{const recs=getRecords('feed');if(recs.length&&Math.floor((Date.now()-recs[recs.length-1].timestamp)/60000)>=min)stopReminder();},30000); }
+function stopReminder(){ if(reminderInterval)clearInterval(reminderInterval); reminderInterval=null; $('reminderStatus').textContent=''; }
 
-    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-    const target = document.getElementById('tab-' + btn.dataset.tab);
-    if (target) target.classList.add('active');
-});
+// ===== ИТОГИ ДНЯ =====
+function showDaySummary(){ const feed=getRecords('feed'),sleep=getRecords('sleep'),diaper=getRecords('diaper'); const tf=Math.floor(feed.reduce((s,r)=>s+r.duration,0)/60),ts=Math.floor(sleep.reduce((s,r)=>s+r.duration,0)/60); alert(`📝 Итоги дня\n🍼 Кормлений: ${feed.length} (${tf} мин)\n😴 Сна: ${sleep.length} (${ts} мин)\n💧 Подгузников: ${diaper.length}`); }
 
-// ===== ГЛОБАЛЬНЫЕ ФУНКЦИИ =====
-window.startApp = startApp;
-window.selectSide = selectSide;
-window.toggleFeed = toggleFeed;
-window.toggleSleep = toggleSleep;
-window.addDiaper = addDiaper;
+// ===== ЦВЕТОВАЯ СЕТКА =====
+$('colorGrid').innerHTML=CFG.COLORS.map(c=>`<div style="width:40px;height:40px;border-radius:50%;background:${c==='pink'?'#e8a0bf':c==='blue'?'#7eb8da':c==='mint'?'#7ec9a0':c==='lavender'?'#b8a0e0':'#f0b890'};cursor:pointer;border:3px solid ${c===savedColor?'var(--text)':'transparent'};" onclick="setColorScheme('${c}')"></div>`).join('');
 
-document.getElementById('testBox').textContent = 'Тест: JS полностью загружен ✅';
+// ===== ИНИЦИАЛИЗАЦИЯ =====
+updateBabyUI(); refreshAll(); updateGrowthUI(); updateProUI(); updateCalendar(); updateMoodUI(); updateAchievementsUI(); updateWidget();
+
+// Глобальные функции
+window.closeWelcome=closeWelcome; window.toggleNightMode=toggleNightMode; window.togglePanel=togglePanel; window.hidePanel=hidePanel;
+window.switchMainTab=switchMainTab; window.switchStatsTab=switchStatsTab; window.addDiaper=addDiaper;
+window.startReminder=startReminder; window.stopReminder=stopReminder; window.addGrowth=addGrowth;
+window.changeMonth=changeMonth; window.saveMood=saveMood; window.selectMedInterval=selectMedInterval;
+window.addMedication=addMedication; window.saveSymptom=saveSymptom; window.addVisit=addVisit;
+window.activatePro=activatePro; window.addBaby=addBaby; window.switchBaby=switchBaby;
+window.setThemeMode=setThemeMode; window.setColorScheme=setColorScheme; window.showDaySummary=showDaySummary;
 </script>
 </body>
 </html>
