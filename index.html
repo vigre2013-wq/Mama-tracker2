@@ -43,6 +43,10 @@
     <div class="cloud-status local" id="cloudStatus">📱 локально</div>
 </div>
 
+<div style="background:red;color:white;padding:10px;text-align:center;font-size:12px;" id="testBox">
+    Тест: если видишь это — HTML загружен
+</div>
+
 <div id="welcomeScreen">
     <div class="card" style="text-align:center;">
         <div style="font-size:60px;">👋</div>
@@ -127,6 +131,9 @@
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script>
+// ===== ДИАГНОСТИКА =====
+document.getElementById('testBox').textContent = 'Тест: JS ещё не загружен...';
+
 // ===== ИНИЦИАЛИЗАЦИЯ TELEGRAM =====
 const tg = window.Telegram?.WebApp;
 if (tg) { tg.ready(); tg.expand(); }
@@ -138,13 +145,16 @@ const CloudSync = {
     _timer: null,
 
     init() {
+        document.getElementById('testBox').textContent = 'Тест: CloudSync.init() вызван';
         if (!tg || !tg.CloudStorage) {
             this._setStatus('local');
+            document.getElementById('testBox').textContent = 'Тест: CloudStorage недоступен';
             return;
         }
         tg.CloudStorage.getKeys()
             .then(keys => {
                 this._ok = true;
+                document.getElementById('testBox').textContent = 'Тест: CloudStorage работает! Ключей: ' + keys.length;
                 const jobs = keys.map(key =>
                     tg.CloudStorage.getItem(key).then(val => {
                         if (val) localStorage.setItem(key, val);
@@ -156,7 +166,8 @@ const CloudSync = {
                 this._setStatus('synced');
                 this._startFlush();
             })
-            .catch(() => {
+            .catch((err) => {
+                document.getElementById('testBox').textContent = 'Тест: Ошибка CloudStorage: ' + err.message;
                 this._setStatus('local');
             });
     },
@@ -386,6 +397,7 @@ function updateDiaperUI() {
 
 // ===== СТАРТ ПРИЛОЖЕНИЯ =====
 function startApp() {
+    document.getElementById('testBox').textContent = 'Тест: startApp() вызвана!';
     $('welcomeScreen').style.display = 'none';
     $('mainApp').style.display = 'block';
     LS.set('mama_welcome_done', true);
@@ -418,6 +430,8 @@ window.selectSide = selectSide;
 window.toggleFeed = toggleFeed;
 window.toggleSleep = toggleSleep;
 window.addDiaper = addDiaper;
+
+document.getElementById('testBox').textContent = 'Тест: JS полностью загружен ✅';
 </script>
 </body>
 </html>
