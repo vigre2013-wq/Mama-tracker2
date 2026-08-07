@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Мама Трекер</title>
+    <title>Мама Трекер — AI аналитика</title>
     <style>
         :root {
             --bg: #1a1a2e; --surface: #16213e; --accent: #e8a0bf; --accent-light: rgba(232,160,191,0.15);
@@ -56,6 +56,7 @@
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
         @keyframes tooltipPop { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes aiPulse { 0%,100% { opacity: 0.6; } 50% { opacity: 1; } }
         .anim-fade-in { animation: fadeInUp 0.4s ease-out; }
         .anim-pulse { animation: pulse 2s ease-in-out infinite; }
         .tooltip { position: fixed; background: var(--surface); color: var(--text); padding: 12px 16px; border-radius: 12px; font-size: 13px; z-index: 9998; max-width: 220px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); animation: tooltipPop 0.3s ease-out; pointer-events: none; }
@@ -269,6 +270,25 @@
         .day-timeline-hours { display: flex; justify-content: space-between; font-size: 9px; color: var(--text-secondary); padding: 0 4px; }
         .day-summary-text { font-size: 13px; color: var(--text-secondary); text-align: center; margin-top: 16px; line-height: 1.6; }
         .day-summary-text strong { color: var(--text); }
+
+        /* AI аналитика */
+        .ai-card { background: linear-gradient(135deg, rgba(232,160,191,0.08), rgba(160,196,232,0.08)); border: 1px solid rgba(232,160,191,0.15); }
+        .ai-insight { padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 14px; line-height: 1.6; display: flex; gap: 10px; align-items: flex-start; }
+        .ai-insight:last-child { border-bottom: none; }
+        .ai-insight .ai-icon { font-size: 20px; min-width: 28px; text-align: center; margin-top: 2px; }
+        .ai-insight .ai-text { flex: 1; }
+        .ai-insight .ai-badge { display: inline-block; font-size: 9px; font-weight: 700; padding: 2px 8px; border-radius: 10px; margin-left: 6px; }
+        .ai-badge.trend-up { background: rgba(126,203,138,0.2); color: #7ecb8a; }
+        .ai-badge.trend-down { background: rgba(232,96,110,0.2); color: #e8606e; }
+        .ai-badge.info { background: rgba(160,196,232,0.2); color: #7eb8da; }
+        .ai-badge.warning { background: rgba(240,192,96,0.2); color: #f0c060; }
+        .ai-loading { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 20px; color: var(--text-secondary); font-size: 14px; }
+        .ai-loading .spinner { width: 24px; height: 24px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .ai-empty { text-align: center; padding: 20px; color: var(--text-secondary); font-size: 14px; }
+        .ai-empty .ai-emoji { font-size: 40px; display: block; margin-bottom: 8px; }
+        .ai-refresh-btn { background: var(--stat-bg); border: 1px solid var(--border); color: var(--text-secondary); padding: 6px 14px; border-radius: 12px; font-size: 12px; cursor: pointer; transition: all 0.2s; }
+        .ai-refresh-btn:active { transform: scale(0.95); background: var(--accent-light); }
     </style>
 </head>
 <body class="color-pink">
@@ -293,6 +313,10 @@
         <div class="widget-item" id="wDiaperItem" onclick="switchMainTab('diaper')"><div class="widget-emoji">💧</div><div class="widget-value" id="wDiaper">—</div><div class="widget-label">Подгузники</div></div>
         <div class="widget-item" id="wMoodItem" onclick="switchMainTab('mood')"><div class="widget-emoji">💖</div><div class="widget-value" id="wMood">—</div><div class="widget-label">Настроение</div></div>
     </div>
+
+    <!-- AI-аналитика будет вставлена сюда -->
+    <div id="aiInsightsContainer"></div>
+
     <div class="tabs" id="mainTabs">
         <button class="tab-btn active" data-tab="feeding">🍼</button>
         <button class="tab-btn" data-tab="sleep">😴</button>
@@ -488,6 +512,7 @@
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script>
+// ============ БАЗОВЫЕ НАСТРОЙКИ ============
 const CFG = {
     PRO_CODES: ['MAMA2024','PRO-MAMA','MOM-PRO','TEST123'],
     COLORS: ['pink','blue','mint','lavender','peach'],
@@ -537,13 +562,13 @@ function activatePro(){const code=$('activateCode').value.trim().toUpperCase();i
 function closeWelcome(){$('welcomeScreen').style.display='none';$('mainApp').style.display='block';LS.set('mama-welcome-shown',true);startTooltips();}
 if(LS.get('mama-welcome-shown')){$('welcomeScreen').style.display='none';$('mainApp').style.display='block';setTimeout(startTooltips,500);}
 
-// === ПОДСКАЗКИ ===
+// ============ ПОДСКАЗКИ ============
 const TOOLTIPS=[{selector:'#mainTabs .tab-btn[data-tab="feeding"]',text:'Начните с кормления — нажмите 🍼'},{selector:'#mainTabs .tab-btn[data-tab="sleep"]',text:'Записывайте сон малыша 😴'},{selector:'#mainTabs .tab-btn[data-tab="diaper"]',text:'Отмечайте смену подгузников 💧'},{selector:'#mainTabs .tab-btn[data-tab="achievements"]',text:'Получайте достижения за заботу! 🏆'}];
 let tooltipIndex=0,currentTooltip=null;
 function startTooltips(){if(LS.get('mama_tooltips_shown'))return;showNextTooltip();}
 function showNextTooltip(){if(currentTooltip){document.body.removeChild(currentTooltip);currentTooltip=null;}if(tooltipIndex>=TOOLTIPS.length){LS.set('mama_tooltips_shown',true);return;}const tip=TOOLTIPS[tooltipIndex];const el=document.querySelector(tip.selector);if(!el){tooltipIndex++;showNextTooltip();return;}const rect=el.getBoundingClientRect();const tooltip=document.createElement('div');tooltip.className='tooltip';tooltip.textContent=tip.text+' ('+(tooltipIndex+1)+'/'+TOOLTIPS.length+')';tooltip.style.left=Math.max(10,rect.left+rect.width/2-100)+'px';tooltip.style.top=(rect.bottom+10)+'px';document.body.appendChild(tooltip);currentTooltip=tooltip;el.style.position='relative';el.style.zIndex='9999';setTimeout(()=>{tooltipIndex++;showNextTooltip();},3000);}
 
-// === ВИДЖЕТ С ЦВЕТОВОЙ ИНДИКАЦИЕЙ ===
+// ============ ВИДЖЕТ С ЦВЕТОВОЙ ИНДИКАЦИЕЙ ============
 function updateWidget(){
     const feedRecs=getRecords('feed');const sleepRecs=getRecords('sleep');const diaperRecs=getRecords('diaper');const todayMood=LS.get('mama-mood-'+today.toISOString().split('T')[0]);
     const wFeed=$('wFeed');const wFeedItem=$('wFeedItem');
@@ -556,16 +581,16 @@ function updateWidget(){
     wMoodItem.className='widget-item '+(todayMood==='tired'||todayMood==='bad'?'status-danger':todayMood?'status-normal':'');
 }
 
-// === ОЧИСТКА ДАННЫХ ЗА СЕГОДНЯ ===
+// ============ ОЧИСТКА ДАННЫХ ЗА СЕГОДНЯ ============
 function clearTodayData(type){
     showOverlay(`<h3>🗑 Очистить сегодня?</h3><p style="color:var(--text-secondary);font-size:13px;margin-bottom:12px;">Удалить все записи ${type==='feed'?'кормлений':type==='sleep'?'сна':'подгузников'} за сегодня?</p><div class="dialog-buttons"><button class="btn-skip" onclick="closeOverlay()">Отмена</button><button class="btn-save" style="background:#e8606e;" id="confirmClear">Удалить</button></div>`);
     $('confirmClear').onclick=()=>{const key=getStorageKey(type);LS.set(key,[]);closeOverlay();refreshAll();if(tg?.showPopup)tg.showPopup({title:'✅ Очищено!',message:'Записи за сегодня удалены',buttons:[{type:'ok'}]});};
 }
 
-// === СВОРАЧИВАЕМЫЕ КАРТОЧКИ ===
+// ============ СВОРАЧИВАЕМЫЕ КАРТОЧКИ ============
 function toggleCollapsible(id){const body=document.getElementById(id);const arrowId=id.replace('Card','Arrow');const arrow=document.getElementById(arrowId);if(!body)return;const isOpen=body.classList.contains('open');if(isOpen){body.classList.remove('open');if(arrow)arrow.classList.remove('open');}else{body.classList.add('open');if(arrow)arrow.classList.add('open');}}
 
-// === НОЧНОЙ РЕЖИМ ===
+// ============ НОЧНОЙ РЕЖИМ ============
 const NIGHT_KEY='mama_night_mode',NIGHT_START='mama_night_start',NIGHT_END='mama_night_end';
 let nightMode=LS.get(NIGHT_KEY)===true;let nightAutoEnabled=LS.get(NIGHT_KEY)===null||LS.get(NIGHT_KEY)===undefined;
 let nightStart=LS.get(NIGHT_START)||'21:00',nightEnd=LS.get(NIGHT_END)||'07:00';
@@ -587,7 +612,7 @@ function switchMoodTab(tab){moodSubTab=tab;document.querySelectorAll('#tab-mood 
 function togglePanel(id){const p=$(id);if(p){p.classList.toggle('hidden');if(id==='themePanel'&&!p.classList.contains('hidden'))loadNightSettings();}}
 function hidePanel(id){const p=$(id);if(p)p.classList.add('hidden');}
 
-// === ЧЕК-ЛИСТ ===
+// ============ ЧЕК-ЛИСТ ============
 function getChecklist(){return LS.get('mama_checklist_'+currentBabyId)||[...CFG.DEFAULT_CHECKLIST];}
 function saveChecklist(list){LS.set('mama_checklist_'+currentBabyId,list);}
 function updateVisitChecklist(){const items=getChecklist();const container=$('visitChecklist');if(!container)return;container.innerHTML=items.map((item,i)=>`<div style="display:flex;align-items:center;gap:8px;"><input type="checkbox" id="chk_${i}" style="width:20px;height:20px;margin:0;accent-color:var(--accent);" onchange="toggleCheckItem(${i},this.checked)"><span style="font-size:13px;flex:1;">${item}</span><span onclick="deleteCheckItem(${i})" style="cursor:pointer;font-size:14px;">🗑</span></div>`).join('')+`<div style="display:flex;gap:8px;margin-top:8px;"><input type="text" id="newCheckItem" placeholder="Добавить пункт" style="flex:1;height:36px;font-size:13px;margin:0;text-align:left;padding-left:12px;"><button class="reminder-btn" onclick="addCheckItem()" style="width:40px;background:var(--accent);color:#fff;">+</button></div>`;items.forEach((item,i)=>{$('chk_'+i).checked=item.startsWith('✅');});}
@@ -596,28 +621,29 @@ function deleteCheckItem(i){const items=getChecklist();items.splice(i,1);saveChe
 function addCheckItem(){const input=$('newCheckItem');if(!input||!input.value.trim())return;const items=getChecklist();items.push(input.value.trim());saveChecklist(items);input.value='';updateVisitChecklist();}
 function updateDoctorAutofill(){const visits=getVisits();const doctors=[...new Set(visits.map(v=>v.doctor).filter(Boolean))];const clinics=[...new Set(visits.map(v=>v.clinic).filter(Boolean))];$('doctorList').innerHTML=doctors.map(d=>`<option value="${d}">`).join('');$('clinicList').innerHTML=clinics.map(c=>`<option value="${c}">`).join('');}
 
-// === СВАЙПЫ ===
+// ============ СВАЙПЫ ============
 let touchStartX=0,touchStartY=0;
 document.addEventListener('touchstart',e=>{touchStartX=e.touches[0].clientX;touchStartY=e.touches[0].clientY;},{passive:true});
 document.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-touchStartX,dy=e.changedTouches[0].clientY-touchStartY;if(Math.abs(dx)>Math.abs(dy)&&Math.abs(dx)>60){const idx=CFG.TABS.indexOf(mainTab);if(dx<-40&&idx<CFG.TABS.length-1){switchMainTab(CFG.TABS[idx+1]);haptic();}if(dx>40&&idx>0){switchMainTab(CFG.TABS[idx-1]);haptic();}}});
 
+// ============ ТРЕКЕРЫ ============
 class Tracker{constructor(type,config){this.type=type;this.cfg=config;this.running=false;this.startTime=null;this.interval=null;this.side=null;}selectSide(side){if(!this.running){this.side=side;this.cfg.btn.disabled=false;this.cfg.sideButtons?.forEach(b=>b.classList.toggle('selected',b.dataset.side===side));}}toggle(){this.running?this.stop():this.start();}start(){if(this.type==='feed'&&!this.side)return;this.running=true;this.startTime=Date.now();this.cfg.btn.textContent='⏹ Завершить';this.cfg.btn.className='action-btn stop';this.interval=setInterval(()=>{this.cfg.timerEl.textContent=fmtTimer(Math.floor((Date.now()-this.startTime)/1000));},200);}stop(){this.running=false;clearInterval(this.interval);const dur=Math.floor((Date.now()-this.startTime)/1000);this.cfg.timerEl.textContent='00:00';this.cfg.btn.textContent=this.cfg.startLabel;this.cfg.btn.className=this.cfg.startClass;if(this.type==='feed'){this.cfg.btn.disabled=true;this.side=null;this.cfg.sideButtons?.forEach(b=>b.classList.remove('selected'));}const minDur=this.type==='feed'?5:60;if(dur>=minDur){spawnConfetti(window.innerWidth/2,window.innerHeight/2);const data=this.type==='feed'?{side:this.side||'left',duration:dur}:{duration:dur};showNoteDialog(this.type,data);updateFeedingStatus();updateWidget();}}}
 const feedTracker=new Tracker('feed',{btn:$('feedingBtn'),timerEl:$('feedingTimer'),sideButtons:[$('btnLeft'),$('btnRight')],startLabel:'▶️ Начать',startClass:'action-btn start'});
 const sleepTracker=new Tracker('sleep',{btn:$('sleepBtn'),timerEl:$('sleepTimer'),startLabel:'▶️ Уложить спать',startClass:'action-btn start-sleep'});
 
-// === УМНЫЕ НАПОМИНАНИЯ ===
+// ============ УМНЫЕ НАПОМИНАНИЯ ============
 let feedingStatusInterval=null;
 function updateFeedingStatus(){const recs=getRecords('feed');const card=$('feedingStatusCard');if(!card)return;if(recs.length===0){card.style.display='none';return;}const lastFeed=recs[recs.length-1];const minutesAgo=Math.floor((Date.now()-lastFeed.timestamp)/60000);const hoursAgo=Math.floor(minutesAgo/60),minsAgo=minutesAgo%60;let sc='normal',st='',se='🕐';if(minutesAgo<90){sc='normal';se='✅';st=`Прошло ${hoursAgo>0?hoursAgo+' ч ':''}${minsAgo} мин — всё хорошо`;}else if(minutesAgo<180){sc='warning';se='⏰';st=`Прошло ${hoursAgo} ч ${minsAgo} мин — скоро кормить`;}else{sc='danger';se='🔴';st=`Прошло ${hoursAgo} ч ${minsAgo} мин — пора кормить!`;}card.style.display='block';card.className='feeding-status '+sc;card.innerHTML=`${se} ${st}`;}
 function startFeedingStatusUpdates(){updateFeedingStatus();if(feedingStatusInterval)clearInterval(feedingStatusInterval);feedingStatusInterval=setInterval(updateFeedingStatus,30000);}
 startFeedingStatusUpdates();
 
-// === ИСТОРИЯ С ПОИСКОМ ===
+// ============ ИСТОРИЯ С ПОИСКОМ ============
 function filterRecords(recs,search,filter){let filtered=recs;if(search){const s=search.toLowerCase();filtered=filtered.filter(r=>(r.note&&r.note.toLowerCase().includes(s))||(r.side&&r.side.includes(s))||(r.type&&r.type.includes(s)));}if(filter==='today'){const td=today.toISOString().split('T')[0];filtered=filtered.filter(r=>new Date(r.timestamp).toISOString().split('T')[0]===td);}else if(filter==='week'){const wa=new Date();wa.setDate(wa.getDate()-7);filtered=filtered.filter(r=>new Date(r.timestamp)>=wa);}else if(filter==='month'){const ma=new Date();ma.setMonth(ma.getMonth()-1);filtered=filtered.filter(r=>new Date(r.timestamp)>=ma);}return filtered;}
 
 function updateFeedStats(){const recs=getRecords('feed');$('feedCount').textContent=recs.length;const min=Math.floor(recs.reduce((s,r)=>s+r.duration,0)/60);$('feedDuration').textContent=min<60?min+' мин':Math.floor(min/60)+' ч '+(min%60)+' мин';updateFeedingStatus();updateWidget();}
 function renderFeedHistory(){const search=$('feedSearch')?.value||'';const filter=$('feedFilter')?.value||'all';let recs=isPro()?getAllRecords('feed',90).slice(0,100):getRecords('feed').sort((a,b)=>b.timestamp-a.timestamp);recs=filterRecords(recs,search,filter);$('feedHistory').innerHTML=recs.length?recs.map((r,i)=>{const min=Math.floor(r.duration/60),sec=r.duration%60;const dp=isPro()?`<span style="font-size:10px;color:var(--text-secondary);">${fmtDate(new Date(r.timestamp))} </span>`:'';const ni=(r.note||r.photo)?`<span class="history-note-icon">${r.photo?'🖼 ':''}${r.note?'📝':''}</span>`:'';return`<div class="history-item" onclick="showNote('feed',${i})">${dp}<span>${fmtTime(r.timestamp)}</span><span class="history-duration">${min}:${pad2(sec)}${ni}</span><span class="history-side"><span class="side-dot ${r.side}"></span>${r.side==='left'?'Левая':'Правая'}</span></div>`;}).join(''):'<div class="empty-state">Нет записей</div>';}
 
-// === СОН: НОЧНОЙ VS ДНЕВНОЙ ===
+// ============ СОН: НОЧНОЙ VS ДНЕВНОЙ ============
 function isNightSleep(ts){const h=new Date(ts).getHours();return h>=21||h<7;}
 function updateSleepStats(){const recs=getRecords('sleep');$('sleepCount').textContent=recs.length;const min=Math.floor(recs.reduce((s,r)=>s+r.duration,0)/60);$('sleepDuration').textContent=min<60?min+' мин':Math.floor(min/60)+' ч '+(min%60)+' мин';updateWidget();}
 function renderSleepHistory(){const search=$('sleepSearch')?.value||'';const filter=$('sleepFilter')?.value||'all';let recs=isPro()?getAllRecords('sleep',90).slice(0,100):getRecords('sleep').sort((a,b)=>b.timestamp-a.timestamp);recs=filterRecords(recs,search,filter);$('sleepHistory').innerHTML=recs.length?recs.map((r,i)=>{const min=Math.floor(r.duration/60);const durStr=Math.floor(min/60)>0?Math.floor(min/60)+' ч '+(min%60)+' мин':min+' мин';const dp=isPro()?`<span style="font-size:10px;color:var(--text-secondary);">${fmtDate(new Date(r.timestamp))} </span>`:'';const ni=(r.note||r.photo)?`<span class="history-note-icon">${r.photo?'🖼 ':''}${r.note?'📝':''}</span>`:'';const night=isNightSleep(r.timestamp);const typeBadge=night?'<span class="sleep-type-badge night">🌙 ночь</span>':'<span class="sleep-type-badge day">☀️ день</span>';return`<div class="history-item" onclick="showNote('sleep',${i})">${dp}<span>${fmtTime(r.timestamp)}</span><span class="history-duration">${durStr}${typeBadge}${ni}</span><span class="history-side"><span class="side-dot sleep"></span>Сон</span></div>`;}).join(''):'<div class="empty-state">Нет записей</div>';}
@@ -667,13 +693,14 @@ function buildSleepChart(){
 function buildDiaperChart(){const week=getWeekData('diaper'),counts=week.map(r=>r.length);buildChart('diaperChart',counts,'var(--diaper)',v=>v,20);const total=counts.reduce((a,b)=>a+b,0);$('diaperAverages').innerHTML=`<div class="avg-row"><span>Всего смен</span><span class="avg-value">${total}</span></div><div class="avg-row"><span>В среднем в день</span><span class="avg-value">${(total/7).toFixed(1)}</span></div>`;}
 function buildAllCharts(){buildFeedChart();buildSleepChart();buildDiaperChart();}
 
+// ============ СИМПТОМЫ ============
 let selectedSymptoms=[];let selectedTemp=null;let pendingSymptomPhoto=null;
 const symptomLabels={cough:'Кашель',runny_nose:'Насморк',rash:'Сыпь',vomiting:'Рвота',diarrhea:'Диарея',fever:'Жар',lethargy:'Вялость',crying:'Плач'};
 const symptomEmojis={cough:'🤧',runny_nose:'👃',rash:'🔴',vomiting:'🤢',diarrhea:'💩',fever:'🔥',lethargy:'😴',crying:'😢'};
 function selectTemp(temp){selectedTemp=temp;$('symptomTemp').value='';document.querySelectorAll('#tempButtons .temp-btn').forEach(b=>b.classList.toggle('active',parseFloat(b.textContent)===temp));}
 function toggleSymptom(btn){const s=btn.dataset.symptom;btn.classList.toggle('active');if(btn.classList.contains('active')){if(!selectedSymptoms.includes(s))selectedSymptoms.push(s);}else{selectedSymptoms=selectedSymptoms.filter(x=>x!==s);}}
 function handleSymptomPhotoSelect(input){const file=input.files[0];if(!file)return;const reader=new FileReader();reader.onload=function(e){pendingSymptomPhoto=e.target.result;const preview=$('symptomPhotoPreview');if(preview){preview.style.display='block';preview.innerHTML=`<img src="${e.target.result}" style="max-width:100%;max-height:120px;border-radius:12px;">`;}$('symptomPhotoLabel').textContent='✅ Фото выбрано';};reader.readAsDataURL(file);}
-function saveSymptom(){const temp=parseFloat($('symptomTemp').value)||selectedTemp;if(!temp&&selectedSymptoms.length===0&&!pendingSymptomPhoto)return alert('Выберите симптом, укажите температуру или добавьте фото');const data={temp:temp||null,symptoms:[...selectedSymptoms],notes:$('symptomNotes').value.trim()};if(pendingSymptomPhoto)data.photo=pendingSymptomPhoto;saveRecord('symptoms',data);$('symptomTemp').value='';$('symptomNotes').value='';selectedSymptoms=[];selectedTemp=null;pendingSymptomPhoto=null;$('symptomPhotoPreview').style.display='none';$('symptomPhotoPreview').innerHTML='';$('symptomPhotoLabel').textContent='';$('symptomPhotoInput').value='';document.querySelectorAll('#symptomGrid .symptom-btn,#tempButtons .temp-btn').forEach(b=>b.classList.remove('active'));updateSymptomsUI();haptic();checkAchievements();updateAchievementsUI();updateAchievementLevelUI();}
+function saveSymptom(){const temp=parseFloat($('symptomTemp').value)||selectedTemp;if(!temp&&selectedSymptoms.length===0&&!pendingSymptomPhoto)return alert('Выберите симптом, укажите температуру или добавьте фото');const data={temp:temp||null,symptoms:[...selectedSymptoms],notes:$('symptomNotes').value.trim()};if(pendingSymptomPhoto)data.photo=pendingSymptomPhoto;saveRecord('symptoms',data);$('symptomTemp').value='';$('symptomNotes').value='';selectedSymptoms=[];selectedTemp=null;pendingSymptomPhoto=null;$('symptomPhotoPreview').style.display='none';$('symptomPhotoPreview').innerHTML='';$('symptomPhotoLabel').textContent='';$('symptomPhotoInput').value='';document.querySelectorAll('#symptomGrid .symptom-btn,#tempButtons .temp-btn').forEach(b=>b.classList.remove('active'));updateSymptomsUI();haptic();checkAchievements();updateAchievementsUI();updateAchievementLevelUI();refreshAI();}
 function updateSymptomsUI(){updateSymptomsHistory();}
 function updateSymptomsHistory(){const recs=getAllRecords('symptoms',14);$('symptomsHistoryList').innerHTML=recs.length?recs.map((r,i)=>{const d=fmtDate(new Date(r.timestamp));const t=fmtTime(r.timestamp);const tempStr=r.temp?`<span style="color:#e8606e;font-weight:600;">🌡 ${r.temp}°C</span>`:'';const sympStr=r.symptoms.length?r.symptoms.map(s=>symptomEmojis[s]||s).join(' '):'';const noteStr=r.notes?`<div style="font-size:11px;color:var(--text);margin-top:4px;">${r.notes}</div>`:'';const photoStr=r.photo?`<div style="margin-top:4px;"><img src="${r.photo}" style="max-width:100px;max-height:80px;border-radius:8px;"></div>`:'';return`<div class="history-item"><div style="flex:1;"><span style="font-size:13px;">${d} ${t}</span> ${tempStr} ${sympStr}${noteStr}${photoStr}</div><span onclick="deleteSymptom(${i})" style="color:#e8606e;cursor:pointer;">🗑</span></div>`;}).join(''):'<div class="empty-state">Нет записей</div>';}
 function deleteSymptom(index){const key=getStorageKey('symptoms');const all=LS.get(key)||[];const recs=getAllRecords('symptoms',14);const ts=recs[index].timestamp;for(let i=all.length-1;i>=0;i--){if(all[i].timestamp===ts){all.splice(i,1);break;}}LS.set(key,all);updateSymptomsHistory();}
@@ -697,7 +724,7 @@ function buildSymptomChart(){
     }else{$('symptomComparisonCard').style.display='none';}
 }
 
-// === АЧИВКИ 2.0 ===
+// ============ АЧИВКИ 2.0 ============
 const ACHIEVEMENTS=[{id:'first_feed',name:'Первое кормление',desc:'Записать первое кормление',emoji:'🌟',cat:'feed',tier:'bronze',max:1},{id:'feed_10',name:'Режим найден',desc:'10 кормлений всего',emoji:'📊',cat:'feed',tier:'bronze',max:10},{id:'feed_50',name:'Мастер кормления',desc:'50 кормлений всего',emoji:'👑',cat:'feed',tier:'silver',max:50},{id:'feed_100',name:'Эксперт питания',desc:'100 кормлений всего',emoji:'🏅',cat:'feed',tier:'gold',max:100},{id:'night_owl',name:'Ночной дозор',desc:'3 кормления ночью (00:00-06:00)',emoji:'🦉',cat:'feed',tier:'bronze',max:3},{id:'night_hero',name:'Ночной герой',desc:'10 кормлений ночью',emoji:'🌙',cat:'feed',tier:'silver',max:10},{id:'left_right',name:'Баланс',desc:'Поровну левой и правой (±5)',emoji:'⚖️',cat:'feed',tier:'silver',max:1},{id:'sleep_10',name:'Соня',desc:'10 снов записано',emoji:'⭐',cat:'sleep',tier:'bronze',max:10},{id:'sleep_marathon',name:'Режим сна',desc:'Сон больше 8 часов за сутки',emoji:'🎯',cat:'sleep',tier:'bronze',max:1},{id:'sleep_30',name:'Спящая красавица',desc:'30 снов записано',emoji:'💤',cat:'sleep',tier:'silver',max:30},{id:'sleep_8h_7d',name:'Идеальный режим',desc:'7 дней подряд сон > 8 ч',emoji:'✨',cat:'sleep',tier:'gold',max:7},{id:'diaper_5',name:'Сухой день',desc:'5 подгузников за день',emoji:'💫',cat:'care',tier:'bronze',max:1},{id:'diaper_50',name:'Чистый малыш',desc:'50 смен подгузников',emoji:'🧷',cat:'care',tier:'silver',max:50},{id:'diaper_200',name:'Мастер пеленания',desc:'200 смен подгузников',emoji:'👶',cat:'care',tier:'gold',max:200},{id:'growth_5',name:'Растём',desc:'5 записей роста/веса',emoji:'📈',cat:'care',tier:'bronze',max:5},{id:'growth_20',name:'Постоянный рост',desc:'20 записей роста/веса',emoji:'📏',cat:'care',tier:'silver',max:20},{id:'mood_3',name:'Хорошее настроение',desc:'3 дня отличного настроения',emoji:'🌈',cat:'care',tier:'bronze',max:3},{id:'mood_14',name:'Позитивная мама',desc:'14 дней отличного настроения',emoji:'🌞',cat:'care',tier:'gold',max:14},{id:'meds_5',name:'Здоровый малыш',desc:'5 приёмов лекарств',emoji:'❤️',cat:'care',tier:'bronze',max:5},{id:'meds_20',name:'Домашний доктор',desc:'20 приёмов лекарств',emoji:'💉',cat:'care',tier:'silver',max:20},{id:'week_streak',name:'Неделя заботы',desc:'7 дней подряд с кормлениями',emoji:'🏆',cat:'special',tier:'silver',max:7},{id:'month_streak',name:'Месяц с трекером',desc:'30 дней использования',emoji:'👑',cat:'special',tier:'gold',max:30},{id:'all_in_one',name:'Идеальный день',desc:'Кормление + сон + подгузник + настроение за день',emoji:'🎪',cat:'special',tier:'silver',max:1},{id:'collector',name:'Коллекционер',desc:'Получить 15 достижений',emoji:'🎖️',cat:'special',tier:'gold',max:15}];
 function getAchievements(){return LS.get('mama_achievements')||{};}
 function saveAchievement(id){const a=getAchievements();if(a[id])return false;a[id]=Date.now();LS.set('mama_achievements',a);return true;}
@@ -707,6 +734,7 @@ function getAchievementLevelInfo(){const earned=Object.keys(getAchievements()).l
 function updateAchievementLevelUI(){const info=getAchievementLevelInfo();$('achievementLevelIcon').textContent=info.icon;$('achievementLevel').innerHTML=info.level;$('achievementLevelBar').style.width=info.pct+'%';$('achievementLevelProgress').textContent=Object.keys(getAchievements()).length+' / '+info.next;}
 function updateAchievementsUI(){const earned=getAchievements();const list=$('achievementsList');if(!list)return;let filtered=ACHIEVEMENTS;if(achievementsSubTab!=='all'){filtered=ACHIEVEMENTS.filter(a=>a.cat===achievementsSubTab);}list.innerHTML=filtered.map(ach=>{const done=!!earned[ach.id];const progress=done?ach.max:Math.min(getAchievementProgress(ach),ach.max);const pct=Math.round(progress/ach.max*100);const tierClass=ach.tier;const tierEmoji=ach.tier==='gold'?'🥇':ach.tier==='silver'?'🥈':'🥉';return`<div class="achievement-card ${tierClass}" style="${done?'':'opacity:0.5;'}"><div style="display:flex;align-items:center;gap:10px;"><span style="font-size:24px;">${done?ach.emoji:'🔒'}</span><div style="flex:1;"><div style="font-size:13px;font-weight:600;">${ach.name} <span class="level-badge ${tierClass}">${tierEmoji}</span></div><div style="font-size:11px;color:var(--text-secondary);">${ach.desc}</div><div class="pro-bar" style="margin-top:4px;"><div class="pro-bar-fill" style="width:${pct}%;background:${done?'var(--gold)':'var(--text-secondary)'};"></div></div></div><span style="font-size:11px;color:var(--text-secondary);">${progress}/${ach.max}</span></div></div>`;}).join('');}
 
+// ============ КАЛЕНДАРЬ ============
 let calYear=today.getFullYear(),calMonth=today.getMonth();
 const MONTHS=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
 function changeMonth(delta){calMonth+=delta;if(calMonth<0){calMonth=11;calYear--;}if(calMonth>11){calMonth=0;calYear++;}updateCalendar();}
@@ -716,6 +744,7 @@ function hasVisitsOnDate(d){const visits=getVisits();return visits.some(v=>v.dat
 function updateCalendar(){$('monthLabel').textContent=MONTHS[calMonth]+' '+calYear;let html=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'].map(d=>`<div class="calendar-day-header">${d}</div>`).join('');const firstDay=new Date(calYear,calMonth,1),lastDay=new Date(calYear,calMonth+1,0);let startDow=firstDay.getDay()||7;const prevLast=new Date(calYear,calMonth,0).getDate();for(let i=startDow-1;i>0;i--)html+=`<div class="calendar-day other-month">${prevLast-i+1}</div>`;let maxFeeds=0;for(let d=1;d<=lastDay.getDate();d++){const c=getFeedCountForDate(new Date(calYear,calMonth,d));if(c>maxFeeds)maxFeeds=c;}if(maxFeeds===0)maxFeeds=1;for(let d=1;d<=lastDay.getDate();d++){const date=new Date(calYear,calMonth,d);const count=getFeedCountForDate(date),intensity=count/maxFeeds;let bg=count===0?'var(--stat-bg)':intensity<0.25?'rgba(232,160,191,0.15)':intensity<0.5?'rgba(232,160,191,0.35)':intensity<0.75?'rgba(232,160,191,0.6)':'#e8a0bf';const todayClass=(d===today.getDate()&&calMonth===today.getMonth()&&calYear===today.getFullYear())?' today':'';let dots='';if(hasSymptomsOnDate(date))dots+='<span class="calendar-dot symptoms"></span>';if(hasVisitsOnDate(date))dots+=dots?' <span class="calendar-dot visits"></span>':'<span class="calendar-dot visits"></span>';html+=`<div class="calendar-day${todayClass}" style="background:${bg};color:${count>0&&intensity>=0.75?'#1a1a2e':'var(--text-secondary)'};" onclick="showDayDetail(${d})">${d}${dots}</div>`;}const remaining=7-((startDow-1+lastDay.getDate())%7);if(remaining<7)for(let i=1;i<=remaining;i++)html+=`<div class="calendar-day other-month">${i}</div>`;$('calendarGrid').innerHTML=html;}
 function showDayDetail(day){document.querySelectorAll('.calendar-day.selected').forEach(el=>el.classList.remove('selected'));const dayEl=document.querySelector(`.calendar-day[onclick="showDayDetail(${day})"]:not(.other-month)`);if(dayEl)dayEl.classList.add('selected');const date=new Date(calYear,calMonth,day);$('dayDetailTitle').textContent='📅 '+fmtDate(date,{weekday:'long',day:'numeric',month:'long'});const feedData=getRecords('feed',date),sleepData=getRecords('sleep',date),diaperData=getRecords('diaper',date),sympData=getRecords('symptoms',date);let html='';if(feedData.length){html+='<p style="font-size:14px;color:var(--accent);margin-bottom:8px;">🍼 Кормления: '+feedData.length+'</p>';feedData.sort((a,b)=>a.timestamp-b.timestamp).forEach(r=>html+=`<div style="font-size:13px;padding:4px 0;color:var(--text-secondary);">${fmtTime(r.timestamp)} — ${Math.floor(r.duration/60)} мин (${r.side==='left'?'Л':'П'})</div>`);}if(sleepData.length){html+='<p style="font-size:14px;color:var(--sleep);margin-top:12px;margin-bottom:8px;">😴 Сон: '+sleepData.length+'</p>';sleepData.sort((a,b)=>a.timestamp-b.timestamp).forEach(r=>html+=`<div style="font-size:13px;padding:4px 0;color:var(--text-secondary);">${fmtTime(r.timestamp)} — ${Math.floor(r.duration/60)} мин</div>`);}if(diaperData.length){html+='<p style="font-size:14px;color:var(--diaper);margin-top:12px;margin-bottom:8px;">💧 Подгузники: '+diaperData.length+'</p>';diaperData.sort((a,b)=>a.timestamp-b.timestamp).forEach(r=>html+=`<div style="font-size:13px;padding:4px 0;color:var(--text-secondary);">${fmtTime(r.timestamp)} — ${CFG.DIAPER_LABELS[r.type]||r.type}</div>`);}if(sympData.length){html+='<p style="font-size:14px;color:#e8606e;margin-top:12px;margin-bottom:8px;">🩺 Симптомы: '+sympData.length+'</p>';sympData.sort((a,b)=>a.timestamp-b.timestamp).forEach(r=>{const parts=[];if(r.temp)parts.push('🌡 '+r.temp+'°C');if(r.symptoms.length)parts.push(r.symptoms.map(s=>symptomEmojis[s]||s).join(' '));if(r.notes)parts.push('📝 '+r.notes);html+=`<div style="font-size:13px;padding:4px 0;color:var(--text-secondary);">${fmtTime(r.timestamp)} — ${parts.join(' · ')}</div>`;});}$('dayDetailContent').innerHTML=html||'<p style="color:var(--text-secondary);">Нет данных за этот день</p>';$('dayDetail').style.display='block';}
 
+// ============ РОСТ ============
 function getGrowthRecords(){return(LS.get('mama'+getBabyPrefix()+'-growth')||[]).sort((a,b)=>a.date.localeCompare(b.date));}
 function addGrowth(){const date=$('growthDate').value,weight=parseFloat($('growthWeight').value),height=parseFloat($('growthHeight').value);if(!date)return alert('Выберите дату');if(!weight&&!height)return alert('Введите вес или рост');const records=getGrowthRecords();const existing=records.findIndex(r=>r.date===date);const entry={date,weight:weight||null,height:height||null,timestamp:Date.now()};if(existing>=0)records[existing]=entry;else records.push(entry);LS.set('mama'+getBabyPrefix()+'-growth',records);$('growthDate').value='';$('growthWeight').value='';$('growthHeight').value='';updateGrowthUI();haptic();checkAchievements();updateAchievementsUI();updateAchievementLevelUI();}
 function deleteGrowth(index){const records=getGrowthRecords();records.splice(index,1);LS.set('mama'+getBabyPrefix()+'-growth',records);updateGrowthUI();}
@@ -724,32 +753,34 @@ function drawGrowthChart(canvasId,records,field,color,unit){const canvas=$(canva
 function updateGrowthUI(){const records=getGrowthRecords();$('growthHistory').innerHTML=records.length?records.map((r,i)=>{const parts=[];if(r.weight)parts.push('⚖️ '+r.weight+' кг');if(r.height)parts.push('📏 '+r.height+' см');return`<div class="growth-list-item" onclick="editGrowth(${i})"><span>${fmtDate(new Date(r.date),{day:'2-digit',month:'2-digit',year:'numeric'})}</span><span style="font-size:13px;color:var(--text-secondary);">${parts.join(' · ')}</span><span onclick="event.stopPropagation();deleteGrowth(${i})" style="color:#e8606e;cursor:pointer;">🗑</span></div>`;}).join(''):'<div class="empty-state">Нет записей</div>';$('growthDate').value=today.toISOString().split('T')[0];updateGrowthComparison();setTimeout(()=>{drawGrowthChart('weightChart',records,'weight','var(--accent)',' кг');drawGrowthChart('heightChart',records,'height','var(--sleep)',' см');},100);}
 function updateGrowthComparison(){const records=getGrowthRecords(),currentDate=$('growthDate').value;if(!currentDate||records.length===0){$('growthComparison').innerHTML='';return;}const prevRecords=records.filter(r=>r.date<currentDate).sort((a,b)=>b.date.localeCompare(a.date));if(prevRecords.length===0){$('growthComparison').innerHTML='<span style="font-size:12px;color:var(--text-secondary);">Это первое измерение</span>';return;}const prev=prevRecords[0],daysDiff=Math.floor((new Date(currentDate)-new Date(prev.date))/(86400000));let parts=[];if(prev.weight!=null){const cw=parseFloat($('growthWeight').value);if(cw){const diff=cw-prev.weight,sign=diff>=0?'+':'';parts.push('⚖️ Вес: '+sign+diff.toFixed(1)+' кг (было '+prev.weight+' кг, '+(daysDiff===0?'сегодня':daysDiff+' дн. назад')+')');}}if(prev.height!=null){const ch=parseFloat($('growthHeight').value);if(ch){const diff=ch-prev.height,sign=diff>=0?'+':'';parts.push('📏 Рост: '+sign+diff.toFixed(1)+' см (было '+prev.height+' см, '+(daysDiff===0?'сегодня':daysDiff+' дн. назад')+')');}}$('growthComparison').innerHTML=parts.length>0?'<span style="font-size:12px;color:var(--accent);">С прошлого измерения:</span><br>'+parts.join('<br>'):'<span style="font-size:12px;color:var(--text-secondary);">Введите вес или рост для сравнения</span>';}
 
+// ============ НАСТРОЕНИЕ ============
 function getMoodKey(d){return'mama-mood-'+(d||today).toISOString().split('T')[0];}
 function getAllMoodRecords(){const all=[];for(let i=0;i<90;i++){const d=new Date();d.setDate(d.getDate()-i);const val=LS.get(getMoodKey(d));if(val)all.push({date:d.toISOString().split('T')[0],mood:val});}return all.sort((a,b)=>b.date.localeCompare(a.date));}
-function saveMood(mood){LS.set(getMoodKey(),mood);updateMoodUI();haptic();checkAchievements();updateAchievementsUI();updateAchievementLevelUI();updateWidget();}
+function saveMood(mood){LS.set(getMoodKey(),mood);updateMoodUI();haptic();checkAchievements();updateAchievementsUI();updateAchievementLevelUI();updateWidget();refreshAI();}
 function updateMoodUI(){const todayMood=LS.get(getMoodKey());$('moodTodayLabel').innerHTML=todayMood&&CFG.MOODS[todayMood]?`Сегодня: ${CFG.MOODS[todayMood].emoji} ${CFG.MOODS[todayMood].text}`:'Выберите настроение';const allMoods=getAllMoodRecords();const days=moodSubTab==='week'?7:30;const periodMoods=allMoods.filter(r=>{const d=new Date(r.date),wa=new Date();wa.setDate(wa.getDate()-days);return d>=wa;});$('moodHistory').innerHTML=allMoods.slice(0,30).map(r=>{const m=CFG.MOODS[r.mood]||{emoji:'❓',text:'Неизвестно'};return`<div class="mood-history-item"><span class="mood-emoji-big">${m.emoji}</span><span class="mood-label">${m.text}</span><span class="mood-date" style="margin-left:auto;">${fmtDate(new Date(r.date),{weekday:'short',day:'numeric',month:'short'})}</span></div>`;}).join('');if(periodMoods.length===0){$('moodWeekStats').innerHTML='—';$('moodWeekLabel').textContent='Нет данных';}else{const counts={};periodMoods.forEach(r=>{counts[r.mood]=(counts[r.mood]||0)+1;});const top=Object.entries(counts).sort((a,b)=>b[1]-a[1])[0],m=CFG.MOODS[top[0]];$('moodWeekStats').innerHTML=`${m.emoji} ${m.text}`;$('moodWeekLabel').textContent=`Чаще всего за ${days} дн. (${top[1]} из ${periodMoods.length})`;}}
 
-// === ЛЕКАРСТВА С БЫСТРЫМИ КНОПКАМИ ===
+// ============ ЛЕКАРСТВА С БЫСТРЫМИ КНОПКАМИ ============
 let medInterval=4,medTimerId=null,medEndTime=null,lastMedName='',lastMedDose='',lastMedCourse=0;
 let commonMeds=LS.get('mama_common_meds')||[];
 function updateCommonMedsList(){const list=$('commonMedsList');if(list)list.innerHTML=commonMeds.map(m=>`<option value="${m}">`).join('');}
 function updateQuickMeds(){const container=$('quickMeds');if(!container)return;if(commonMeds.length===0){container.innerHTML='';return;}container.innerHTML=commonMeds.map(m=>`<button class="quick-med-btn" onclick="quickMed('${m}')">💊 ${m}</button>`).join('');}
 function quickMed(name){$('medName').value=name;$('medDose').focus();haptic();}
 function selectMedInterval(h){medInterval=h;document.querySelectorAll('#medIntervals .interval-btn').forEach(b=>b.classList.toggle('active',parseInt(b.textContent)===h||(h===0&&b.textContent==='Разово')));}
-function addMedication(){const name=$('medName').value.trim(),dose=$('medDose').value.trim();if(!name)return alert('Введите название лекарства');const courseDays=parseInt($('medCourseDays').value)||0;saveRecord('meds',{name,dose,interval:medInterval,courseDays,timestamp:Date.now()});if(!commonMeds.includes(name)){commonMeds.push(name);LS.set('mama_common_meds',commonMeds);updateCommonMedsList();updateQuickMeds();}lastMedName=name;lastMedDose=dose;lastMedCourse=courseDays;$('medName').value='';$('medDose').value='';$('medCourseDays').value='';if(medInterval>0)startMedTimer(medInterval);updateMedHistory();haptic();checkAchievements();updateAchievementsUI();updateAchievementLevelUI();}
+function addMedication(){const name=$('medName').value.trim(),dose=$('medDose').value.trim();if(!name)return alert('Введите название лекарства');const courseDays=parseInt($('medCourseDays').value)||0;saveRecord('meds',{name,dose,interval:medInterval,courseDays,timestamp:Date.now()});if(!commonMeds.includes(name)){commonMeds.push(name);LS.set('mama_common_meds',commonMeds);updateCommonMedsList();updateQuickMeds();}lastMedName=name;lastMedDose=dose;lastMedCourse=courseDays;$('medName').value='';$('medDose').value='';$('medCourseDays').value='';if(medInterval>0)startMedTimer(medInterval);updateMedHistory();haptic();checkAchievements();updateAchievementsUI();updateAchievementLevelUI();refreshAI();}
 function startMedTimer(hours){medEndTime=Date.now()+hours*3600000;$('medTimer').style.display='block';updateMedCountdown();if(medTimerId)clearInterval(medTimerId);medTimerId=setInterval(updateMedCountdown,1000);}
 function updateMedCountdown(){if(!medEndTime)return;const remaining=Math.max(0,medEndTime-Date.now());if(remaining<=0){$('medCountdown').textContent='00:00:00';if(medTimerId)clearInterval(medTimerId);if('Notification'in window&&Notification.permission==='granted')new Notification('💊 Время лекарства!',{body:'Пора дать следующую дозу',tag:'med-reminder',vibrate:[200,100,200]});return;}const h=Math.floor(remaining/3600000),m=Math.floor((remaining%3600000)/60000),s=Math.floor((remaining%60000)/1000);$('medCountdown').textContent=`${pad2(h)}:${pad2(m)}:${pad2(s)}`;}
 function resetMedTimer(){medEndTime=Date.now()+medInterval*3600000;updateMedCountdown();if(!medTimerId)medTimerId=setInterval(updateMedCountdown,1000);}
-function markMedTaken(){saveRecord('meds',{name:lastMedName||'Лекарство',dose:lastMedDose,interval:medInterval,courseDays:lastMedCourse,timestamp:Date.now()});resetMedTimer();updateMedHistory();haptic();}
+function markMedTaken(){saveRecord('meds',{name:lastMedName||'Лекарство',dose:lastMedDose,interval:medInterval,courseDays:lastMedCourse,timestamp:Date.now()});resetMedTimer();updateMedHistory();haptic();refreshAI();}
 function updateMedHistory(){const recs=getAllRecords('meds',7);$('medHistory').innerHTML=recs.length?recs.map(r=>{const t=fmtTime(r.timestamp);const d=fmtDate(new Date(r.timestamp));const intStr=r.interval>0?` (каждые ${r.interval} ч)`:' (разово)';let courseStr='';if(r.courseDays>0){const courseStart=new Date(r.timestamp);const daysPassed=Math.floor((today-courseStart)/(86400000))+1;const remaining=Math.max(0,r.courseDays-daysPassed);courseStr=` <span class="med-course-badge">курс: ${daysPassed}/${r.courseDays}</span>`;if(remaining===0)courseStr=' <span class="med-course-badge" style="background:#7ecb8a;">✅ завершён</span>';}return`<div class="history-item"><span>💊 ${r.name} ${r.dose}${courseStr}</span><span style="font-size:12px;color:var(--text-secondary);">${d} ${t}${intStr}</span></div>`;}).join(''):'<div class="empty-state">Нет записей</div>';}
 
-// === НАПОМИНАНИЯ С СОХРАНЕНИЕМ ===
+// ============ НАПОМИНАНИЯ С СОХРАНЕНИЕМ ============
 let reminderInterval=null,reminderMinutes=null;
 function getMinutesSinceLastFeeding(){const recs=getRecords('feed');return recs.length?Math.floor((Date.now()-recs[recs.length-1].timestamp)/60000):null;}
 function startReminder(min){stopReminder();reminderMinutes=min;LS.set('mama_last_reminder',min);$('reminderStatus').innerHTML='⏰ Напоминание через '+min+' мин';$('reminderStatus').style.color='#f0c060';reminderInterval=setInterval(()=>{const m=getMinutesSinceLastFeeding();if(m!==null&&m>=reminderMinutes){if('Notification' in window&&Notification.permission==='granted'){new Notification('🍼 Время кормления!',{body:'Прошло '+m+' минут',tag:'feed-reminder',vibrate:[200,100,200]});}stopReminder();}},30000);}
 function stopReminder(){if(reminderInterval){clearInterval(reminderInterval);reminderInterval=null;}reminderMinutes=null;$('reminderStatus').innerHTML='';}
 const savedReminder=LS.get('mama_last_reminder');if(savedReminder){startReminder(savedReminder);}
 
+// ============ БЕЛЫЙ ШУМ ============
 let audioCtx=null,soundNodes=[],soundTimer=null,currentVolume=0.5;
 function initAudio(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')audioCtx.resume();}
 function stopAllNodes(){soundNodes.forEach(n=>{try{if(n.stop)n.stop();if(n.disconnect)n.disconnect();}catch(e){}});soundNodes=[];}
@@ -759,7 +790,7 @@ function playSound(type){initAudio();stopAllNodes();if(soundTimer)clearTimeout(s
 function setVolume(val){currentVolume=val/100;$('volumeLabel').textContent=val+'%';soundNodes.forEach(n=>{if(n.gain?.value!==undefined)n.gain.value=currentVolume;});}
 function setSoundTimer(minutes){if(soundTimer)clearTimeout(soundTimer);document.querySelectorAll('#soundTimers button').forEach(b=>b.classList.toggle('active',parseInt(b.textContent)===minutes||(minutes===0&&b.textContent==='∞')));if(minutes>0)soundTimer=setTimeout(stopSound,minutes*60*1000);}
 
-// === ЗАМЕТКИ С ШАБЛОНАМИ ===
+// ============ ЗАМЕТКИ С ШАБЛОНАМИ ============
 let pendingSave=null,pendingPhoto=null;
 let customTemplates=LS.get('mama_custom_templates')||[];
 function getAllTemplates(){return[...CFG.NOTE_TEMPLATES,...customTemplates.map(t=>({emoji:'✏️',text:t}))];}
@@ -774,6 +805,7 @@ function showNote(type,index){const recsAll=type==='feed'?(isPro()?getAllRecords
 function updateNote(type,ts){const nn=$('editNoteText')?.value.trim();const key=getStorageKey(type,new Date(ts));const all=LS.get(key)||[];for(let i=all.length-1;i>=0;i--){if(all[i].timestamp===ts){all[i].note=nn||undefined;if(!nn)delete all[i].note;break;}}LS.set(key,all);closeOverlay();refreshAll();}
 function deleteNote(type,ts){const key=getStorageKey(type,new Date(ts));const all=LS.get(key)||[];for(let i=all.length-1;i>=0;i--){if(all[i].timestamp===ts){delete all[i].note;delete all[i].photo;break;}}LS.set(key,all);closeOverlay();refreshAll();}
 
+// ============ ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ============
 let overlayEl=null;
 function showOverlay(html){closeOverlay();overlayEl=document.createElement('div');overlayEl.className='overlay';const dialog=document.createElement('div');dialog.className='dialog';dialog.innerHTML=html;overlayEl.appendChild(dialog);document.body.appendChild(overlayEl);overlayEl.addEventListener('click',e=>{if(e.target===overlayEl)closeOverlay();});}
 function closeOverlay(){if(overlayEl){if(overlayEl.parentNode)overlayEl.parentNode.removeChild(overlayEl);overlayEl=null;}}
@@ -782,8 +814,10 @@ function showDaySummary(){const feedData=getRecords('feed'),sleepData=getRecords
 function copySummary(){const d=window._summaryData;if(!d)return;const fmtDur=s=>{const m=Math.floor(s/60);return m<60?m+' мин':Math.floor(m/60)+' ч '+(m%60)+' мин';};const text=`📝 Итоги дня — ${d.babyName}\n${fmtDate(today,{day:'numeric',month:'long'})}\n\n🍼 Кормлений: ${d.feedData.length} (${fmtDur(d.totalFeedMin*60)})\n😴 Сна: ${d.sleepData.length} (${fmtDur(d.totalSleepMin*60)})\n💧 Подгузников: ${d.diaperData.length}\n${d.sympData&&d.sympData.length>0?'🩺 Симптомы: '+d.sympData.length+' записей'+(d.maxTemp?', макс. '+d.maxTemp+'°C':'')+'\n':''}${d.growthText?'📏 '+d.growthText+'\n':''}${d.todayMood?'💖 Настроение: '+CFG.MOODS[d.todayMood].emoji+'\n':''}\nСоздано в Мама Трекер`;navigator.clipboard.writeText(text).then(()=>{tg?.showPopup?tg.showPopup({title:'✅ Скопировано!',message:'Итоги дня скопированы!',buttons:[{type:'ok'}]}):alert('Итоги скопированы!');});}
 function toggleFeedbackPanel(){showOverlay(`<h3>💬 Обратная связь</h3><textarea id="feedbackMsg" placeholder="Ваше сообщение..." style="height:100px;margin-bottom:12px;"></textarea><div class="dialog-buttons"><button class="btn-skip" onclick="closeOverlay()">Закрыть</button><button class="btn-save" id="btnSendFeedback">📨 Отправить</button></div>`);$('btnSendFeedback').onclick=async function(){const text=$('feedbackMsg').value.trim();if(!text)return alert('Напишите сообщение');const btn=$('btnSendFeedback');btn.textContent='⏳ Отправка...';btn.disabled=true;try{const r=await fetch('https://formspree.io/f/xojgbrjj',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,date:new Date().toLocaleString('ru-RU'),app:'Мама Трекер'})});if(r.ok){closeOverlay();tg?.showPopup?tg.showPopup({title:'✅ Спасибо!',message:'Сообщение отправлено!',buttons:[{type:'ok'}]}):alert('Спасибо!');}else{btn.textContent='📨 Отправить';btn.disabled=false;alert('Ошибка отправки.');}}catch(e){btn.textContent='📨 Отправить';btn.disabled=false;alert('Ошибка отправки.');}};setTimeout(()=>$('feedbackMsg')?.focus(),100);}
 
+// ============ КОНФЕТТИ ============
 function spawnConfetti(x,y){const emojis=['🎉','✨','🌟','💖','🎊','🥳','💫','🌸','💗','🎀','💝','🌺','🎈','💐','🎵'];for(let i=0;i<40;i++){const piece=document.createElement('div');piece.textContent=emojis[Math.floor(Math.random()*emojis.length)];piece.style.cssText=`position:fixed;left:${x}px;top:${y}px;z-index:10000;pointer-events:none;font-size:${18+Math.random()*28}px;transition:none;opacity:0;`;document.body.appendChild(piece);const duration=1.5+Math.random()*1.5,delay=Math.random()*0.5,spreadX=(Math.random()-0.5)*350,spreadY=-(100+Math.random()*400),rotation=(Math.random()-0.5)*1080;requestAnimationFrame(()=>{requestAnimationFrame(()=>{piece.style.transition=`all ${duration}s ease-out ${delay}s`;piece.style.transform=`translate(${spreadX*2}px, ${spreadY+600}px) rotate(${rotation}deg) scale(1)`;piece.style.opacity='1';});});setTimeout(()=>{piece.style.transition='opacity 0.8s ease-in';piece.style.opacity='0';setTimeout(()=>piece.remove(),800);},(duration+delay)*1000-400);}}
 
+// ============ ЭКСПОРТ ============
 function exportAsImage(){if(!isPro())return;const isLight=document.body.classList.contains('light-theme');const canvas=document.createElement('canvas'),ctx=canvas.getContext('2d');const width=800,padding=40,lineHeight=32;const feedData=getAllRecords('feed',30).slice(0,20),sleepData=getAllRecords('sleep',30).slice(0,10),diaperData=getAllRecords('diaper',30).slice(0,10);const totalFeedMin=Math.floor(feedData.reduce((s,r)=>s+r.duration,0)/60),totalSleepMin=Math.floor(sleepData.reduce((s,r)=>s+r.duration,0)/60);const leftCount=feedData.filter(r=>r.side==='left').length,rightCount=feedData.filter(r=>r.side==='right').length;let y=padding,height=padding*2+lineHeight*3+lineHeight*(Math.min(feedData.length,20)+3)+lineHeight*(Math.min(sleepData.length,10)+3)+lineHeight*(Math.min(diaperData.length,10)+3)+200;canvas.width=width;canvas.height=height;const bgColor=isLight?'#ffffff':'#1a1a2e',textColor=isLight?'#2d2d3a':'#f0e6ef',secColor=isLight?'#7a7a8a':'#a8a0b0';ctx.fillStyle=bgColor;ctx.fillRect(0,0,width,height);ctx.fillStyle=textColor;ctx.font='bold 32px -apple-system, sans-serif';ctx.textAlign='center';ctx.fillText('🤱 Мама Трекер — Отчёт',width/2,y);y+=50;ctx.fillStyle=secColor;ctx.font='16px -apple-system, sans-serif';ctx.fillText(fmtDate(today,{weekday:'long',day:'numeric',month:'long',year:'numeric'}),width/2,y);y+=30;ctx.strokeStyle=isLight?'rgba(0,0,0,0.1)':'rgba(255,255,255,0.1)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(padding,y);ctx.lineTo(width-padding,y);ctx.stroke();y+=30;function drawSection(title,emoji,color){ctx.fillStyle=color;ctx.font='bold 20px -apple-system, sans-serif';ctx.textAlign='left';ctx.fillText(emoji+' '+title,padding,y);y+=lineHeight+8;}function drawRow(text,value,isHeader){ctx.fillStyle=isHeader?secColor:textColor;ctx.font=isHeader?'13px -apple-system, sans-serif':'16px -apple-system, sans-serif';ctx.textAlign='left';ctx.fillText(text,padding,y);if(value){ctx.textAlign='right';ctx.fillText(value,width-padding,y);}y+=lineHeight;}drawSection('Общая сводка','','#f0c060');drawRow('Всего кормлений',feedData.length+'');drawRow('Общее время кормлений',totalFeedMin+' мин');drawRow('Левая / Правая',leftCount+' / '+rightCount);drawRow('Всего сна',totalSleepMin+' мин');drawRow('Смен подгузников',diaperData.length+'');y+=16;drawSection('Кормления','🍼','#e8a0bf');drawRow('Дата','Длительность',true);feedData.forEach(r=>drawRow(fmtDate(new Date(r.timestamp))+' '+fmtTime(r.timestamp),Math.floor(r.duration/60)+' мин ('+(r.side==='left'?'Л':'П')+')'));y+=16;drawSection('Сон','😴','#c4a0e8');drawRow('Дата','Длительность',true);sleepData.forEach(r=>drawRow(fmtDate(new Date(r.timestamp)),Math.floor(r.duration/60)+' мин'));y+=16;drawSection('Подгузники','💧','#a0e8c4');drawRow('Дата и время','Тип',true);diaperData.forEach(r=>drawRow(fmtDate(new Date(r.timestamp))+' '+fmtTime(r.timestamp),CFG.DIAPER_LABELS[r.type]||r.type));y=canvas.height-60;ctx.fillStyle=secColor;ctx.font='12px -apple-system, sans-serif';ctx.textAlign='center';ctx.fillText('Создано в Мама Трекер — @MamaFeedBot',width/2,y);const dataUrl=canvas.toDataURL('image/png');showOverlay(`<div style="text-align:center;"><img src="${dataUrl}" style="max-width:100%;max-height:80vh;border-radius:12px;"><p style="color:#a8a0b0;font-size:14px;text-align:center;margin-top:16px;">📸 Нажмите и удерживайте картинку, чтобы сохранить</p><button class="btn-skip" onclick="closeOverlay()" style="margin-top:12px;padding:12px 30px;width:auto;">✕ Закрыть</button></div>`);}
 
 function exportForDoctor(){if(!isPro())return;const baby=babies.find(b=>b.id===currentBabyId)||{name:'Малыш'};const growthRecords=getGrowthRecords();const lastGrowth=growthRecords.length>0?growthRecords[growthRecords.length-1]:null;const birthDateStr=LS.get('mama_birth_date_'+currentBabyId);let ageStr='не указан';if(birthDateStr){const birth=new Date(birthDateStr);const months=Math.floor((today-birth)/(1000*60*60*24*30.44));if(months<1){const days=Math.floor((today-birth)/(1000*60*60*24));ageStr=days+' дн.';}else if(months<24){ageStr=months+' мес.';}else{ageStr=Math.floor(months/12)+' г. '+(months%12)+' мес.';}}const feedData7=getAllRecords('feed',7),sleepData7=getAllRecords('sleep',7),diaperData7=getAllRecords('diaper',7),medsData7=getAllRecords('meds',7),sympData7=getAllRecords('symptoms',7);const avgFeedDuration=feedData7.length>0?Math.floor(feedData7.reduce((s,r)=>s+r.duration,0)/feedData7.length/60):0;const totalSleepHours=Math.floor(sleepData7.reduce((s,r)=>s+r.duration,0)/3600);const diapersPerDay=(diaperData7.length/7).toFixed(1);const dirtyCount=diaperData7.filter(r=>r.type==='dirty'||r.type==='both').length;const tempRecs=sympData7.filter(r=>r.temp);const maxTemp=tempRecs.length>0?Math.max(...tempRecs.map(r=>r.temp)):null;const doctorQuestions=LS.get('mama_doctor_questions_'+currentBabyId)||'';const isLight=document.body.classList.contains('light-theme');const canvas=document.createElement('canvas'),ctx=canvas.getContext('2d');const width=800,padding=40;let y=padding,rowCount=25+Math.min(feedData7.length,14)+Math.min(sleepData7.length,7)+Math.min(diaperData7.length,7)+Math.min(sympData7.length,7);if(growthRecords.length>0)rowCount+=8;if(medsData7.length>0)rowCount+=3+medsData7.length;if(sympData7.length>0)rowCount+=5+Math.min(sympData7.length,7);if(doctorQuestions)rowCount+=4+Math.ceil(doctorQuestions.length/60);const height=padding*2+rowCount*30+200;canvas.width=width;canvas.height=height;const bgColor=isLight?'#ffffff':'#1a1a2e',textColor=isLight?'#2d2d3a':'#f0e6ef';const secColor=isLight?'#7a7a8a':'#a8a0b0',accentColor='#e8a0bf',symptomColor='#e8606e';ctx.fillStyle=bgColor;ctx.fillRect(0,0,width,height);ctx.fillStyle=textColor;ctx.font='bold 28px -apple-system, sans-serif';ctx.textAlign='center';ctx.fillText('🏥 Отчёт для педиатра',width/2,y);y+=40;ctx.fillStyle=secColor;ctx.font='14px -apple-system, sans-serif';ctx.fillText(fmtDate(today,{day:'numeric',month:'long',year:'numeric'}),width/2,y);y+=30;ctx.strokeStyle=isLight?'rgba(0,0,0,0.1)':'rgba(255,255,255,0.1)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(padding,y);ctx.lineTo(width-padding,y);ctx.stroke();y+=25;ctx.fillStyle=textColor;ctx.font='bold 18px -apple-system, sans-serif';ctx.textAlign='left';ctx.fillText('👶 '+baby.name,padding,y);y+=28;ctx.fillStyle=secColor;ctx.font='15px -apple-system, sans-serif';ctx.fillText('Возраст: '+ageStr,padding,y);y+=22;if(lastGrowth){const parts=[];if(lastGrowth.weight)parts.push('Вес: '+lastGrowth.weight+' кг');if(lastGrowth.height)parts.push('Рост: '+lastGrowth.height+' см');ctx.fillText(parts.join(' | '),padding,y);y+=22;}y+=10;function drawSection(title,color){y+=5;ctx.fillStyle=color||accentColor;ctx.font='bold 16px -apple-system, sans-serif';ctx.fillText('━━ '+title+' ━━',padding,y);y+=30;}function drawRow(label,value){ctx.fillStyle=textColor;ctx.font='14px -apple-system, sans-serif';ctx.textAlign='left';ctx.fillText(label,padding,y);ctx.textAlign='right';ctx.fillText(value,width-padding,y);ctx.textAlign='left';y+=26;}function drawSub(text,color){ctx.fillStyle=color||secColor;ctx.font='12px -apple-system, sans-serif';ctx.fillText('    '+text,padding,y);y+=20;}if(sympData7.length>0){drawSection('🩺 Симптомы (последние 7 дней)',symptomColor);drawRow('Всего записей',sympData7.length+' раз');if(maxTemp)drawRow('Макс. температура','🌡 '+maxTemp+'°C');const sympCounts={};sympData7.forEach(r=>{r.symptoms.forEach(s=>{sympCounts[s]=(sympCounts[s]||0)+1;});});if(Object.keys(sympCounts).length>0)drawRow('Частые симптомы',Object.entries(sympCounts).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([s,c])=>symptomLabels[s]+' ('+c+')').join(', '));y+=5;ctx.fillStyle=secColor;ctx.font='11px -apple-system, sans-serif';ctx.fillText('Последние записи:',padding,y);y+=20;sympData7.slice(0,7).sort((a,b)=>b.timestamp-a.timestamp).forEach(r=>{const parts=[];if(r.temp)parts.push('🌡 '+r.temp+'°C');if(r.symptoms.length)parts.push(r.symptoms.map(s=>symptomLabels[s]||s).join(', '));if(r.notes)parts.push('📝 '+r.notes);drawSub(fmtDate(new Date(r.timestamp))+' '+fmtTime(r.timestamp)+' — '+parts.join(' · '),symptomColor);});y+=5;}drawSection('🍼 Кормления (последние 7 дней)');drawRow('Всего кормлений',feedData7.length+' раз');drawRow('В среднем в день',(feedData7.length/7).toFixed(1)+' раз');drawRow('Средняя длительность',avgFeedDuration+' мин');const leftCount=feedData7.filter(r=>r.side==='left').length;drawRow('Левая / Правая грудь',leftCount+' / '+(feedData7.length-leftCount));y+=5;if(feedData7.length>0){ctx.fillStyle=secColor;ctx.font='11px -apple-system, sans-serif';ctx.fillText('Последние кормления:',padding,y);y+=20;feedData7.slice(0,14).sort((a,b)=>b.timestamp-a.timestamp).forEach(r=>{drawSub(fmtDate(new Date(r.timestamp))+' '+fmtTime(r.timestamp)+' — '+Math.floor(r.duration/60)+' мин ('+(r.side==='left'?'левая':'правая')+')');});}y+=5;drawSection('😴 Сон (последние 7 дней)');drawRow('Всего снов',sleepData7.length+' раз');drawRow('Общее время сна',totalSleepHours+' ч');drawRow('В среднем в день',(totalSleepHours/7).toFixed(1)+' ч');y+=5;if(sleepData7.length>0){ctx.fillStyle=secColor;ctx.font='11px -apple-system, sans-serif';ctx.fillText('Последние сны:',padding,y);y+=20;sleepData7.slice(0,7).sort((a,b)=>b.timestamp-a.timestamp).forEach(r=>{const min=Math.floor(r.duration/60),h=Math.floor(min/60);drawSub(fmtDate(new Date(r.timestamp))+' '+fmtTime(r.timestamp)+' — '+(h>0?h+' ч '+(min%60)+' мин':min+' мин'));});}y+=5;drawSection('💧 Подгузники (последние 7 дней)');drawRow('Всего смен',diaperData7.length+' раз');drawRow('В среднем в день',diapersPerDay+' раз');drawRow('Грязных',dirtyCount+' раз');drawRow('Мокрых',(diaperData7.length-dirtyCount)+' раз');y+=5;if(medsData7.length>0){drawSection('💊 Лекарства');medsData7.forEach(r=>{const intStr=r.interval>0?' (каждые '+r.interval+' ч)':' (разово)';drawSub('💊 '+r.name+' '+(r.dose||'')+' — '+fmtDate(new Date(r.timestamp))+' '+fmtTime(r.timestamp)+intStr);});y+=5;}if(doctorQuestions){drawSection('📝 Вопросы врачу (из приложения)');const lines=doctorQuestions.split('\n');lines.forEach(line=>{if(line.trim())drawSub('• '+line.trim(),textColor);});y+=5;}else{drawSection('📝 Вопросы врачу');for(let i=1;i<=3;i++){ctx.fillStyle=secColor;ctx.font='13px -apple-system, sans-serif';ctx.fillText(i+'. _______________________________',padding,y);y+=28;}}y+=10;y=canvas.height-50;ctx.fillStyle=secColor;ctx.font='11px -apple-system, sans-serif';ctx.textAlign='center';ctx.fillText('Создано в Мама Трекер • '+fmtDate(today,{day:'numeric',month:'long',year:'numeric'}),width/2,y);const dataUrl=canvas.toDataURL('image/png');showOverlay(`<div style="text-align:center;"><h3>🏥 Отчёт для педиатра</h3><img src="${dataUrl}" style="max-width:100%;max-height:80vh;border-radius:12px;margin:12px 0;"><p style="color:var(--text-secondary);font-size:13px;margin-bottom:8px;">📸 Нажмите и удерживайте, чтобы сохранить или отправить</p><p style="color:var(--text-secondary);font-size:11px;">✏️ Распечатайте и заполните вопросы врачу перед приёмом</p><button class="btn-skip" onclick="closeOverlay()" style="margin-top:12px;padding:12px 30px;width:auto;">✕ Закрыть</button></div>`);}
@@ -802,176 +836,239 @@ function deleteVisit(index){const visits=getVisits();visits.splice(index,1);LS.s
 function updateVisitsHistory(){const visits=getVisits().sort((a,b)=>new Date(b.date)-new Date(a.date));$('visitsHistory').innerHTML=visits.length?visits.map((v,i)=>{const d=new Date(v.date);return`<div class="history-item"><div style="flex:1;"><span style="font-size:14px;font-weight:600;">🏥 ${v.doctor}</span><div style="font-size:11px;color:var(--text-secondary);">${fmtDate(d,{day:'numeric',month:'long',year:'numeric'})}${v.clinic?' · '+v.clinic:''}</div>${v.notes?`<div style="font-size:12px;color:var(--text);margin-top:4px;">${v.notes}</div>`:''}</div><span onclick="deleteVisit(${i})" style="color:#e8606e;cursor:pointer;font-size:18px;">🗑</span></div>`;}).join(''):'<div class="empty-state">Нет записей</div>';}
 function saveDoctorQuestions(){const text=$('doctorQuestionsText').value;LS.set('mama_doctor_questions_'+currentBabyId,text);haptic();if(tg?.showPopup)tg.showPopup({title:'✅ Сохранено!',message:'Вопросы сохранены',buttons:[{type:'ok'}]});else alert('Сохранено!');}
 
-// === НОВЫЙ РЕЖИМ ДНЯ ===
-let dayOffset = 0; // 0 = сегодня, 1 = вчера, 2 = позавчера
+// ============ РЕЖИМ ДНЯ ============
+let dayOffset = 0;
+function setDayOffset(offset){dayOffset=offset;document.querySelectorAll('.day-nav button').forEach(btn=>{btn.classList.toggle('active',parseInt(btn.dataset.dayOffset)===offset);});renderDayTimeline();}
+function renderDayTimeline(){const container=document.getElementById('dayTimeline');const summary=document.getElementById('daySummaryText');if(!container)return;const targetDate=new Date();targetDate.setDate(targetDate.getDate()-dayOffset);targetDate.setHours(0,0,0,0);const dateStr=targetDate.toISOString().split('T')[0];const todayStr=today.toISOString().split('T')[0];const isToday=dateStr===todayStr;const hours=24;const totalMs=24*60*60*1000;const feed=getRecords('feed',targetDate);const sleep=getRecords('sleep',targetDate);const events=[];feed.forEach(f=>{const start=f.timestamp;const end=start+f.duration*1000;events.push({start,end,type:'feed'});});sleep.forEach(s=>{const start=s.timestamp;const end=start+s.duration*1000;events.push({start,end,type:'sleep'});});events.sort((a,b)=>a.start-b.start);let totalFeed=0,totalSleep=0;let html=`<div class="day-timeline-container">`;html+=`<div class="day-timeline-hour-grid">`;for(let h=0;h<24;h++){const left=(h/24)*100;const nowHour=new Date().getHours();const isNow=isToday&&nowHour===h;html+=`<div class="day-timeline-hour-mark${isNow?' now':''}" style="left:${left}%;"></div>`;if(h%2===0){html+=`<div class="day-timeline-hour-label" style="left:${left}%;">${String(h).padStart(2,'0')}:00</div>`;}}html+=`</div>`;if(events.length>0){const startOfDay=targetDate.getTime();const endOfDay=startOfDay+totalMs;events.sort((a,b)=>a.start-b.start);let prevEnd=startOfDay;events.forEach(e=>{const startPct=((e.start-startOfDay)/totalMs)*100;const endPct=((e.end-startOfDay)/totalMs)*100;const duration=e.end-e.start;const isFeed=e.type==='feed';const color=isFeed?'var(--color-feed)':'var(--color-sleep)';const height=Math.max(20,Math.min(60,20+(duration/(60*60*1000))*8));if(e.start>prevEnd+60000){const gapStart=((prevEnd-startOfDay)/totalMs)*100;const gapEnd=((e.start-startOfDay)/totalMs)*100;const gapWidth=gapEnd-gapStart;if(gapWidth>0.5){html+=`<div class="day-timeline-block" style="left:${Math.max(0,gapStart)}%;top:${50-14}px;width:${Math.min(gapWidth,100-gapStart)}%;height:28px;background:var(--color-awake);opacity:0.3;border-radius:4px;cursor:default;box-shadow:none;"></div>`;}}const blockStart=Math.max(0,startPct);const blockWidth=Math.min(endPct-startPct,100-blockStart);if(blockWidth>0.3){const tooltip=isFeed?'🍼 Кормление':'😴 Сон';const durMin=Math.round(duration/60000);html+=`<div class="day-timeline-block" style="left:${blockStart}%;top:${50-height/2}px;width:${blockWidth}%;height:${height}px;background:${color};" title="${tooltip} — ${durMin} мин"></div>`;}prevEnd=Math.max(prevEnd,e.end);if(isFeed)totalFeed+=duration;else totalSleep+=duration;});if(prevEnd<endOfDay-60000){const gapStart=((prevEnd-startOfDay)/totalMs)*100;const gapEnd=100;const gapWidth=gapEnd-gapStart;if(gapWidth>0.5){html+=`<div class="day-timeline-block" style="left:${Math.max(0,gapStart)}%;top:${50-14}px;width:${Math.min(gapWidth,100-gapStart)}%;height:28px;background:var(--color-awake);opacity:0.3;border-radius:4px;cursor:default;box-shadow:none;"></div>`;}}}else{html+=`<div class="day-timeline-block" style="left:0%;top:${50-14}px;width:100%;height:28px;background:var(--color-awake);opacity:0.2;border-radius:4px;cursor:default;box-shadow:none;"></div>`;}if(isToday){const now=new Date();const nowHour=now.getHours();const nowMin=now.getMinutes();const nowPct=((nowHour*60+nowMin)/(24*60))*100;html+=`<div class="day-timeline-now-line" style="left:${nowPct}%;"></div>`;html+=`<div class="day-timeline-now-label" style="left:${nowPct}%;">●</div>`;}html+=`</div>`;html+=`<div class="day-timeline-hours">`;for(let h=0;h<24;h+=2){html+=`<span>${String(h).padStart(2,'0')}:00</span>`;}html+=`</div>`;container.innerHTML=html;const feedMin=Math.round(totalFeed/60000);const sleepMin=Math.round(totalSleep/60000);const awakeMin=24*60-feedMin-sleepMin;const feedHours=Math.floor(feedMin/60);const feedMins=feedMin%60;const sleepHours=Math.floor(sleepMin/60);const sleepMins=sleepMin%60;const awakeHours=Math.floor(awakeMin/60);const awakeMins=awakeMin%60;const dateLabel=isToday?'Сегодня':(dayOffset===1?'Вчера':'Позавчера');summary.innerHTML=`<strong>${dateLabel}</strong><br>🍼 Кормления: ${feed.length} (${feedHours>0?feedHours+' ч ':''}${feedMins} мин) &nbsp;|&nbsp;😴 Сон: ${sleep.length} (${sleepHours>0?sleepHours+' ч ':''}${sleepMins} мин) &nbsp;|&nbsp;⏳ Бодрствование: ${awakeHours>0?awakeHours+' ч ':''}${awakeMins} мин`;}
 
-function setDayOffset(offset) {
-    dayOffset = offset;
-    document.querySelectorAll('.day-nav button').forEach(btn => {
-        btn.classList.toggle('active', parseInt(btn.dataset.dayOffset) === offset);
-    });
-    renderDayTimeline();
-}
+// ============ AI АНАЛИТИКА (бесплатный AI) ============
+let aiCache = null;
 
-function renderDayTimeline() {
-    const container = document.getElementById('dayTimeline');
-    const summary = document.getElementById('daySummaryText');
-    if (!container) return;
+async function getAIAnalysis() {
+    const feedData = getAllRecords('feed', 3);
+    const sleepData = getAllRecords('sleep', 3);
+    const diaperData = getAllRecords('diaper', 3);
+    const moodData = getAllMoodRecords().slice(0, 5);
 
-    const targetDate = new Date();
-    targetDate.setDate(targetDate.getDate() - dayOffset);
-    targetDate.setHours(0, 0, 0, 0);
-    
-    const dateStr = targetDate.toISOString().split('T')[0];
-    const todayStr = today.toISOString().split('T')[0];
-    const isToday = dateStr === todayStr;
+    const feedCount = feedData.length;
+    const sleepCount = sleepData.length;
+    const diaperCount = diaperData.length;
+    const totalSleepHours = sleepData.reduce((s, r) => s + r.duration, 0) / 3600000;
 
-    const hours = 24;
-    const totalMs = 24 * 60 * 60 * 1000;
-
-    // Получаем записи за выбранный день
-    const feed = getRecords('feed', targetDate);
-    const sleep = getRecords('sleep', targetDate);
-
-    // Создаём массив событий: [время, тип]
-    const events = [];
-
-    // Кормления — жёлтые блоки
-    feed.forEach(f => {
-        const start = f.timestamp;
-        const end = start + f.duration * 1000;
-        events.push({ start, end, type: 'feed' });
-    });
-
-    // Сон — синие блоки
-    sleep.forEach(s => {
-        const start = s.timestamp;
-        const end = start + s.duration * 1000;
-        events.push({ start, end, type: 'sleep' });
-    });
-
-    // Сортируем по времени
-    events.sort((a, b) => a.start - b.start);
-
-    // Строим 24-часовую шкалу с зелёными промежутками (бодрствование)
-    let totalFeed = 0, totalSleep = 0;
-
-    let html = `<div class="day-timeline-container">`;
-    
-    // Сетка часов
-    html += `<div class="day-timeline-hour-grid">`;
-    for (let h = 0; h < 24; h++) {
-        const left = (h / 24) * 100;
-        const nowHour = new Date().getHours();
-        const isNow = isToday && nowHour === h;
-        html += `<div class="day-timeline-hour-mark${isNow ? ' now' : ''}" style="left:${left}%;"></div>`;
-        if (h % 2 === 0) {
-            html += `<div class="day-timeline-hour-label" style="left:${left}%;">${String(h).padStart(2,'0')}:00</div>`;
+    // Собираем данные для AI
+    const dataForAI = {
+        feed: feedData.map(r => ({
+            duration_min: Math.round(r.duration / 60),
+            side: r.side,
+            timestamp: new Date(r.timestamp).toLocaleString('ru-RU')
+        })),
+        sleep: sleepData.map(r => ({
+            duration_min: Math.round(r.duration / 60),
+            timestamp: new Date(r.timestamp).toLocaleString('ru-RU')
+        })),
+        diaper: diaperData.map(r => ({
+            type: r.type,
+            timestamp: new Date(r.timestamp).toLocaleString('ru-RU')
+        })),
+        mood: moodData.map(r => ({
+            mood: r.mood,
+            date: r.date
+        })),
+        summary: {
+            feed_count: feedCount,
+            sleep_count: sleepCount,
+            diaper_count: diaperCount,
+            total_sleep_hours: Math.round(totalSleepHours * 10) / 10
         }
-    }
-    html += `</div>`;
+    };
 
-    // Если есть события, строим блоки и зелёные промежутки
-    if (events.length > 0) {
-        const startOfDay = targetDate.getTime();
-        const endOfDay = startOfDay + totalMs;
-
-        // Сортируем по времени
-        events.sort((a, b) => a.start - b.start);
-
-        // Строим зелёные промежутки (бодрствование)
-        let prevEnd = startOfDay;
-        events.forEach(e => {
-            const startPct = ((e.start - startOfDay) / totalMs) * 100;
-            const endPct = ((e.end - startOfDay) / totalMs) * 100;
-            const duration = e.end - e.start;
-            const isFeed = e.type === 'feed';
-            const color = isFeed ? 'var(--color-feed)' : 'var(--color-sleep)';
-            const height = Math.max(20, Math.min(60, 20 + (duration / (60 * 60 * 1000)) * 8));
-
-            // Зелёный промежуток (бодрствование) до блока
-            if (e.start > prevEnd + 60000) {
-                const gapStart = ((prevEnd - startOfDay) / totalMs) * 100;
-                const gapEnd = ((e.start - startOfDay) / totalMs) * 100;
-                const gapWidth = gapEnd - gapStart;
-                if (gapWidth > 0.5) {
-                    html += `<div class="day-timeline-block" style="left:${Math.max(0,gapStart)}%;top:${50 - 14}px;width:${Math.min(gapWidth, 100 - gapStart)}%;height:28px;background:var(--color-awake);opacity:0.3;border-radius:4px;cursor:default;box-shadow:none;"></div>`;
-                }
-            }
-
-            // Блок кормления или сна
-            const blockStart = Math.max(0, startPct);
-            const blockWidth = Math.min(endPct - startPct, 100 - blockStart);
-            if (blockWidth > 0.3) {
-                const tooltip = isFeed ? '🍼 Кормление' : '😴 Сон';
-                const durMin = Math.round(duration / 60000);
-                html += `<div class="day-timeline-block" style="left:${blockStart}%;top:${50 - height/2}px;width:${blockWidth}%;height:${height}px;background:${color};" title="${tooltip} — ${durMin} мин"></div>`;
-            }
-
-            prevEnd = Math.max(prevEnd, e.end);
-
-            if (isFeed) totalFeed += duration;
-            else totalSleep += duration;
+    try {
+        const response = await fetch('https://api.freellmapi.com/v1/chat/completions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                model: 'gpt-4o-mini',
+                messages: [
+                    {
+                        role: 'system',
+                        content: `Ты — заботливый AI-аналитик для мам. 
+                        Твоя задача — дать 3 коротких, тёплых и полезных вывода о режиме малыша за последние 3 дня.
+                        Используй только данные из запроса. Не выдумывай.
+                        Выводы должны быть:
+                        1. По сну
+                        2. По кормлениям
+                        3. Общий вывод
+                        Будь поддерживающей и заботливой. Не используй медицинские диагнозы.
+                        Отвечай на русском языке. Каждый вывод начинай с эмодзи.`
+                    },
+                    {
+                        role: 'user',
+                        content: JSON.stringify(dataForAI, null, 2)
+                    }
+                ],
+                temperature: 0.7,
+                max_tokens: 300
+            })
         });
 
-        // Зелёный промежуток после последнего блока
-        if (prevEnd < endOfDay - 60000) {
-            const gapStart = ((prevEnd - startOfDay) / totalMs) * 100;
-            const gapEnd = 100;
-            const gapWidth = gapEnd - gapStart;
-            if (gapWidth > 0.5) {
-                html += `<div class="day-timeline-block" style="left:${Math.max(0,gapStart)}%;top:${50 - 14}px;width:${Math.min(gapWidth, 100 - gapStart)}%;height:28px;background:var(--color-awake);opacity:0.3;border-radius:4px;cursor:default;box-shadow:none;"></div>`;
-            }
+        if (!response.ok) {
+            return await fallbackAnalysis();
         }
 
-    } else {
-        // Если нет событий — весь день зелёный
-        html += `<div class="day-timeline-block" style="left:0%;top:${50 - 14}px;width:100%;height:28px;background:var(--color-awake);opacity:0.2;border-radius:4px;cursor:default;box-shadow:none;"></div>`;
+        const result = await response.json();
+        const content = result.choices?.[0]?.message?.content || '';
+        return parseAIResponse(content);
+
+    } catch (error) {
+        console.log('AI API error, using fallback:', error);
+        return await fallbackAnalysis();
     }
-
-    // Текущее время — только если сегодня
-    if (isToday) {
-        const now = new Date();
-        const nowHour = now.getHours();
-        const nowMin = now.getMinutes();
-        const nowPct = ((nowHour * 60 + nowMin) / (24 * 60)) * 100;
-        html += `<div class="day-timeline-now-line" style="left:${nowPct}%;"></div>`;
-        html += `<div class="day-timeline-now-label" style="left:${nowPct}%;">●</div>`;
-    }
-
-    html += `</div>`;
-
-    // Шкала времени под графиком (часы)
-    html += `<div class="day-timeline-hours">`;
-    for (let h = 0; h < 24; h += 2) {
-        html += `<span>${String(h).padStart(2,'0')}:00</span>`;
-    }
-    html += `</div>`;
-
-    container.innerHTML = html;
-
-    // Текстовая сводка
-    const feedMin = Math.round(totalFeed / 60000);
-    const sleepMin = Math.round(totalSleep / 60000);
-    const awakeMin = 24 * 60 - feedMin - sleepMin;
-
-    const feedHours = Math.floor(feedMin / 60);
-    const feedMins = feedMin % 60;
-    const sleepHours = Math.floor(sleepMin / 60);
-    const sleepMins = sleepMin % 60;
-    const awakeHours = Math.floor(awakeMin / 60);
-    const awakeMins = awakeMin % 60;
-
-    const dateLabel = isToday ? 'Сегодня' : (dayOffset === 1 ? 'Вчера' : 'Позавчера');
-
-    summary.innerHTML = `
-        <strong>${dateLabel}</strong><br>
-        🍼 Кормления: ${feed.length} (${feedHours > 0 ? feedHours + ' ч ' : ''}${feedMins} мин) &nbsp;|&nbsp;
-        😴 Сон: ${sleep.length} (${sleepHours > 0 ? sleepHours + ' ч ' : ''}${sleepMins} мин) &nbsp;|&nbsp;
-        ⏳ Бодрствование: ${awakeHours > 0 ? awakeHours + ' ч ' : ''}${awakeMins} мин
-    `;
 }
 
+function parseAIResponse(content) {
+    const lines = content.split('\n').filter(l => l.trim());
+    const insights = lines.map(line => {
+        // Убираем возможные номера "1." "2." и т.д.
+        const clean = line.replace(/^\d+[\.\)]\s*/, '').trim();
+        return clean;
+    }).filter(l => l.length > 10);
+
+    if (insights.length === 0) {
+        return await fallbackAnalysis();
+    }
+
+    return insights.slice(0, 4);
+}
+
+function fallbackAnalysis() {
+    const feedData = getAllRecords('feed', 3);
+    const sleepData = getAllRecords('sleep', 3);
+    const diaperData = getAllRecords('diaper', 3);
+    const moodData = getAllMoodRecords().slice(0, 3);
+    const feedCount = feedData.length;
+    const sleepCount = sleepData.length;
+    const diaperCount = diaperData.length;
+    const totalSleepHours = sleepData.reduce((s, r) => s + r.duration, 0) / 3600000;
+
+    const insights = [];
+
+    // Сон
+    if (sleepCount === 0) {
+        insights.push('😴 За последние 3 дня не было записей сна. Маленький шаг — записать хотя бы один сон, чтобы видеть режим.');
+    } else if (totalSleepHours < 8) {
+        insights.push('😴 За последние 3 дня малыш спал в среднем ' + Math.round(totalSleepHours / 3 * 10) / 10 + ' ч в сутки. Попробуйте увеличить время сна для лучшего развития.');
+    } else if (totalSleepHours >= 14) {
+        insights.push('😴 Отличный сон! Малыш спит достаточно — ' + Math.round(totalSleepHours / 3 * 10) / 10 + ' ч в среднем. Так держать!');
+    } else {
+        insights.push('😴 Сон в норме — около ' + Math.round(totalSleepHours / 3 * 10) / 10 + ' ч в сутки. Хороший режим!');
+    }
+
+    // Кормление
+    if (feedCount === 0) {
+        insights.push('🍼 Нет записей кормлений. Это отличный повод начать трекать! Просто запишите следующее кормление.');
+    } else if (feedCount < 6) {
+        insights.push('🍼 За 3 дня записано ' + feedCount + ' кормлений. Возможно, стоит кормить чаще? Следите за сигналами малыша.');
+    } else {
+        insights.push('🍼 Кормлений достаточно — ' + feedCount + ' за 3 дня. Малыш получает питание регулярно!');
+    }
+
+    // Общий вывод
+    const moodGood = moodData.filter(m => m.mood === 'great' || m.mood === 'good').length;
+    if (moodGood >= 2) {
+        insights.push('💖 У вас отличное настроение! Это помогает малышу расти счастливым. Продолжайте в том же духе!');
+    } else if (moodData.length === 0) {
+        insights.push('💖 Не забывайте заботиться о себе! Запишите своё настроение, чтобы я мог лучше помогать вам.');
+    } else {
+        insights.push('💖 Помните: вы делаете большую работу! Забота о малыше — это подвиг, и вы справляетесь!');
+    }
+
+    return insights;
+}
+
+async function refreshAI() {
+    const container = document.getElementById('aiInsightsContainer');
+    if (!container) return;
+
+    const feedData = getRecords('feed');
+    const sleepData = getRecords('sleep');
+    if (feedData.length === 0 && sleepData.length === 0) {
+        container.innerHTML = `
+            <div class="card ai-card">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+                    <span style="font-size:24px;">🧠</span>
+                    <span class="card-title" style="margin:0;">AI-аналитика</span>
+                </div>
+                <div class="ai-empty">
+                    <span class="ai-emoji">📊</span>
+                    Добавьте первые записи о кормлении или сне — AI покажет умные выводы
+                </div>
+            </div>
+        `;
+        return;
+    }
+
+    // Показываем загрузку
+    container.innerHTML = `
+        <div class="card ai-card">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+                <span style="font-size:24px;">🧠</span>
+                <span class="card-title" style="margin:0;">AI-аналитика</span>
+                <span style="margin-left:auto;font-size:11px;color:var(--text-secondary);">✨ AI анализирует...</span>
+            </div>
+            <div class="ai-loading">
+                <div class="spinner"></div>
+                <span>Анализирую данные малыша...</span>
+            </div>
+        </div>
+    `;
+
+    try {
+        const insights = await getAIAnalysis();
+        container.innerHTML = `
+            <div class="card ai-card">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+                    <span style="font-size:24px;">🧠</span>
+                    <span class="card-title" style="margin:0;">AI-аналитика</span>
+                    <span style="margin-left:auto;font-size:10px;color:var(--text-secondary);">на основе ваших данных</span>
+                    <button class="ai-refresh-btn" onclick="refreshAI()">🔄 Обновить</button>
+                </div>
+                ${insights.map(text => `
+                    <div class="ai-insight">
+                        <span class="ai-icon">${text.match(/^.{1,2}/)?.[0] || '💡'}</span>
+                        <span class="ai-text">${text}</span>
+                    </div>
+                `).join('')}
+                <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);font-size:11px;color:var(--text-secondary);text-align:center;">
+                    🤖 AI-анализ на основе записей за последние 3 дня
+                </div>
+            </div>
+        `;
+    } catch (error) {
+        console.error('AI error:', error);
+        const insights = await fallbackAnalysis();
+        container.innerHTML = `
+            <div class="card ai-card">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+                    <span style="font-size:24px;">🧠</span>
+                    <span class="card-title" style="margin:0;">AI-аналитика</span>
+                    <span style="margin-left:auto;font-size:10px;color:var(--text-secondary);">💡 умные выводы</span>
+                    <button class="ai-refresh-btn" onclick="refreshAI()">🔄 Обновить</button>
+                </div>
+                ${insights.map(text => `
+                    <div class="ai-insight">
+                        <span class="ai-icon">${text.match(/^.{1,2}/)?.[0] || '💡'}</span>
+                        <span class="ai-text">${text}</span>
+                    </div>
+                `).join('')}
+                <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);font-size:11px;color:var(--text-secondary);text-align:center;">
+                    💡 Анализ на основе записей (без интернета)
+                </div>
+            </div>
+        `;
+    }
+}
+
+// ============ ИНИЦИАЛИЗАЦИЯ ============
 $('soundGrid').innerHTML=CFG.SOUNDS.map(s=>`<button class="sound-btn" data-sound="${s.id}" onclick="playSound('${s.id}')"><span class="sound-emoji">${s.emoji}</span>${s.name}</button>`).join('');
 $('colorGrid').innerHTML=CFG.COLORS.map(c=>`<button class="color-btn${c===savedColor?' active':''}" data-color="${c}" onclick="setColorScheme('${c}')"><span class="color-dot ${c}"></span>${c==='pink'?'🌸':c==='blue'?'🌊':c==='mint'?'🌿':c==='lavender'?'💜':'🍑'}</button>`).join('');
 updateCommonMedsList();updateQuickMeds();
@@ -979,12 +1076,34 @@ updateCommonMedsList();updateQuickMeds();
 updateBabyUI();updateFeedStats();renderFeedHistory();updateSleepStats();renderSleepHistory();updateDiaperStats();renderDiaperHistory();updateGrowthUI();updateProUI();updateCalendar();updateMoodUI();updateMedHistory();updateSymptomsUI();updateAchievementsUI();updateAchievementLevelUI();updateDoctorTab();updateWidget();
 startFeedingStatusUpdates();
 
-// Инициализируем вкладку Режим дня при первом открытии
+// Инициализация AI
+setTimeout(() => {
+    const container = document.getElementById('aiInsightsContainer');
+    if (container) {
+        refreshAI();
+    }
+}, 800);
+
+// Инициализация режима дня
 setTimeout(() => {
     if (document.querySelector('#tab-day')) {
         renderDayTimeline();
     }
 }, 500);
+
+// Перехватываем сохранение записей для обновления AI
+const originalSaveRecord_AI = saveRecord;
+saveRecord = function(type, data) {
+    originalSaveRecord_AI(type, data);
+    refreshAI();
+};
+
+// Обновляем refreshAll для AI
+const originalRefreshAll_AI = refreshAll;
+refreshAll = function() {
+    originalRefreshAll_AI();
+    refreshAI();
+};
 </script>
 </body>
 </html>
