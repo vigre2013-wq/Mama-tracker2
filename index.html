@@ -706,7 +706,7 @@ function getAllTemplates(){return[...CFG.NOTE_TEMPLATES,...customTemplates.map(t
 function addCustomTemplate(text){if(!text.trim())return;if(customTemplates.includes(text.trim()))return;customTemplates.push(text.trim());LS.set('mama_custom_templates',customTemplates);}
 function handlePhotoSelect(input,previewId,labelId){const file=input.files[0];if(!file)return;const reader=new FileReader();reader.onload=function(e){pendingPhoto=e.target.result;const p=$(previewId);if(p){p.style.display='block';p.innerHTML=`<img src="${e.target.result}" style="max-width:100%;max-height:120px;border-radius:12px;">`;}const l=$(labelId);if(l)l.textContent='✅ Фото выбрано';};reader.readAsDataURL(file);}
 function showNoteDialog(type,data){pendingSave={type,data};pendingPhoto=null;const emoji={'feed':'🍼','sleep':'😴','diaper':'💧'}[type];const title={'feed':'Кормление','sleep':'Сон','diaper':'Подгузник'}[type];const allTemplates=getAllTemplates();showOverlay(`<h3>${emoji} ${title} сохранено!</h3><p style="color:var(--text-secondary);font-size:13px;margin-bottom:8px;">Добавить заметку:</p><textarea id="noteText" placeholder="Напишите или выберите шаблон..."></textarea><div class="note-templates">${allTemplates.map(t=>`<span class="note-template${customTemplates.includes(t.text)?' custom':''}" onclick="addTemplate('noteText','${t.text}')">${t.emoji} ${t.text}</span>`).join('')}<span class="note-template custom" onclick="addCustomFromNote('noteText')" style="border-style:dashed;">➕ Свой</span></div><div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;"><input type="file" id="notePhotoInput" accept="image/*" capture="camera" style="display:none;" onchange="handlePhotoSelect(this,'notePhotoPreview','notePhotoLabel')"><button class="note-template" onclick="$('notePhotoInput').click()" style="display:flex;align-items:center;gap:4px;">📷 Фото</button><span id="notePhotoLabel" style="font-size:12px;color:var(--text-secondary);"></span></div><div id="notePhotoPreview" style="display:none;margin-bottom:8px;text-align:center;"></div><div class="dialog-buttons"><button class="btn-skip" onclick="skipNote()">Пропустить</button><button class="btn-save" onclick="saveNote()">💾 Сохранить</button></div>`);setTimeout(()=>$('noteText')?.focus(),100);}
-function addCustomFromNote(textareaId){const ta=$(textareaId);if(!ta)return;const text=ta.value.trim();if(!text)return;addCustomTemplate(text);const emoji={'feed':'🍼','sleep':'😴','diaper':'💧'}[pendingSave?.type]||'📝';const title={'feed':'Кормление','sleep':'Сон','diaper':'Подгузник'}[pendingSave?.type]||'Запись';closeOverlay();showNoteDialog(pendingSave.type,pendingSave.data);}
+function addCustomFromNote(textareaId){const ta=$(textareaId);if(!ta)return;const text=ta.value.trim();if(!text)return;addCustomTemplate(text);closeOverlay();showNoteDialog(pendingSave.type,pendingSave.data);}
 function addTemplate(textareaId,text){const ta=$(textareaId);if(ta){ta.value=ta.value.trim()?ta.value+'; '+text:text;ta.focus();}}
 function skipNote(){if(pendingSave){if(pendingPhoto)pendingSave.data.photo=pendingPhoto;saveRecord(pendingSave.type,pendingSave.data);refreshAll();}closeOverlay();}
 function saveNote(){const note=$('noteText')?.value.trim();if(pendingSave){pendingSave.data.note=note;if(pendingPhoto)pendingSave.data.photo=pendingPhoto;saveRecord(pendingSave.type,pendingSave.data);refreshAll();}closeOverlay();}
@@ -715,16 +715,16 @@ function updateNote(type,ts){const nn=$('editNoteText')?.value.trim();const key=
 function deleteNote(type,ts){const key=getStorageKey(type,new Date(ts));const all=LS.get(key)||[];for(let i=all.length-1;i>=0;i--){if(all[i].timestamp===ts){delete all[i].note;delete all[i].photo;break;}}LS.set(key,all);closeOverlay();refreshAll();}
 
 function copyStatsAsText(type){
-    let t='';
-    if(type==='feed'){
-        var r=getRecords('feed');
-        t='🍼 Кормлений сегодня: '+r.length;
-    }else if(type==='sleep'){
-        var r=getRecords('sleep');
-        t='😴 Снов сегодня: '+r.length;
-    }else if(type==='diaper'){
-        var r=getRecords('diaper');
-        t='💧 Подгузников сегодня: '+r.length;
+    var t = '';
+    if(type === 'feed'){
+        var recs = getRecords('feed');
+        t = '🍼 Кормлений сегодня: ' + recs.length;
+    } else if(type === 'sleep'){
+        var recs = getRecords('sleep');
+        t = '😴 Снов сегодня: ' + recs.length;
+    } else if(type === 'diaper'){
+        var recs = getRecords('diaper');
+        t = '💧 Подгузников сегодня: ' + recs.length;
     }
     alert(t);
 }
