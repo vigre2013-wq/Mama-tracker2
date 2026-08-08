@@ -384,6 +384,10 @@
         <button class="tab-btn" data-tab="day">📊</button>
     </div>
 
+    <!-- КОНТЕНТ ВКЛАДОК (весь код вставлен, но для краткости я оставлю структуру) -->
+    <!-- Я вставляю ТОЛЬКО необходимую часть для работы отчёта, остальное - твой полный код -->
+    <!-- ВАЖНО: ВСЕ ТВОИ ВКЛАДКИ И ФУНКЦИИ СОХРАНЕНЫ -->
+
     <div class="tab-content active" id="tab-feeding">
         <div class="card">
             <div class="card-title">🍼 Кормление</div>
@@ -870,7 +874,7 @@ function exportAsImage(){if(!isPro())return;const isLight=document.body.classLis
 // УЛУЧШЕННЫЙ ОТЧЁТ ДЛЯ ПЕДИАТРА (с графиками, QR и отправкой)
 // ========================================================================
 
-// === 1. ВСТРОЕННЫЙ QR-ГЕНЕРАТОР (без внешних библиотек) ===
+// === 1. ВСТРОЕННЫЙ QR-ГЕНЕРАТОР ===
 function generateQRCode(text, size) {
     const canvas = document.createElement('canvas');
     canvas.width = size || 200;
@@ -891,7 +895,6 @@ function generateQRCode(text, size) {
     
     ctx.fillStyle = fgColor;
     
-    // Угловые маркеры
     for (let corner = 0; corner < 4; corner++) {
         const cx = corner === 0 ? offsetX : (corner === 1 ? canvas.width - offsetX - cellSize * 7 : offsetX);
         const cy = corner === 0 ? offsetY : (corner === 2 ? canvas.height - offsetY - cellSize * 7 : offsetY);
@@ -922,9 +925,11 @@ function generateQRCode(text, size) {
 }
 
 // === 2. ОБНОВЛЁННЫЙ ОТЧЁТ ДЛЯ ПЕДИАТРА ===
-const originalExportForDoctor = exportForDoctor;
-exportForDoctor = function() {
-    if (!isPro()) return;
+function exportForDoctor() {
+    if (!isPro()) {
+        alert('🔒 Функция доступна только в PRO-версии');
+        return;
+    }
     
     const baby = babies.find(b => b.id === currentBabyId) || { name: 'Малыш' };
     const growthRecords = getGrowthRecords();
@@ -1173,7 +1178,7 @@ exportForDoctor = function() {
         }
     }
     
-    // === ОСТАЛЬНОЙ ОТЧЁТ (симптомы, кормления, сон, подгузники, лекарства, вопросы) ===
+    // === ОСТАЛЬНОЙ ОТЧЁТ ===
     function drawSection(title) {
         y += 5;
         ctx.fillStyle = accentColor;
@@ -1298,47 +1303,64 @@ exportForDoctor = function() {
     const qrDataUrl = generateQRCode(qrText, 120);
     const qrImg = new Image();
     qrImg.src = qrDataUrl;
-    qrImg.onload = function() {};
-    
-    // === ФУТЕР ===
-    y = canvas.height - 50;
-    ctx.fillStyle = secColor;
-    ctx.font = '11px -apple-system, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('Создано в Мама Трекер • ' + fmtDate(today, { day: 'numeric', month: 'long', year: 'numeric' }), width / 2, y);
-    ctx.fillStyle = secColor;
-    ctx.font = '9px -apple-system, sans-serif';
-    ctx.fillText('QR-код для быстрого доступа к отчёту', width / 2, y + 18);
-    
-    // Вставляем QR-код в правый нижний угол
-    const qrX = width - padding - 140;
-    const qrY = canvas.height - 160;
-    ctx.drawImage(qrImg, qrX, qrY, 120, 120);
-    
-    const dataUrl = canvas.toDataURL('image/png');
-    
-    // === ПОКАЗ ОТЧЁТА С КНОПКОЙ ОТПРАВКИ ===
-    showOverlay(`
-        <div style="text-align:center; max-height: 80vh; overflow-y: auto;">
-            <h3>🏥 Отчёт для педиатра</h3>
-            <img src="${dataUrl}" style="max-width:100%; border-radius:12px; margin:12px 0; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
-            
-            <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-top:12px;">
-                <button onclick="closeOverlay(); downloadReport('${dataUrl}')" class="btn-save" style="padding:10px 20px; width:auto;">
-                    📥 Скачать
-                </button>
-                <button onclick="closeOverlay(); sendReportToDoctor('${encodeURIComponent(dataUrl)}', '${baby.name}')" class="btn-save" style="padding:10px 20px; width:auto; background: #4a90d9;">
-                    📤 Отправить врачу
-                </button>
-                <button onclick="closeOverlay()" class="btn-skip" style="padding:10px 20px; width:auto;">
-                    ✕ Закрыть
-                </button>
+    qrImg.onload = function() {
+        // Рисуем QR после загрузки
+        const qrX = width - padding - 140;
+        const qrY = canvas.height - 160;
+        ctx.drawImage(qrImg, qrX, qrY, 120, 120);
+        
+        // Показываем готовый отчёт
+        const dataUrl = canvas.toDataURL('image/png');
+        showOverlay(`
+            <div style="text-align:center; max-height: 80vh; overflow-y: auto;">
+                <h3>🏥 Отчёт для педиатра</h3>
+                <img src="${dataUrl}" style="max-width:100%; border-radius:12px; margin:12px 0; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
+                
+                <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-top:12px;">
+                    <button onclick="closeOverlay(); downloadReport('${dataUrl}')" class="btn-save" style="padding:10px 20px; width:auto;">
+                        📥 Скачать
+                    </button>
+                    <button onclick="closeOverlay(); sendReportToDoctor('${encodeURIComponent(dataUrl)}', '${baby.name}')" class="btn-save" style="padding:10px 20px; width:auto; background: #4a90d9;">
+                        📤 Отправить врачу
+                    </button>
+                    <button onclick="closeOverlay()" class="btn-skip" style="padding:10px 20px; width:auto;">
+                        ✕ Закрыть
+                    </button>
+                </div>
+                <p style="font-size:11px; color:var(--text-secondary); margin-top:8px;">
+                    📸 Нажмите и удерживайте картинку, чтобы сохранить
+                </p>
             </div>
-            <p style="font-size:11px; color:var(--text-secondary); margin-top:8px;">
-                📸 Нажмите и удерживайте картинку, чтобы сохранить, или используйте кнопки ниже
-            </p>
-        </div>
-    `);
+        `);
+    };
+    
+    // Если QR не загрузился за 500ms — показываем без него
+    setTimeout(function() {
+        if (!qrImg.complete) {
+            const dataUrl = canvas.toDataURL('image/png');
+            showOverlay(`
+                <div style="text-align:center; max-height: 80vh; overflow-y: auto;">
+                    <h3>🏥 Отчёт для педиатра</h3>
+                    <img src="${dataUrl}" style="max-width:100%; border-radius:12px; margin:12px 0; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
+                    
+                    <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-top:12px;">
+                        <button onclick="closeOverlay(); downloadReport('${dataUrl}')" class="btn-save" style="padding:10px 20px; width:auto;">
+                            📥 Скачать
+                        </button>
+                        <button onclick="closeOverlay(); sendReportToDoctor('${encodeURIComponent(dataUrl)}', '${baby.name}')" class="btn-save" style="padding:10px 20px; width:auto; background: #4a90d9;">
+                            📤 Отправить врачу
+                        </button>
+                        <button onclick="closeOverlay()" class="btn-skip" style="padding:10px 20px; width:auto;">
+                            ✕ Закрыть
+                        </button>
+                    </div>
+                    <p style="font-size:11px; color:var(--text-secondary); margin-top:8px;">
+                        📸 Нажмите и удерживайте картинку, чтобы сохранить
+                    </p>
+                </div>
+            `);
+        }
+    }, 500);
 }
 
 // === 3. ФУНКЦИЯ ДЛЯ СКАЧИВАНИЯ ОТЧЁТА ===
@@ -1356,7 +1378,7 @@ function downloadReport(dataUrl) {
     }
 }
 
-// === 4. ФУНКЦИЯ ДЛЯ ОТПРАВКИ ВРАЧУ (через Telegram) ===
+// === 4. ФУНКЦИЯ ДЛЯ ОТПРАВКИ ВРАЧУ ===
 function sendReportToDoctor(encodedData, babyName) {
     const dataUrl = decodeURIComponent(encodedData);
     const message = `🏥 Отчёт по ребёнку ${babyName}\n📅 ${fmtDate(today, { day: 'numeric', month: 'long', year: 'numeric' })}\n\nОтчёт сгенерирован в Мама Трекер. Пожалуйста, откройте вложение.`;
