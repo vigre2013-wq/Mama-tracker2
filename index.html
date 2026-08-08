@@ -1498,6 +1498,147 @@ setTimeout(() => {
         renderDayTimeline();
     }
 }, 500);
+// ========================================================================
+// ПРОСТОЕ ИСПРАВЛЕНИЕ ДЛЯ ОТЧЁТА ПЕДИАТРА
+// ========================================================================
+
+// Проверяем, что функция getAllRecords существует
+if (typeof getAllRecords === 'undefined') {
+    function getAllRecords(type, days = 30) {
+        const all = [];
+        for (let i = 0; i < days; i++) {
+            const d = new Date();
+            d.setDate(d.getDate() - i);
+            const records = LS.get(getStorageKey(type, d)) || [];
+            all.push(...records);
+        }
+        return all.sort((a, b) => b.timestamp - a.timestamp);
+    }
+}
+
+// Упрощённая функция отчёта (без сложных графиков, только данные)
+function exportForDoctor2() {
+    if (!isPro()) {
+        alert('🔒 Функция доступна только в PRO-версии');
+        return;
+    }
+
+    try {
+        // Собираем данные
+        const baby = babies.find(b => b.id === currentBabyId) || { name: 'Малыш' };
+        const feedData = getRecords('feed');
+        const sleepData = getRecords('sleep');
+        const diaperData = getRecords('diaper');
+        const sympData = getRecords('symptoms');
+        const growthData = getGrowthRecords();
+        
+        // Формируем текст отчёта
+        let reportText = '🏥 ОТЧЁТ ДЛЯ ПЕДИАТРА\n';
+        reportText += '=' . repeat(40) + '\n\n';
+        reportText += '👶 ' + baby.name + '\n';
+        reportText += '📅 ' + fmtDate(today, { day: 'numeric', month: 'long', year: 'numeric' }) + '\n\n';
+        
+        // Кормления
+        reportText += '🍼 КОРМЛЕНИЯ\n';
+        reportText += '  Всего: ' + feedData.length + '\n';
+        const totalFeedMin = Math.floor(feedData.reduce((s, r) => s + r.duration, 0) / 60);
+        reportText += '  Общее время: ' + totalFeedMin + ' мин\n';
+        const leftCount = feedData.filter(r => r.side === 'left').length;
+        const rightCount = feedData.filter(r => r.side === 'right').length;
+        reportText += '  Левая/Правая: ' + leftCount + '/' + rightCount + '\n\n';
+        
+        // Сон
+        reportText += '😴 СОН\n';
+        reportText += '  Всего снов: ' + sleepData.length + '\n';
+        const totalSleepMin = Math.floor(sleepData.reduce((s, r) => s + r.duration, 0) / 60);
+        reportText += '  Общее время: ' + Math.floor(totalSleepMin / 60) + ' ч ' + (totalSleepMin % 60) + ' мин\n\n';
+        
+        // Подгузники
+        reportText += '💧 ПОДГУЗНИКИ\n';
+        reportText += '  Всего смен: ' + diaperData.length + '\n';
+        const dirtyCount = diaperData.filter(r => r.type === 'dirty' || r.type === 'both').length;
+        reportText += '  Грязных: ' + dirtyCount + '\n\n';
+        
+        // Симптомы
+        if (sympData.length > 0) {
+            reportText += '🩺 СИМПТОМЫ\n';
+            reportText += '  Записей: ' + sympData.length + '\n';
+            const temps = sympData.filter(r => r.temp).map(r => r.temp);
+            if (temps.length > 0) {
+                reportText += '  Температура: макс. ' + Math.max(...temps) + '°C\n';
+            }
+            const symptoms = {};
+            sympData.forEach(r => {
+                r.symptoms.forEach(s => { symptoms[s] = (symptoms[s] || 0) + 1; });
+            });
+            if (Object.keys(symptoms).length > 0) {
+                const top = Object.entries(symptoms).sort((a, b) => b[1] - a[1])[0];
+                reportText += '  Частый симптом: ' + (symptomLabels[top[0]] || top[0]) + ' (' + top[1] + ' раз)\n';
+            }
+            reportText += '\n';
+        }
+        
+        // Рост/вес
+        if (growthData.length > 0) {
+            const last = growthData[growthData.length - 1];
+            reportText += '📏 РОСТ И ВЕС\n';
+            if (last.weight) reportText += '  Вес: ' + last.weight + ' кг\n';
+            if (last.height) reportText += '  Рост: ' + last.height + ' см\n';
+            reportText += '\n';
+        }
+        
+        reportText += '=' . repeat(40) + '\n';
+        reportText += '📱 Создано в Мама Трекер';
+        
+        // Показываем отчёт
+        showOverlay(`
+            <div style="max-height: 80vh; overflow-y: auto; text-align: left;">
+                <h3>🏥 Отчёт для педиатра</h3>
+                <pre style="white-space: pre-wrap; font-family: monospace; font-size: 14px; background: var(--stat-bg); padding: 16px; border-radius: 12px; margin: 12px 0; color: var(--text);">${reportText}</pre>
+                <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-top:12px;">
+                    <button onclick="closeOverlay(); copyReportText('${encodeURIComponent(reportText)}')" class="btn-save" style="padding:10px 20px; width:auto;">
+                        📋 Копировать
+                    </button>
+                    <button onclick="closeOverlay()" class="btn-skip" style="padding:10px 20px; width:auto;">
+                        ✕ Закрыть
+                    </button>
+                </div>
+                <p style="font-size:11px; color:var(--text-secondary); margin-top:8px; text-align:center;">
+                    📋 Нажмите "Копировать" и отправьте врачу в Telegram или WhatsApp
+                </p>
+            </div>
+        `);
+        
+        if (tg?.showPopup) {
+            tg.showPopup({
+                title: '✅ Отчёт готов!',
+                message: 'Нажмите "Копировать" чтобы отправить врачу',
+                buttons: [{ type: 'ok' }]
+            });
+        }
+    } catch (e) {
+        console.error('Ошибка:', e);
+        alert('❌ Ошибка при создании отчёта: ' + e.message);
+    }
+}
+
+// Функция для копирования отчёта
+function copyReportText(encodedText) {
+    const text = decodeURIComponent(encodedText);
+    navigator.clipboard.writeText(text).then(() => {
+        if (tg?.showPopup) {
+            tg.showPopup({
+                title: '✅ Скопировано!',
+                message: 'Отправьте текст врачу в Telegram или WhatsApp',
+                buttons: [{ type: 'ok' }]
+            });
+        } else {
+            alert('✅ Текст скопирован! Отправьте его врачу.');
+        }
+    }).catch(() => {
+        alert('❌ Не удалось скопировать. Скопируйте текст вручную:\n\n' + text);
+    });
+}
 </script>
 </body>
 </html>
