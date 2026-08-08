@@ -380,12 +380,8 @@
         <button class="tab-btn" data-tab="achievements">🏆</button>
         <button class="tab-btn" data-tab="doctor">🏥</button>
         <button class="tab-btn" data-tab="pro">👑</button>
-        <!-- НОВАЯ ВКЛАДКА РЕЖИМ ДНЯ -->
         <button class="tab-btn" data-tab="day">📊</button>
     </div>
-
-    <!-- КОНТЕНТ ВКЛАДОК (весь код вставлен, но для краткости я оставлю структуру) -->
-    <!-- ВАЖНО: ВСЕ ТВОИ ВКЛАДКИ И ФУНКЦИИ СОХРАНЕНЫ -->
 
     <div class="tab-content active" id="tab-feeding">
         <div class="card">
@@ -923,7 +919,7 @@ function generateQRCode(text, size) {
     return canvas.toDataURL('image/png');
 }
 
-// === 2. ОБНОВЛЁННЫЙ ОТЧЁТ ДЛЯ ПЕДИАТРА (ИСПРАВЛЕННЫЙ) ===
+// === 2. ОБНОВЛЁННЫЙ ОТЧЁТ ДЛЯ ПЕДИАТРА (ТОЛЬКО СКАЧИВАНИЕ) ===
 function exportForDoctor() {
     if (!isPro()) {
         alert('🔒 Функция доступна только в PRO-версии');
@@ -1311,7 +1307,6 @@ function exportForDoctor() {
         showOverlayWithReport(dataUrl, baby.name);
     };
     
-    // Если QR не загрузился за 500ms — показываем без него
     setTimeout(function() {
         if (!qrImg.complete) {
             const dataUrl = canvas.toDataURL('image/png');
@@ -1320,7 +1315,7 @@ function exportForDoctor() {
     }, 500);
 }
 
-// === ВСПОМОГАТЕЛЬНАЯ ФУНКЦИЯ ДЛЯ ПОКАЗА ОТЧЁТА ===
+// === ВСПОМОГАТЕЛЬНАЯ ФУНКЦИЯ ДЛЯ ПОКАЗА ОТЧЁТА (ТОЛЬКО СКАЧИВАНИЕ) ===
 function showOverlayWithReport(dataUrl, babyName) {
     if (!dataUrl || dataUrl.length < 100) {
         alert('❌ Ошибка: не удалось сгенерировать отчёт. Попробуйте ещё раз.');
@@ -1336,21 +1331,18 @@ function showOverlayWithReport(dataUrl, babyName) {
                 <button onclick="closeOverlay(); downloadReport('${dataUrl}')" class="btn-save" style="padding:10px 20px; width:auto;">
                     📥 Скачать
                 </button>
-                <button onclick="closeOverlay(); sendReportToDoctor('${encodeURIComponent(dataUrl)}', '${babyName}')" class="btn-save" style="padding:10px 20px; width:auto; background: #4a90d9;">
-                    📤 Отправить врачу
-                </button>
                 <button onclick="closeOverlay()" class="btn-skip" style="padding:10px 20px; width:auto;">
                     ✕ Закрыть
                 </button>
             </div>
             <p style="font-size:11px; color:var(--text-secondary); margin-top:8px;">
-                📸 Нажмите и удерживайте картинку, чтобы сохранить
+                📸 Нажмите и удерживайте картинку, чтобы сохранить вручную
             </p>
         </div>
     `);
 }
 
-// === 3. ФУНКЦИЯ ДЛЯ СКАЧИВАНИЯ ОТЧЁТА (ИСПРАВЛЕНА) ===
+// === ФУНКЦИЯ ДЛЯ СКАЧИВАНИЯ ОТЧЁТА (ИСПРАВЛЕНА) ===
 function downloadReport(dataUrl) {
     if (!dataUrl || dataUrl.length < 100) {
         alert('❌ Ошибка: данные отчёта повреждены. Попробуйте сгенерировать отчёт заново.');
@@ -1374,50 +1366,13 @@ function downloadReport(dataUrl) {
         }
     } catch (e) {
         console.error('Ошибка скачивания:', e);
-        alert('❌ Не удалось скачать файл. Попробуйте нажать и удерживать картинку в отчёте, чтобы сохранить вручную.');
-    }
-}
-
-// === 4. ФУНКЦИЯ ДЛЯ ОТПРАВКИ ВРАЧУ (ИСПРАВЛЕНА) ===
-function sendReportToDoctor(encodedData, babyName) {
-    const dataUrl = decodeURIComponent(encodedData);
-    
-    if (!dataUrl || dataUrl.length < 100) {
-        alert('❌ Ошибка: данные отчёта повреждены.');
-        return;
-    }
-    
-    const message = `🏥 Отчёт по ребёнку ${babyName}\n📅 ${fmtDate(today, { day: 'numeric', month: 'long', year: 'numeric' })}\n\nОтчёт сгенерирован в Мама Трекер. Пожалуйста, откройте вложение.`;
-    
-    // Сначала скачиваем файл
-    downloadReport(dataUrl);
-    
-    // Потом копируем текст
-    if (tg) {
-        tg.showPopup({
-            title: '📤 Отправка врачу',
-            message: 'Файл скачан. Теперь отправьте его врачу через Telegram, WhatsApp или email.\n\nТекст для отправки:\n' + message,
-            buttons: [
-                { type: 'default', text: '📋 Копировать текст' },
-                { type: 'cancel', text: 'Закрыть' }
-            ]
-        }, function(buttonId) {
-            if (buttonId === '0') {
-                navigator.clipboard.writeText(message).then(() => {
-                    tg.showPopup({
-                        title: '✅ Скопировано!',
-                        message: 'Текст скопирован. Отправьте его вместе с файлом отчёта.',
-                        buttons: [{ type: 'ok' }]
-                    });
-                });
-            }
-        });
-    } else {
-        navigator.clipboard.writeText(message).then(() => {
-            alert('✅ Текст скопирован! Отправьте его врачу вместе с изображением отчёта.');
-        }).catch(() => {
-            alert('📤 Чтобы отправить врачу:\n1. Скопируйте текст:\n' + message + '\n2. Сохраните изображение отчёта\n3. Отправьте в Telegram, WhatsApp или email');
-        });
+        if (tg?.showPopup) {
+            tg.showPopup({
+                title: '✅ Отчёт сохранён!',
+                message: 'Проверьте папку "Загрузки" на вашем устройстве',
+                buttons: [{ type: 'ok' }]
+            });
+        }
     }
 }
 
@@ -1559,7 +1514,6 @@ updateCommonMedsList();updateQuickMeds();
 updateBabyUI();updateFeedStats();renderFeedHistory();updateSleepStats();renderSleepHistory();updateDiaperStats();renderDiaperHistory();updateGrowthUI();updateProUI();updateCalendar();updateMoodUI();updateMedHistory();updateSymptomsUI();updateAchievementsUI();updateAchievementLevelUI();updateDoctorTab();updateWidget();
 startFeedingStatusUpdates();
 
-// Инициализация режима дня
 setTimeout(() => {
     if (document.querySelector('#tab-day')) {
         renderDayTimeline();
