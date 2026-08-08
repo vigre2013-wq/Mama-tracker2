@@ -1499,7 +1499,7 @@ setTimeout(() => {
     }
 }, 500);
 // ========================================================================
-// ИСПРАВЛЕННЫЙ ОТЧЁТ ДЛЯ ПЕДИАТРА (С КАРТИНКОЙ)
+// ПОЛНЫЙ ИСПРАВЛЕННЫЙ БЛОК ОТЧЁТА (С ГРАФИКАМИ И СКАЧИВАНИЕМ)
 // ========================================================================
 
 function exportForDoctor2() {
@@ -1548,7 +1548,6 @@ function exportForDoctor2() {
         const padding = 40;
         let y = padding;
         
-        // Рассчёт высоты
         let rowCount = 30 + Math.min(feedData7.length, 14) + Math.min(sleepData7.length, 7) + Math.min(diaperData7.length, 7) + Math.min(sympData7.length, 7);
         if (growthRecords.length > 0) rowCount += 10;
         if (medsData7.length > 0) rowCount += 3 + medsData7.length;
@@ -1568,7 +1567,6 @@ function exportForDoctor2() {
         ctx.fillStyle = bgColor;
         ctx.fillRect(0, 0, width, height);
         
-        // Заголовок
         ctx.fillStyle = textColor;
         ctx.font = 'bold 28px -apple-system, sans-serif';
         ctx.textAlign = 'center';
@@ -1588,7 +1586,6 @@ function exportForDoctor2() {
         ctx.stroke();
         y += 25;
         
-        // Информация о ребёнке
         ctx.fillStyle = textColor;
         ctx.font = 'bold 18px -apple-system, sans-serif';
         ctx.textAlign = 'left';
@@ -1609,7 +1606,6 @@ function exportForDoctor2() {
         }
         y += 10;
         
-        // Функции для рисования
         function drawSection(title) {
             y += 5;
             ctx.fillStyle = accentColor;
@@ -1636,7 +1632,7 @@ function exportForDoctor2() {
             y += 20;
         }
         
-        // ГРАФИК ТЕМПЕРАТУРЫ (упрощённый, если есть данные)
+        // ГРАФИК ТЕМПЕРАТУРЫ
         if (tempRecs.length > 0) {
             drawSection('🌡 График температуры (7 дней)');
             
@@ -1872,7 +1868,6 @@ function exportForDoctor2() {
         ctx.textAlign = 'center';
         ctx.fillText('Создано в Мама Трекер • ' + fmtDate(today, { day: 'numeric', month: 'long', year: 'numeric' }), width / 2, y);
         
-        // СОХРАНЯЕМ КАРТИНКУ
         const dataUrl = canvas.toDataURL('image/png');
         
         showOverlay(`
@@ -1894,21 +1889,12 @@ function exportForDoctor2() {
             </div>
         `);
         
-        if (tg?.showPopup) {
-            tg.showPopup({
-                title: '✅ Отчёт готов!',
-                message: 'Нажмите "Скачать" чтобы сохранить картинку',
-                buttons: [{ type: 'ok' }]
-            });
-        }
-        
     } catch (e) {
         console.error('Ошибка:', e);
         alert('❌ Ошибка при создании отчёта: ' + e.message);
     }
 }
 
-// Функция для скачивания отчёта
 function downloadReport(dataUrl) {
     if (!dataUrl || dataUrl.length < 100) {
         alert('❌ Ошибка: данные отчёта повреждены.');
@@ -1919,26 +1905,27 @@ function downloadReport(dataUrl) {
         const link = document.createElement('a');
         link.download = 'Отчёт_для_педиатра_' + fmtDate(today, { day: '2-digit', month: '2-digit', year: 'numeric' }) + '.png';
         link.href = dataUrl;
+        link.style.display = 'none';
         document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
         
-        if (tg?.showPopup) {
-            tg.showPopup({
-                title: '✅ Отчёт сохранён!',
-                message: 'Файл скачан на ваше устройство',
-                buttons: [{ type: 'ok' }]
-            });
-        }
+        setTimeout(function() {
+            link.click();
+            document.body.removeChild(link);
+            
+            if (tg?.showPopup) {
+                tg.showPopup({
+                    title: '✅ Отчёт сохранён!',
+                    message: 'Файл скачан в папку "Загрузки"',
+                    buttons: [{ type: 'ok' }]
+                });
+            } else {
+                alert('✅ Отчёт сохранён! Проверьте папку "Загрузки"');
+            }
+        }, 100);
+        
     } catch (e) {
         console.error('Ошибка скачивания:', e);
-        if (tg?.showPopup) {
-            tg.showPopup({
-                title: '✅ Отчёт сохранён!',
-                message: 'Проверьте папку "Загрузки" на вашем устройстве',
-                buttons: [{ type: 'ok' }]
-            });
-        }
+        alert('❌ Ошибка при скачивании. Попробуйте нажать и удерживать картинку, чтобы сохранить вручную.');
     }
 }
 </script>
