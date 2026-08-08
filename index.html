@@ -344,6 +344,8 @@
             color: var(--text);
         }
     </style>
+    <!-- ПОДКЛЮЧЕНИЕ QR-БИБЛИОТЕКИ -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 </head>
 <body class="color-pink">
 
@@ -561,7 +563,7 @@
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script>
 // ========================================================================
-// ВЕСЬ ТВОЙ ОРИГИНАЛЬНЫЙ КОД (сохранён полностью)
+// ВЕСЬ ТВОЙ ОРИГИНАЛЬНЫЙ КОД
 // ========================================================================
 
 const CFG = {
@@ -866,60 +868,31 @@ function spawnConfetti(x,y){const emojis=['🎉','✨','🌟','💖','🎊','�
 function exportAsImage(){if(!isPro())return;const isLight=document.body.classList.contains('light-theme');const canvas=document.createElement('canvas'),ctx=canvas.getContext('2d');const width=800,padding=40,lineHeight=32;const feedData=getAllRecords('feed',30).slice(0,20),sleepData=getAllRecords('sleep',30).slice(0,10),diaperData=getAllRecords('diaper',30).slice(0,10);const totalFeedMin=Math.floor(feedData.reduce((s,r)=>s+r.duration,0)/60),totalSleepMin=Math.floor(sleepData.reduce((s,r)=>s+r.duration,0)/60);const leftCount=feedData.filter(r=>r.side==='left').length,rightCount=feedData.filter(r=>r.side==='right').length;let y=padding,height=padding*2+lineHeight*3+lineHeight*(Math.min(feedData.length,20)+3)+lineHeight*(Math.min(sleepData.length,10)+3)+lineHeight*(Math.min(diaperData.length,10)+3)+200;canvas.width=width;canvas.height=height;const bgColor=isLight?'#ffffff':'#1a1a2e',textColor=isLight?'#2d2d3a':'#f0e6ef',secColor=isLight?'#7a7a8a':'#a8a0b0';ctx.fillStyle=bgColor;ctx.fillRect(0,0,width,height);ctx.fillStyle=textColor;ctx.font='bold 32px -apple-system, sans-serif';ctx.textAlign='center';ctx.fillText('🤱 Мама Трекер — Отчёт',width/2,y);y+=50;ctx.fillStyle=secColor;ctx.font='16px -apple-system, sans-serif';ctx.fillText(fmtDate(today,{weekday:'long',day:'numeric',month:'long',year:'numeric'}),width/2,y);y+=30;ctx.strokeStyle=isLight?'rgba(0,0,0,0.1)':'rgba(255,255,255,0.1)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(padding,y);ctx.lineTo(width-padding,y);ctx.stroke();y+=30;function drawSection(title,emoji,color){ctx.fillStyle=color;ctx.font='bold 20px -apple-system, sans-serif';ctx.textAlign='left';ctx.fillText(emoji+' '+title,padding,y);y+=lineHeight+8;}function drawRow(text,value,isHeader){ctx.fillStyle=isHeader?secColor:textColor;ctx.font=isHeader?'13px -apple-system, sans-serif':'16px -apple-system, sans-serif';ctx.textAlign='left';ctx.fillText(text,padding,y);if(value){ctx.textAlign='right';ctx.fillText(value,width-padding,y);}y+=lineHeight;}drawSection('Общая сводка','','#f0c060');drawRow('Всего кормлений',feedData.length+'');drawRow('Общее время кормлений',totalFeedMin+' мин');drawRow('Левая / Правая',leftCount+' / '+rightCount);drawRow('Всего сна',totalSleepMin+' мин');drawRow('Смен подгузников',diaperData.length+'');y+=16;drawSection('Кормления','🍼','#e8a0bf');drawRow('Дата','Длительность',true);feedData.forEach(r=>drawRow(fmtDate(new Date(r.timestamp))+' '+fmtTime(r.timestamp),Math.floor(r.duration/60)+' мин ('+(r.side==='left'?'Л':'П')+')'));y+=16;drawSection('Сон','😴','#c4a0e8');drawRow('Дата','Длительность',true);sleepData.forEach(r=>drawRow(fmtDate(new Date(r.timestamp)),Math.floor(r.duration/60)+' мин'));y+=16;drawSection('Подгузники','💧','#a0e8c4');drawRow('Дата и время','Тип',true);diaperData.forEach(r=>drawRow(fmtDate(new Date(r.timestamp))+' '+fmtTime(r.timestamp),CFG.DIAPER_LABELS[r.type]||r.type));y=canvas.height-60;ctx.fillStyle=secColor;ctx.font='12px -apple-system, sans-serif';ctx.textAlign='center';ctx.fillText('Создано в Мама Трекер — @MamaFeedBot',width/2,y);const dataUrl=canvas.toDataURL('image/png');showOverlay(`<div style="text-align:center;"><img src="${dataUrl}" style="max-width:100%;max-height:80vh;border-radius:12px;"><p style="color:#a8a0b0;font-size:14px;text-align:center;margin-top:16px;">📸 Нажмите и удерживайте картинку, чтобы сохранить</p><button class="btn-skip" onclick="closeOverlay()" style="margin-top:12px;padding:12px 30px;width:auto;">✕ Закрыть</button></div>`);}
 
 // ========================================================================
-// УЛУЧШЕННЫЙ ОТЧЁТ ДЛЯ ПЕДИАТРА (с графиками, QR и отправкой)
+// УЛУЧШЕННЫЙ ОТЧЁТ ДЛЯ ПЕДИАТРА (НАСТОЯЩИЙ QR)
 // ========================================================================
 
-// === 1. ВСТРОЕННЫЙ QR-ГЕНЕРАТОР ===
+// === QR-ГЕНЕРАТОР (НАСТОЯЩИЙ, ЧЕРЕЗ БИБЛИОТЕКУ) ===
 function generateQRCode(text, size) {
-    const canvas = document.createElement('canvas');
-    canvas.width = size || 200;
-    canvas.height = size || 200;
-    const ctx = canvas.getContext('2d');
+    const container = document.createElement('div');
+    container.style.display = 'none';
+    document.body.appendChild(container);
     
-    const bgColor = document.body.classList.contains('light-theme') ? '#ffffff' : '#1a1a2e';
-    const fgColor = document.body.classList.contains('light-theme') ? '#2d2d3a' : '#f0e6ef';
+    const qr = new QRCode(container, {
+        text: text,
+        width: size || 200,
+        height: size || 200,
+        colorDark: document.body.classList.contains('light-theme') ? '#2d2d3a' : '#f0e6ef',
+        colorLight: document.body.classList.contains('light-theme') ? '#ffffff' : '#1a1a2e',
+        correctLevel: QRCode.CorrectLevel.H
+    });
     
-    ctx.fillStyle = bgColor;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    const data = text.split('').map(c => c.charCodeAt(0));
-    const cols = Math.ceil(Math.sqrt(data.length * 2)) + 4;
-    const cellSize = Math.floor((canvas.width - 40) / cols);
-    const offsetX = 20;
-    const offsetY = 20;
-    
-    ctx.fillStyle = fgColor;
-    
-    for (let corner = 0; corner < 4; corner++) {
-        const cx = corner === 0 ? offsetX : (corner === 1 ? canvas.width - offsetX - cellSize * 7 : offsetX);
-        const cy = corner === 0 ? offsetY : (corner === 2 ? canvas.height - offsetY - cellSize * 7 : offsetY);
-        if (corner === 3) continue;
-        
-        ctx.fillRect(cx, cy, cellSize * 7, cellSize * 7);
-        ctx.fillStyle = bgColor;
-        ctx.fillRect(cx + cellSize, cy + cellSize, cellSize * 5, cellSize * 5);
-        ctx.fillStyle = fgColor;
-        ctx.fillRect(cx + cellSize * 2.5, cy + cellSize * 2.5, cellSize * 2, cellSize * 2);
-        ctx.fillStyle = fgColor;
-    }
-    
-    for (let i = 0; i < Math.min(data.length, 200); i++) {
-        const row = Math.floor(i / cols);
-        const col = i % cols;
-        if (data[i] % 2 === 0) {
-            ctx.fillRect(offsetX + col * cellSize + cellSize * 1.5, offsetY + row * cellSize + cellSize * 1.5, cellSize * 0.6, cellSize * 0.6);
-        }
-    }
-    
-    ctx.fillStyle = fgColor;
-    ctx.font = '10px -apple-system, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('Отсканируйте для просмотра', canvas.width/2, canvas.height - 5);
-    
-    return canvas.toDataURL('image/png');
+    const canvas = container.querySelector('canvas');
+    const dataUrl = canvas.toDataURL('image/png');
+    document.body.removeChild(container);
+    return dataUrl;
 }
 
-// === 2. ОБНОВЛЁННЫЙ ОТЧЁТ ДЛЯ ПЕДИАТРА (ТОЛЬКО СКАЧИВАНИЕ) ===
+// === ОБНОВЛЁННЫЙ ОТЧЁТ ДЛЯ ПЕДИАТРА (ТОЛЬКО СКАЧИВАНИЕ) ===
 function exportForDoctor() {
     if (!isPro()) {
         alert('🔒 Функция доступна только в PRO-версии');
@@ -1293,7 +1266,7 @@ function exportForDoctor() {
     
     y += 10;
     
-    // === QR-КОД ===
+    // === QR-КОД (НАСТОЯЩИЙ) ===
     const qrText = 'Отчёт по ребёнку ' + baby.name + ' от ' + fmtDate(today, { day: 'numeric', month: 'long', year: 'numeric' });
     const qrDataUrl = generateQRCode(qrText, 120);
     const qrImg = new Image();
@@ -1302,7 +1275,6 @@ function exportForDoctor() {
         const qrX = width - padding - 140;
         const qrY = canvas.height - 160;
         ctx.drawImage(qrImg, qrX, qrY, 120, 120);
-        
         const dataUrl = canvas.toDataURL('image/png');
         showOverlayWithReport(dataUrl, baby.name);
     };
