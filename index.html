@@ -385,7 +385,6 @@
     </div>
 
     <!-- КОНТЕНТ ВКЛАДОК (весь код вставлен, но для краткости я оставлю структуру) -->
-    <!-- Я вставляю ТОЛЬКО необходимую часть для работы отчёта, остальное - твой полный код -->
     <!-- ВАЖНО: ВСЕ ТВОИ ВКЛАДКИ И ФУНКЦИИ СОХРАНЕНЫ -->
 
     <div class="tab-content active" id="tab-feeding">
@@ -566,7 +565,7 @@
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script>
 // ========================================================================
-// ВЕСЬ ТВОЙ ОРИГИНАЛЬНЫЙ КОД ЗДЕСЬ (НИЧЕГО НЕ УДАЛЕНО)
+// ВЕСЬ ТВОЙ ОРИГИНАЛЬНЫЙ КОД (сохранён полностью)
 // ========================================================================
 
 const CFG = {
@@ -924,7 +923,7 @@ function generateQRCode(text, size) {
     return canvas.toDataURL('image/png');
 }
 
-// === 2. ОБНОВЛЁННЫЙ ОТЧЁТ ДЛЯ ПЕДИАТРА ===
+// === 2. ОБНОВЛЁННЫЙ ОТЧЁТ ДЛЯ ПЕДИАТРА (ИСПРАВЛЕННЫЙ) ===
 function exportForDoctor() {
     if (!isPro()) {
         alert('🔒 Функция доступна только в PRO-версии');
@@ -1304,89 +1303,100 @@ function exportForDoctor() {
     const qrImg = new Image();
     qrImg.src = qrDataUrl;
     qrImg.onload = function() {
-        // Рисуем QR после загрузки
         const qrX = width - padding - 140;
         const qrY = canvas.height - 160;
         ctx.drawImage(qrImg, qrX, qrY, 120, 120);
         
-        // Показываем готовый отчёт
         const dataUrl = canvas.toDataURL('image/png');
-        showOverlay(`
-            <div style="text-align:center; max-height: 80vh; overflow-y: auto;">
-                <h3>🏥 Отчёт для педиатра</h3>
-                <img src="${dataUrl}" style="max-width:100%; border-radius:12px; margin:12px 0; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
-                
-                <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-top:12px;">
-                    <button onclick="closeOverlay(); downloadReport('${dataUrl}')" class="btn-save" style="padding:10px 20px; width:auto;">
-                        📥 Скачать
-                    </button>
-                    <button onclick="closeOverlay(); sendReportToDoctor('${encodeURIComponent(dataUrl)}', '${baby.name}')" class="btn-save" style="padding:10px 20px; width:auto; background: #4a90d9;">
-                        📤 Отправить врачу
-                    </button>
-                    <button onclick="closeOverlay()" class="btn-skip" style="padding:10px 20px; width:auto;">
-                        ✕ Закрыть
-                    </button>
-                </div>
-                <p style="font-size:11px; color:var(--text-secondary); margin-top:8px;">
-                    📸 Нажмите и удерживайте картинку, чтобы сохранить
-                </p>
-            </div>
-        `);
+        showOverlayWithReport(dataUrl, baby.name);
     };
     
     // Если QR не загрузился за 500ms — показываем без него
     setTimeout(function() {
         if (!qrImg.complete) {
             const dataUrl = canvas.toDataURL('image/png');
-            showOverlay(`
-                <div style="text-align:center; max-height: 80vh; overflow-y: auto;">
-                    <h3>🏥 Отчёт для педиатра</h3>
-                    <img src="${dataUrl}" style="max-width:100%; border-radius:12px; margin:12px 0; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
-                    
-                    <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-top:12px;">
-                        <button onclick="closeOverlay(); downloadReport('${dataUrl}')" class="btn-save" style="padding:10px 20px; width:auto;">
-                            📥 Скачать
-                        </button>
-                        <button onclick="closeOverlay(); sendReportToDoctor('${encodeURIComponent(dataUrl)}', '${baby.name}')" class="btn-save" style="padding:10px 20px; width:auto; background: #4a90d9;">
-                            📤 Отправить врачу
-                        </button>
-                        <button onclick="closeOverlay()" class="btn-skip" style="padding:10px 20px; width:auto;">
-                            ✕ Закрыть
-                        </button>
-                    </div>
-                    <p style="font-size:11px; color:var(--text-secondary); margin-top:8px;">
-                        📸 Нажмите и удерживайте картинку, чтобы сохранить
-                    </p>
-                </div>
-            `);
+            showOverlayWithReport(dataUrl, baby.name);
         }
     }, 500);
 }
 
-// === 3. ФУНКЦИЯ ДЛЯ СКАЧИВАНИЯ ОТЧЁТА ===
+// === ВСПОМОГАТЕЛЬНАЯ ФУНКЦИЯ ДЛЯ ПОКАЗА ОТЧЁТА ===
+function showOverlayWithReport(dataUrl, babyName) {
+    if (!dataUrl || dataUrl.length < 100) {
+        alert('❌ Ошибка: не удалось сгенерировать отчёт. Попробуйте ещё раз.');
+        return;
+    }
+    
+    showOverlay(`
+        <div style="text-align:center; max-height: 80vh; overflow-y: auto;">
+            <h3>🏥 Отчёт для педиатра</h3>
+            <img src="${dataUrl}" style="max-width:100%; border-radius:12px; margin:12px 0; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
+            
+            <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-top:12px;">
+                <button onclick="closeOverlay(); downloadReport('${dataUrl}')" class="btn-save" style="padding:10px 20px; width:auto;">
+                    📥 Скачать
+                </button>
+                <button onclick="closeOverlay(); sendReportToDoctor('${encodeURIComponent(dataUrl)}', '${babyName}')" class="btn-save" style="padding:10px 20px; width:auto; background: #4a90d9;">
+                    📤 Отправить врачу
+                </button>
+                <button onclick="closeOverlay()" class="btn-skip" style="padding:10px 20px; width:auto;">
+                    ✕ Закрыть
+                </button>
+            </div>
+            <p style="font-size:11px; color:var(--text-secondary); margin-top:8px;">
+                📸 Нажмите и удерживайте картинку, чтобы сохранить
+            </p>
+        </div>
+    `);
+}
+
+// === 3. ФУНКЦИЯ ДЛЯ СКАЧИВАНИЯ ОТЧЁТА (ИСПРАВЛЕНА) ===
 function downloadReport(dataUrl) {
-    const link = document.createElement('a');
-    link.download = 'Отчёт_для_педиатра_' + fmtDate(today, { day: '2-digit', month: '2-digit', year: 'numeric' }) + '.png';
-    link.href = dataUrl;
-    link.click();
-    if (tg?.showPopup) {
-        tg.showPopup({
-            title: '✅ Отчёт сохранён!',
-            message: 'Файл скачан на ваше устройство',
-            buttons: [{ type: 'ok' }]
-        });
+    if (!dataUrl || dataUrl.length < 100) {
+        alert('❌ Ошибка: данные отчёта повреждены. Попробуйте сгенерировать отчёт заново.');
+        return;
+    }
+    
+    try {
+        const link = document.createElement('a');
+        link.download = 'Отчёт_для_педиатра_' + fmtDate(today, { day: '2-digit', month: '2-digit', year: 'numeric' }) + '.png';
+        link.href = dataUrl;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        if (tg?.showPopup) {
+            tg.showPopup({
+                title: '✅ Отчёт сохранён!',
+                message: 'Файл скачан на ваше устройство',
+                buttons: [{ type: 'ok' }]
+            });
+        }
+    } catch (e) {
+        console.error('Ошибка скачивания:', e);
+        alert('❌ Не удалось скачать файл. Попробуйте нажать и удерживать картинку в отчёте, чтобы сохранить вручную.');
     }
 }
 
-// === 4. ФУНКЦИЯ ДЛЯ ОТПРАВКИ ВРАЧУ ===
+// === 4. ФУНКЦИЯ ДЛЯ ОТПРАВКИ ВРАЧУ (ИСПРАВЛЕНА) ===
 function sendReportToDoctor(encodedData, babyName) {
     const dataUrl = decodeURIComponent(encodedData);
+    
+    if (!dataUrl || dataUrl.length < 100) {
+        alert('❌ Ошибка: данные отчёта повреждены.');
+        return;
+    }
+    
     const message = `🏥 Отчёт по ребёнку ${babyName}\n📅 ${fmtDate(today, { day: 'numeric', month: 'long', year: 'numeric' })}\n\nОтчёт сгенерирован в Мама Трекер. Пожалуйста, откройте вложение.`;
     
+    // Сначала скачиваем файл
+    downloadReport(dataUrl);
+    
+    // Потом копируем текст
     if (tg) {
         tg.showPopup({
             title: '📤 Отправка врачу',
-            message: 'Скопируйте текст и изображение, чтобы отправить врачу через Telegram, WhatsApp или email.\n\n' + message,
+            message: 'Файл скачан. Теперь отправьте его врачу через Telegram, WhatsApp или email.\n\nТекст для отправки:\n' + message,
             buttons: [
                 { type: 'default', text: '📋 Копировать текст' },
                 { type: 'cancel', text: 'Закрыть' }
@@ -1396,7 +1406,7 @@ function sendReportToDoctor(encodedData, babyName) {
                 navigator.clipboard.writeText(message).then(() => {
                     tg.showPopup({
                         title: '✅ Скопировано!',
-                        message: 'Текст скопирован. Теперь отправьте изображение врачу.',
+                        message: 'Текст скопирован. Отправьте его вместе с файлом отчёта.',
                         buttons: [{ type: 'ok' }]
                     });
                 });
@@ -1409,10 +1419,6 @@ function sendReportToDoctor(encodedData, babyName) {
             alert('📤 Чтобы отправить врачу:\n1. Скопируйте текст:\n' + message + '\n2. Сохраните изображение отчёта\n3. Отправьте в Telegram, WhatsApp или email');
         });
     }
-    
-    setTimeout(() => {
-        downloadReport(dataUrl);
-    }, 500);
 }
 
 // ========================================================================
