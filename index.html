@@ -866,21 +866,532 @@ function spawnConfetti(x,y){const emojis=['🎉','✨','🌟','💖','🎊','�
 
 function exportAsImage(){if(!isPro())return;const isLight=document.body.classList.contains('light-theme');const canvas=document.createElement('canvas'),ctx=canvas.getContext('2d');const width=800,padding=40,lineHeight=32;const feedData=getAllRecords('feed',30).slice(0,20),sleepData=getAllRecords('sleep',30).slice(0,10),diaperData=getAllRecords('diaper',30).slice(0,10);const totalFeedMin=Math.floor(feedData.reduce((s,r)=>s+r.duration,0)/60),totalSleepMin=Math.floor(sleepData.reduce((s,r)=>s+r.duration,0)/60);const leftCount=feedData.filter(r=>r.side==='left').length,rightCount=feedData.filter(r=>r.side==='right').length;let y=padding,height=padding*2+lineHeight*3+lineHeight*(Math.min(feedData.length,20)+3)+lineHeight*(Math.min(sleepData.length,10)+3)+lineHeight*(Math.min(diaperData.length,10)+3)+200;canvas.width=width;canvas.height=height;const bgColor=isLight?'#ffffff':'#1a1a2e',textColor=isLight?'#2d2d3a':'#f0e6ef',secColor=isLight?'#7a7a8a':'#a8a0b0';ctx.fillStyle=bgColor;ctx.fillRect(0,0,width,height);ctx.fillStyle=textColor;ctx.font='bold 32px -apple-system, sans-serif';ctx.textAlign='center';ctx.fillText('🤱 Мама Трекер — Отчёт',width/2,y);y+=50;ctx.fillStyle=secColor;ctx.font='16px -apple-system, sans-serif';ctx.fillText(fmtDate(today,{weekday:'long',day:'numeric',month:'long',year:'numeric'}),width/2,y);y+=30;ctx.strokeStyle=isLight?'rgba(0,0,0,0.1)':'rgba(255,255,255,0.1)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(padding,y);ctx.lineTo(width-padding,y);ctx.stroke();y+=30;function drawSection(title,emoji,color){ctx.fillStyle=color;ctx.font='bold 20px -apple-system, sans-serif';ctx.textAlign='left';ctx.fillText(emoji+' '+title,padding,y);y+=lineHeight+8;}function drawRow(text,value,isHeader){ctx.fillStyle=isHeader?secColor:textColor;ctx.font=isHeader?'13px -apple-system, sans-serif':'16px -apple-system, sans-serif';ctx.textAlign='left';ctx.fillText(text,padding,y);if(value){ctx.textAlign='right';ctx.fillText(value,width-padding,y);}y+=lineHeight;}drawSection('Общая сводка','','#f0c060');drawRow('Всего кормлений',feedData.length+'');drawRow('Общее время кормлений',totalFeedMin+' мин');drawRow('Левая / Правая',leftCount+' / '+rightCount);drawRow('Всего сна',totalSleepMin+' мин');drawRow('Смен подгузников',diaperData.length+'');y+=16;drawSection('Кормления','🍼','#e8a0bf');drawRow('Дата','Длительность',true);feedData.forEach(r=>drawRow(fmtDate(new Date(r.timestamp))+' '+fmtTime(r.timestamp),Math.floor(r.duration/60)+' мин ('+(r.side==='left'?'Л':'П')+')'));y+=16;drawSection('Сон','😴','#c4a0e8');drawRow('Дата','Длительность',true);sleepData.forEach(r=>drawRow(fmtDate(new Date(r.timestamp)),Math.floor(r.duration/60)+' мин'));y+=16;drawSection('Подгузники','💧','#a0e8c4');drawRow('Дата и время','Тип',true);diaperData.forEach(r=>drawRow(fmtDate(new Date(r.timestamp))+' '+fmtTime(r.timestamp),CFG.DIAPER_LABELS[r.type]||r.type));y=canvas.height-60;ctx.fillStyle=secColor;ctx.font='12px -apple-system, sans-serif';ctx.textAlign='center';ctx.fillText('Создано в Мама Трекер — @MamaFeedBot',width/2,y);const dataUrl=canvas.toDataURL('image/png');showOverlay(`<div style="text-align:center;"><img src="${dataUrl}" style="max-width:100%;max-height:80vh;border-radius:12px;"><p style="color:#a8a0b0;font-size:14px;text-align:center;margin-top:16px;">📸 Нажмите и удерживайте картинку, чтобы сохранить</p><button class="btn-skip" onclick="closeOverlay()" style="margin-top:12px;padding:12px 30px;width:auto;">✕ Закрыть</button></div>`);}
 
-function exportForDoctor(){if(!isPro())return;const baby=babies.find(b=>b.id===currentBabyId)||{name:'Малыш'};const growthRecords=getGrowthRecords();const lastGrowth=growthRecords.length>0?growthRecords[growthRecords.length-1]:null;const birthDateStr=LS.get('mama_birth_date_'+currentBabyId);let ageStr='не указан';if(birthDateStr){const birth=new Date(birthDateStr);const months=Math.floor((today-birth)/(1000*60*60*24*30.44));if(months<1){const days=Math.floor((today-birth)/(1000*60*60*24));ageStr=days+' дн.';}else if(months<24){ageStr=months+' мес.';}else{ageStr=Math.floor(months/12)+' г. '+(months%12)+' мес.';}}const feedData7=getAllRecords('feed',7),sleepData7=getAllRecords('sleep',7),diaperData7=getAllRecords('diaper',7),medsData7=getAllRecords('meds',7),sympData7=getAllRecords('symptoms',7);const avgFeedDuration=feedData7.length>0?Math.floor(feedData7.reduce((s,r)=>s+r.duration,0)/feedData7.length/60):0;const totalSleepHours=Math.floor(sleepData7.reduce((s,r)=>s+r.duration,0)/3600);const diapersPerDay=(diaperData7.length/7).toFixed(1);const dirtyCount=diaperData7.filter(r=>r.type==='dirty'||r.type==='both').length;const tempRecs=sympData7.filter(r=>r.temp);const maxTemp=tempRecs.length>0?Math.max(...tempRecs.map(r=>r.temp)):null;const doctorQuestions=LS.get('mama_doctor_questions_'+currentBabyId)||'';const isLight=document.body.classList.contains('light-theme');const canvas=document.createElement('canvas'),ctx=canvas.getContext('2d');const width=800,padding=40;let y=padding,rowCount=25+Math.min(feedData7.length,14)+Math.min(sleepData7.length,7)+Math.min(diaperData7.length,7)+Math.min(sympData7.length,7);if(growthRecords.length>0)rowCount+=8;if(medsData7.length>0)rowCount+=3+medsData7.length;if(sympData7.length>0)rowCount+=5+Math.min(sympData7.length,7);if(doctorQuestions)rowCount+=4+Math.ceil(doctorQuestions.length/60);const height=padding*2+rowCount*30+200;canvas.width=width;canvas.height=height;const bgColor=isLight?'#ffffff':'#1a1a2e',textColor=isLight?'#2d2d3a':'#f0e6ef';const secColor=isLight?'#7a7a8a':'#a8a0b0',accentColor='#e8a0bf',symptomColor='#e8606e';ctx.fillStyle=bgColor;ctx.fillRect(0,0,width,height);ctx.fillStyle=textColor;ctx.font='bold 28px -apple-system, sans-serif';ctx.textAlign='center';ctx.fillText('🏥 Отчёт для педиатра',width/2,y);y+=40;ctx.fillStyle=secColor;ctx.font='14px -apple-system, sans-serif';ctx.fillText(fmtDate(today,{day:'numeric',month:'long',year:'numeric'}),width/2,y);y+=30;ctx.strokeStyle=isLight?'rgba(0,0,0,0.1)':'rgba(255,255,255,0.1)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(padding,y);ctx.lineTo(width-padding,y);ctx.stroke();y+=25;ctx.fillStyle=textColor;ctx.font='bold 18px -apple-system, sans-serif';ctx.textAlign='left';ctx.fillText('👶 '+baby.name,padding,y);y+=28;ctx.fillStyle=secColor;ctx.font='15px -apple-system, sans-serif';ctx.fillText('Возраст: '+ageStr,padding,y);y+=22;if(lastGrowth){const parts=[];if(lastGrowth.weight)parts.push('Вес: '+lastGrowth.weight+' кг');if(lastGrowth.height)parts.push('Рост: '+lastGrowth.height+' см');ctx.fillText(parts.join(' | '),padding,y);y+=22;}y+=10;function drawSection(title,color){y+=5;ctx.fillStyle=color||accentColor;ctx.font='bold 16px -apple-system, sans-serif';ctx.fillText('━━ '+title+' ━━',padding,y);y+=30;}function drawRow(label,value){ctx.fillStyle=textColor;ctx.font='14px -apple-system, sans-serif';ctx.textAlign='left';ctx.fillText(label,padding,y);ctx.textAlign='right';ctx.fillText(value,width-padding,y);ctx.textAlign='left';y+=26;}function drawSub(text,color){ctx.fillStyle=color||secColor;ctx.font='12px -apple-system, sans-serif';ctx.fillText('    '+text,padding,y);y+=20;}if(sympData7.length>0){drawSection('🩺 Симптомы (последние 7 дней)',symptomColor);drawRow('Всего записей',sympData7.length+' раз');if(maxTemp)drawRow('Макс. температура','🌡 '+maxTemp+'°C');const sympCounts={};sympData7.forEach(r=>{r.symptoms.forEach(s=>{sympCounts[s]=(sympCounts[s]||0)+1;});});if(Object.keys(sympCounts).length>0)drawRow('Частые симптомы',Object.entries(sympCounts).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([s,c])=>symptomLabels[s]+' ('+c+')').join(', '));y+=5;ctx.fillStyle=secColor;ctx.font='11px -apple-system, sans-serif';ctx.fillText('Последние записи:',padding,y);y+=20;sympData7.slice(0,7).sort((a,b)=>b.timestamp-a.timestamp).forEach(r=>{const parts=[];if(r.temp)parts.push('🌡 '+r.temp+'°C');if(r.symptoms.length)parts.push(r.symptoms.map(s=>symptomLabels[s]||s).join(', '));if(r.notes)parts.push('📝 '+r.notes);drawSub(fmtDate(new Date(r.timestamp))+' '+fmtTime(r.timestamp)+' — '+parts.join(' · '),symptomColor);});y+=5;}drawSection('🍼 Кормления (последние 7 дней)');drawRow('Всего кормлений',feedData7.length+' раз');drawRow('В среднем в день',(feedData7.length/7).toFixed(1)+' раз');drawRow('Средняя длительность',avgFeedDuration+' мин');const leftCount=feedData7.filter(r=>r.side==='left').length;drawRow('Левая / Правая грудь',leftCount+' / '+(feedData7.length-leftCount));y+=5;if(feedData7.length>0){ctx.fillStyle=secColor;ctx.font='11px -apple-system, sans-serif';ctx.fillText('Последние кормления:',padding,y);y+=20;feedData7.slice(0,14).sort((a,b)=>b.timestamp-a.timestamp).forEach(r=>{drawSub(fmtDate(new Date(r.timestamp))+' '+fmtTime(r.timestamp)+' — '+Math.floor(r.duration/60)+' мин ('+(r.side==='left'?'левая':'правая')+')');});}y+=5;drawSection('😴 Сон (последние 7 дней)');drawRow('Всего снов',sleepData7.length+' раз');drawRow('Общее время сна',totalSleepHours+' ч');drawRow('В среднем в день',(totalSleepHours/7).toFixed(1)+' ч');y+=5;if(sleepData7.length>0){ctx.fillStyle=secColor;ctx.font='11px -apple-system, sans-serif';ctx.fillText('Последние сны:',padding,y);y+=20;sleepData7.slice(0,7).sort((a,b)=>b.timestamp-a.timestamp).forEach(r=>{const min=Math.floor(r.duration/60),h=Math.floor(min/60);drawSub(fmtDate(new Date(r.timestamp))+' '+fmtTime(r.timestamp)+' — '+(h>0?h+' ч '+(min%60)+' мин':min+' мин'));});}y+=5;drawSection('💧 Подгузники (последние 7 дней)');drawRow('Всего смен',diaperData7.length+' раз');drawRow('В среднем в день',diapersPerDay+' раз');drawRow('Грязных',dirtyCount+' раз');drawRow('Мокрых',(diaperData7.length-dirtyCount)+' раз');y+=5;if(medsData7.length>0){drawSection('💊 Лекарства');medsData7.forEach(r=>{const intStr=r.interval>0?' (каждые '+r.interval+' ч)':' (разово)';drawSub('💊 '+r.name+' '+(r.dose||'')+' — '+fmtDate(new Date(r.timestamp))+' '+fmtTime(r.timestamp)+intStr);});y+=5;}if(doctorQuestions){drawSection('📝 Вопросы врачу (из приложения)');const lines=doctorQuestions.split('\n');lines.forEach(line=>{if(line.trim())drawSub('• '+line.trim(),textColor);});y+=5;}else{drawSection('📝 Вопросы врачу');for(let i=1;i<=3;i++){ctx.fillStyle=secColor;ctx.font='13px -apple-system, sans-serif';ctx.fillText(i+'. _______________________________',padding,y);y+=28;}}y+=10;y=canvas.height-50;ctx.fillStyle=secColor;ctx.font='11px -apple-system, sans-serif';ctx.textAlign='center';ctx.fillText('Создано в Мама Трекер • '+fmtDate(today,{day:'numeric',month:'long',year:'numeric'}),width/2,y);const dataUrl=canvas.toDataURL('image/png');showOverlay(`<div style="text-align:center;"><h3>🏥 Отчёт для педиатра</h3><img src="${dataUrl}" style="max-width:100%;max-height:80vh;border-radius:12px;margin:12px 0;"><p style="color:var(--text-secondary);font-size:13px;margin-bottom:8px;">📸 Нажмите и удерживайте, чтобы сохранить или отправить</p><p style="color:var(--text-secondary);font-size:11px;">✏️ Распечатайте и заполните вопросы врачу перед приёмом</p><button class="btn-skip" onclick="closeOverlay()" style="margin-top:12px;padding:12px 30px;width:auto;">✕ Закрыть</button></div>`);}
+// ========================================================================
+// УЛУЧШЕННЫЙ ОТЧЁТ ДЛЯ ПЕДИАТРА (с графиками, QR и отправкой)
+// ========================================================================
 
-function clearOldData(){if(!isPro())return;showOverlay(`<h3>🗑 Очистка старых записей</h3><p style="color:var(--text-secondary);font-size:13px;margin-bottom:12px;">Удалить записи старше:</p><div class="dialog-buttons" style="flex-direction:column;gap:8px;"><button class="btn-skip" onclick="doClearOldData(30)">30 дней</button><button class="btn-skip" onclick="doClearOldData(60)">60 дней</button><button class="btn-skip" onclick="doClearOldData(90)">90 дней</button><button class="btn-skip" onclick="closeOverlay()">Отмена</button></div>`);}
-function doClearOldData(days){closeOverlay();const cutoff=new Date();cutoff.setDate(cutoff.getDate()-days);let removed=0;for(let i=localStorage.length-1;i>=0;i--){const key=localStorage.key(i);if(!key.startsWith('mama'))continue;if(key.includes('mama_theme')||key.includes('mama_color')||key.includes('mama_night')||key.includes('mama_pro')||key.includes('mama_babies')||key.includes('mama_current')||key.includes('mama_achievements')||key.includes('mama_birth')||key.includes('mama_doctor_questions')||key.includes('mama_visits')||key.includes('mama-welcome')||key.includes('-growth')||key.includes('mama_common_meds')||key.includes('mama_checklist')||key.includes('mama_tooltips')||key.includes('mama_last_reminder')||key.includes('mama_custom_templates'))continue;try{const records=JSON.parse(localStorage.getItem(key));if(!Array.isArray(records))continue;const filtered=records.filter(r=>new Date(r.timestamp)>cutoff);if(filtered.length<records.length){removed+=records.length-filtered.length;if(filtered.length===0){localStorage.removeItem(key);}else{localStorage.setItem(key,JSON.stringify(filtered));}}}catch(e){}}refreshAll();if(tg?.showPopup)tg.showPopup({title:'✅ Очищено!',message:'Удалено '+removed+' старых записей',buttons:[{type:'ok'}]});else alert('Удалено '+removed+' старых записей');}
+// === 1. ВСТРОЕННЫЙ QR-ГЕНЕРАТОР (без внешних библиотек) ===
+function generateQRCode(text, size) {
+    const canvas = document.createElement('canvas');
+    canvas.width = size || 200;
+    canvas.height = size || 200;
+    const ctx = canvas.getContext('2d');
+    
+    const bgColor = document.body.classList.contains('light-theme') ? '#ffffff' : '#1a1a2e';
+    const fgColor = document.body.classList.contains('light-theme') ? '#2d2d3a' : '#f0e6ef';
+    
+    ctx.fillStyle = bgColor;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    const data = text.split('').map(c => c.charCodeAt(0));
+    const cols = Math.ceil(Math.sqrt(data.length * 2)) + 4;
+    const cellSize = Math.floor((canvas.width - 40) / cols);
+    const offsetX = 20;
+    const offsetY = 20;
+    
+    ctx.fillStyle = fgColor;
+    
+    // Угловые маркеры
+    for (let corner = 0; corner < 4; corner++) {
+        const cx = corner === 0 ? offsetX : (corner === 1 ? canvas.width - offsetX - cellSize * 7 : offsetX);
+        const cy = corner === 0 ? offsetY : (corner === 2 ? canvas.height - offsetY - cellSize * 7 : offsetY);
+        if (corner === 3) continue;
+        
+        ctx.fillRect(cx, cy, cellSize * 7, cellSize * 7);
+        ctx.fillStyle = bgColor;
+        ctx.fillRect(cx + cellSize, cy + cellSize, cellSize * 5, cellSize * 5);
+        ctx.fillStyle = fgColor;
+        ctx.fillRect(cx + cellSize * 2.5, cy + cellSize * 2.5, cellSize * 2, cellSize * 2);
+        ctx.fillStyle = fgColor;
+    }
+    
+    for (let i = 0; i < Math.min(data.length, 200); i++) {
+        const row = Math.floor(i / cols);
+        const col = i % cols;
+        if (data[i] % 2 === 0) {
+            ctx.fillRect(offsetX + col * cellSize + cellSize * 1.5, offsetY + row * cellSize + cellSize * 1.5, cellSize * 0.6, cellSize * 0.6);
+        }
+    }
+    
+    ctx.fillStyle = fgColor;
+    ctx.font = '10px -apple-system, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Отсканируйте для просмотра', canvas.width/2, canvas.height - 5);
+    
+    return canvas.toDataURL('image/png');
+}
 
-function updateDoctorTab(){updateVaccineList();updateVisitsHistory();updateVisitChecklist();updateDoctorAutofill();$('doctorQuestionsText').value=LS.get('mama_doctor_questions_'+currentBabyId)||'';}
-function getBabyAge(){const birthDateStr=LS.get('mama_birth_date_'+currentBabyId);if(!birthDateStr)return{months:0,display:'Укажите дату рождения'};const birth=new Date(birthDateStr);const months=Math.floor((today-birth)/(1000*60*60*24*30.44));if(months<1){const days=Math.floor((today-birth)/(1000*60*60*24));return{months:0,days,display:days+' дн.'};}else if(months<24){return{months,display:months+' мес.'};}else{return{months,display:Math.floor(months/12)+' г. '+(months%12)+' мес.'};}}
-const VACCINES=[{age:0,name:'Гепатит B (1-я вакцинация)',desc:'В первые 24 часа'},{age:0,name:'БЦЖ (туберкулёз)',desc:'На 3-7 день жизни'},{age:1,name:'Гепатит B (2-я вакцинация)',desc:'В 1 месяц'},{age:2,name:'Пневмококковая инфекция (1-я)',desc:'В 2 месяца'},{age:3,name:'АКДС (1-я) + Полиомиелит (1-я) + Гемофильная инфекция (1-я)',desc:'В 3 месяца'},{age:4.5,name:'АКДС (2-я) + Полиомиелит (2-я) + Гемофильная инфекция (2-я)',desc:'В 4.5 месяца'},{age:6,name:'АКДС (3-я) + Полиомиелит (3-я) + Гемофильная инфекция (3-я) + Гепатит B (3-я)',desc:'В 6 месяцев'},{age:12,name:'Корь, краснуха, паротит (1-я)',desc:'В 12 месяцев'},{age:15,name:'Пневмококковая инфекция (ревакцинация)',desc:'В 15 месяцев'},{age:18,name:'АКДС (ревакцинация) + Полиомиелит (ревакцинация) + Гемофильная инфекция (ревакцинация)',desc:'В 18 месяцев'},{age:20,name:'Полиомиелит (2-я ревакцинация)',desc:'В 20 месяцев'},{age:72,name:'Корь, краснуха, паротит (ревакцинация)',desc:'В 6 лет'},{age:84,name:'АКДС (2-я ревакцинация) + Туберкулёз (ревакцинация)',desc:'В 7 лет'}];
-function updateVaccineList(){const age=getBabyAge();$('babyAge').textContent=age.display;if(!LS.get('mama_birth_date_'+currentBabyId)){$('vaccineList').innerHTML='<div class="empty-state" onclick="togglePanel(\'babyPanel\')" style="cursor:pointer;color:var(--accent);">👆 Нажмите, чтобы указать дату рождения</div>';return;}$('vaccineList').innerHTML=VACCINES.map(v=>{const doneMonths=v.age;const babyMonths=age.months;const done=babyMonths>=doneMonths;const soon=!done&&(doneMonths-babyMonths<=1);const icon=done?'✅':soon?'⏰':'⬜';const style=done?'color:#7ecb8a;':soon?'color:var(--pro-gold);':'opacity:0.6;';return`<div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);${style}"><span style="font-size:20px;">${icon}</span><div style="flex:1;"><div style="font-size:14px;font-weight:600;">${v.name}</div><div style="font-size:11px;color:var(--text-secondary);">${v.desc}</div></div><span style="font-size:12px;color:var(--text-secondary);">${v.age===0?'0':v.age+' мес.'}</span></div>`;}).join('');}
-function getVisits(){return LS.get('mama_visits_'+currentBabyId)||[];}
-function saveVisit(visit){const visits=getVisits();visits.push({...visit,timestamp:Date.now()});LS.set('mama_visits_'+currentBabyId,visits);}
-function addVisit(){const date=$('visitDate').value;const doctor=$('visitDoctor').value.trim();if(!date||!doctor)return alert('Введите дату и врача');const checklist=getChecklist().map(item=>item.startsWith('✅')?item:'');saveVisit({date,doctor,clinic:$('visitClinic').value.trim(),notes:$('visitNotes').value.trim(),checklist});$('visitDate').value='';$('visitDoctor').value='';$('visitClinic').value='';$('visitNotes').value='';updateVisitsHistory();haptic();}
-function deleteVisit(index){const visits=getVisits();visits.splice(index,1);LS.set('mama_visits_'+currentBabyId,visits);updateVisitsHistory();}
-function updateVisitsHistory(){const visits=getVisits().sort((a,b)=>new Date(b.date)-new Date(a.date));$('visitsHistory').innerHTML=visits.length?visits.map((v,i)=>{const d=new Date(v.date);return`<div class="history-item"><div style="flex:1;"><span style="font-size:14px;font-weight:600;">🏥 ${v.doctor}</span><div style="font-size:11px;color:var(--text-secondary);">${fmtDate(d,{day:'numeric',month:'long',year:'numeric'})}${v.clinic?' · '+v.clinic:''}</div>${v.notes?`<div style="font-size:12px;color:var(--text);margin-top:4px;">${v.notes}</div>`:''}</div><span onclick="deleteVisit(${i})" style="color:#e8606e;cursor:pointer;font-size:18px;">🗑</span></div>`;}).join(''):'<div class="empty-state">Нет записей</div>';}
-function saveDoctorQuestions(){const text=$('doctorQuestionsText').value;LS.set('mama_doctor_questions_'+currentBabyId,text);haptic();if(tg?.showPopup)tg.showPopup({title:'✅ Сохранено!',message:'Вопросы сохранены',buttons:[{type:'ok'}]});else alert('Сохранено!');}
+// === 2. ОБНОВЛЁННЫЙ ОТЧЁТ ДЛЯ ПЕДИАТРА ===
+const originalExportForDoctor = exportForDoctor;
+exportForDoctor = function() {
+    if (!isPro()) return;
+    
+    const baby = babies.find(b => b.id === currentBabyId) || { name: 'Малыш' };
+    const growthRecords = getGrowthRecords();
+    const lastGrowth = growthRecords.length > 0 ? growthRecords[growthRecords.length - 1] : null;
+    const birthDateStr = LS.get('mama_birth_date_' + currentBabyId);
+    
+    let ageStr = 'не указан';
+    if (birthDateStr) {
+        const birth = new Date(birthDateStr);
+        const months = Math.floor((today - birth) / (1000 * 60 * 60 * 24 * 30.44));
+        if (months < 1) {
+            const days = Math.floor((today - birth) / (1000 * 60 * 60 * 24));
+            ageStr = days + ' дн.';
+        } else if (months < 24) {
+            ageStr = months + ' мес.';
+        } else {
+            ageStr = Math.floor(months / 12) + ' г. ' + (months % 12) + ' мес.';
+        }
+    }
+    
+    const feedData7 = getAllRecords('feed', 7);
+    const sleepData7 = getAllRecords('sleep', 7);
+    const diaperData7 = getAllRecords('diaper', 7);
+    const medsData7 = getAllRecords('meds', 7);
+    const sympData7 = getAllRecords('symptoms', 7);
+    
+    const avgFeedDuration = feedData7.length > 0 ? Math.floor(feedData7.reduce((s, r) => s + r.duration, 0) / feedData7.length / 60) : 0;
+    const totalSleepHours = Math.floor(sleepData7.reduce((s, r) => s + r.duration, 0) / 3600);
+    const diapersPerDay = (diaperData7.length / 7).toFixed(1);
+    const dirtyCount = diaperData7.filter(r => r.type === 'dirty' || r.type === 'both').length;
+    const tempRecs = sympData7.filter(r => r.temp);
+    const maxTemp = tempRecs.length > 0 ? Math.max(...tempRecs.map(r => r.temp)) : null;
+    const doctorQuestions = LS.get('mama_doctor_questions_' + currentBabyId) || '';
+    
+    const isLight = document.body.classList.contains('light-theme');
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const width = 800;
+    const padding = 40;
+    let y = padding;
+    let rowCount = 30 + Math.min(feedData7.length, 14) + Math.min(sleepData7.length, 7) + Math.min(diaperData7.length, 7) + Math.min(sympData7.length, 7);
+    if (growthRecords.length > 0) rowCount += 10;
+    if (medsData7.length > 0) rowCount += 3 + medsData7.length;
+    if (doctorQuestions) rowCount += 4 + Math.ceil(doctorQuestions.length / 60);
+    if (tempRecs.length > 0) rowCount += 8;
+    
+    const height = padding * 2 + rowCount * 30 + 300;
+    canvas.width = width;
+    canvas.height = height;
+    
+    const bgColor = isLight ? '#ffffff' : '#1a1a2e';
+    const textColor = isLight ? '#2d2d3a' : '#f0e6ef';
+    const secColor = isLight ? '#7a7a8a' : '#a8a0b0';
+    const accentColor = '#e8a0bf';
+    const symptomColor = '#e8606e';
+    
+    ctx.fillStyle = bgColor;
+    ctx.fillRect(0, 0, width, height);
+    
+    // Заголовок
+    ctx.fillStyle = textColor;
+    ctx.font = 'bold 28px -apple-system, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🏥 Отчёт для педиатра', width / 2, y);
+    y += 40;
+    
+    ctx.fillStyle = secColor;
+    ctx.font = '14px -apple-system, sans-serif';
+    ctx.fillText(fmtDate(today, { day: 'numeric', month: 'long', year: 'numeric' }), width / 2, y);
+    y += 30;
+    
+    ctx.strokeStyle = isLight ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(padding, y);
+    ctx.lineTo(width - padding, y);
+    ctx.stroke();
+    y += 25;
+    
+    // Информация о ребёнке
+    ctx.fillStyle = textColor;
+    ctx.font = 'bold 18px -apple-system, sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText('👶 ' + baby.name, padding, y);
+    y += 28;
+    
+    ctx.fillStyle = secColor;
+    ctx.font = '15px -apple-system, sans-serif';
+    ctx.fillText('Возраст: ' + ageStr, padding, y);
+    y += 22;
+    
+    if (lastGrowth) {
+        const parts = [];
+        if (lastGrowth.weight) parts.push('Вес: ' + lastGrowth.weight + ' кг');
+        if (lastGrowth.height) parts.push('Рост: ' + lastGrowth.height + ' см');
+        ctx.fillText(parts.join(' | '), padding, y);
+        y += 22;
+    }
+    y += 10;
+    
+    // === ГРАФИК ТЕМПЕРАТУРЫ ===
+    if (tempRecs.length > 0) {
+        ctx.fillStyle = accentColor;
+        ctx.font = 'bold 16px -apple-system, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('━━ 🌡 График температуры (7 дней) ━━', padding, y);
+        y += 30;
+        
+        const tempData = [];
+        for (let i = 6; i >= 0; i--) {
+            const d = new Date();
+            d.setDate(d.getDate() - i);
+            const recs = getRecords('symptoms', d);
+            const temps = recs.filter(r => r.temp).map(r => r.temp);
+            tempData.push(temps.length > 0 ? Math.max(...temps) : null);
+        }
+        
+        const validTemps = tempData.filter(t => t !== null);
+        if (validTemps.length > 0) {
+            const minTemp = Math.min(36, Math.min(...validTemps) - 0.5);
+            const maxTempVal = Math.max(38.5, Math.max(...validTemps) + 0.5);
+            const range = maxTempVal - minTemp || 1;
+            const chartW = width - padding * 2 - 40;
+            const chartH = 100;
+            const chartX = padding + 30;
+            const chartY = y;
+            
+            ctx.strokeStyle = isLight ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.05)';
+            ctx.lineWidth = 0.5;
+            for (let i = 0; i <= 4; i++) {
+                const gy = chartY + (chartH / 4) * i;
+                ctx.beginPath();
+                ctx.moveTo(chartX, gy);
+                ctx.lineTo(chartX + chartW, gy);
+                ctx.stroke();
+                const label = (maxTempVal - (range / 4) * i).toFixed(1);
+                ctx.fillStyle = secColor;
+                ctx.font = '9px -apple-system, sans-serif';
+                ctx.textAlign = 'right';
+                ctx.fillText(label + '°', chartX - 5, gy + 3);
+            }
+            
+            const step = chartW / (tempData.length - 1);
+            ctx.strokeStyle = symptomColor;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            tempData.forEach((t, i) => {
+                if (t === null) return;
+                const x = chartX + step * i;
+                const h = chartH - ((t - minTemp) / range) * chartH;
+                const yPos = chartY + h;
+                if (i === 0 || tempData[i-1] === null) ctx.moveTo(x, yPos);
+                else ctx.lineTo(x, yPos);
+            });
+            ctx.stroke();
+            
+            tempData.forEach((t, i) => {
+                if (t === null) return;
+                const x = chartX + step * i;
+                const h = chartH - ((t - minTemp) / range) * chartH;
+                const yPos = chartY + h;
+                ctx.fillStyle = t >= 38 ? '#e8606e' : t >= 37.5 ? '#f0c060' : '#7ecb8a';
+                ctx.beginPath();
+                ctx.arc(x, yPos, 5, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = textColor;
+                ctx.font = '8px -apple-system, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(t.toFixed(1) + '°', x, yPos - 10);
+                
+                const d = new Date();
+                d.setDate(d.getDate() - (6 - i));
+                ctx.fillStyle = secColor;
+                ctx.font = '7px -apple-system, sans-serif';
+                ctx.fillText(fmtDate(d, { day: '2-digit', month: '2-digit' }), x, chartY + chartH + 14);
+            });
+            
+            y += chartH + 40;
+        }
+    }
+    
+    // === ГРАФИК ВЕСА ===
+    if (growthRecords.length >= 2) {
+        ctx.fillStyle = accentColor;
+        ctx.font = 'bold 16px -apple-system, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('━━ 📈 График веса ━━', padding, y);
+        y += 30;
+        
+        const weightData = growthRecords.filter(r => r.weight !== null).slice(-10);
+        if (weightData.length >= 2) {
+            const weights = weightData.map(r => r.weight);
+            const minW = Math.floor(Math.min(...weights) * 0.9);
+            const maxW = Math.ceil(Math.max(...weights) * 1.1);
+            const rangeW = maxW - minW || 1;
+            const chartW = width - padding * 2 - 40;
+            const chartH = 80;
+            const chartX = padding + 30;
+            const chartY = y;
+            
+            ctx.strokeStyle = isLight ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.05)';
+            ctx.lineWidth = 0.5;
+            for (let i = 0; i <= 4; i++) {
+                const gy = chartY + (chartH / 4) * i;
+                ctx.beginPath();
+                ctx.moveTo(chartX, gy);
+                ctx.lineTo(chartX + chartW, gy);
+                ctx.stroke();
+                const label = (maxW - (rangeW / 4) * i).toFixed(1);
+                ctx.fillStyle = secColor;
+                ctx.font = '9px -apple-system, sans-serif';
+                ctx.textAlign = 'right';
+                ctx.fillText(label + ' кг', chartX - 5, gy + 3);
+            }
+            
+            const step = chartW / (weightData.length - 1);
+            ctx.strokeStyle = '#e8a0bf';
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            weightData.forEach((r, i) => {
+                const x = chartX + step * i;
+                const h = chartH - ((r.weight - minW) / rangeW) * chartH;
+                const yPos = chartY + h;
+                i === 0 ? ctx.moveTo(x, yPos) : ctx.lineTo(x, yPos);
+            });
+            ctx.stroke();
+            
+            weightData.forEach((r, i) => {
+                const x = chartX + step * i;
+                const h = chartH - ((r.weight - minW) / rangeW) * chartH;
+                const yPos = chartY + h;
+                ctx.fillStyle = '#e8a0bf';
+                ctx.beginPath();
+                ctx.arc(x, yPos, 4, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = textColor;
+                ctx.font = '8px -apple-system, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(r.weight.toFixed(1) + ' кг', x, yPos - 10);
+                ctx.fillStyle = secColor;
+                ctx.font = '7px -apple-system, sans-serif';
+                ctx.fillText(fmtDate(new Date(r.date), { day: '2-digit', month: '2-digit' }), x, chartY + chartH + 14);
+            });
+            
+            y += chartH + 40;
+        }
+    }
+    
+    // === ОСТАЛЬНОЙ ОТЧЁТ (симптомы, кормления, сон, подгузники, лекарства, вопросы) ===
+    function drawSection(title) {
+        y += 5;
+        ctx.fillStyle = accentColor;
+        ctx.font = 'bold 16px -apple-system, sans-serif';
+        ctx.fillText('━━ ' + title + ' ━━', padding, y);
+        y += 30;
+    }
+    
+    function drawRow(label, value) {
+        ctx.fillStyle = textColor;
+        ctx.font = '14px -apple-system, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(label, padding, y);
+        ctx.textAlign = 'right';
+        ctx.fillText(value, width - padding, y);
+        ctx.textAlign = 'left';
+        y += 26;
+    }
+    
+    function drawSub(text, color) {
+        ctx.fillStyle = color || secColor;
+        ctx.font = '12px -apple-system, sans-serif';
+        ctx.fillText('    ' + text, padding, y);
+        y += 20;
+    }
+    
+    if (sympData7.length > 0) {
+        drawSection('🩺 Симптомы (последние 7 дней)');
+        drawRow('Всего записей', sympData7.length + ' раз');
+        if (maxTemp) drawRow('Макс. температура', '🌡 ' + maxTemp + '°C');
+        const sympCounts = {};
+        sympData7.forEach(r => { r.symptoms.forEach(s => { sympCounts[s] = (sympCounts[s] || 0) + 1; }); });
+        if (Object.keys(sympCounts).length > 0) {
+            drawRow('Частые симптомы', Object.entries(sympCounts).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([s, c]) => symptomLabels[s] + ' (' + c + ')').join(', '));
+        }
+        y += 5;
+        ctx.fillStyle = secColor;
+        ctx.font = '11px -apple-system, sans-serif';
+        ctx.fillText('Последние записи:', padding, y);
+        y += 20;
+        sympData7.slice(0, 7).sort((a, b) => b.timestamp - a.timestamp).forEach(r => {
+            const parts = [];
+            if (r.temp) parts.push('🌡 ' + r.temp + '°C');
+            if (r.symptoms.length) parts.push(r.symptoms.map(s => symptomLabels[s] || s).join(', '));
+            if (r.notes) parts.push('📝 ' + r.notes);
+            drawSub(fmtDate(new Date(r.timestamp)) + ' ' + fmtTime(r.timestamp) + ' — ' + parts.join(' · '), symptomColor);
+        });
+        y += 5;
+    }
+    
+    drawSection('🍼 Кормления (последние 7 дней)');
+    drawRow('Всего кормлений', feedData7.length + ' раз');
+    drawRow('В среднем в день', (feedData7.length / 7).toFixed(1) + ' раз');
+    drawRow('Средняя длительность', avgFeedDuration + ' мин');
+    const leftCount = feedData7.filter(r => r.side === 'left').length;
+    drawRow('Левая / Правая грудь', leftCount + ' / ' + (feedData7.length - leftCount));
+    y += 5;
+    if (feedData7.length > 0) {
+        ctx.fillStyle = secColor;
+        ctx.font = '11px -apple-system, sans-serif';
+        ctx.fillText('Последние кормления:', padding, y);
+        y += 20;
+        feedData7.slice(0, 14).sort((a, b) => b.timestamp - a.timestamp).forEach(r => {
+            drawSub(fmtDate(new Date(r.timestamp)) + ' ' + fmtTime(r.timestamp) + ' — ' + Math.floor(r.duration / 60) + ' мин (' + (r.side === 'left' ? 'левая' : 'правая') + ')');
+        });
+    }
+    y += 5;
+    
+    drawSection('😴 Сон (последние 7 дней)');
+    drawRow('Всего снов', sleepData7.length + ' раз');
+    drawRow('Общее время сна', totalSleepHours + ' ч');
+    drawRow('В среднем в день', (totalSleepHours / 7).toFixed(1) + ' ч');
+    y += 5;
+    if (sleepData7.length > 0) {
+        ctx.fillStyle = secColor;
+        ctx.font = '11px -apple-system, sans-serif';
+        ctx.fillText('Последние сны:', padding, y);
+        y += 20;
+        sleepData7.slice(0, 7).sort((a, b) => b.timestamp - a.timestamp).forEach(r => {
+            const min = Math.floor(r.duration / 60);
+            const h = Math.floor(min / 60);
+            drawSub(fmtDate(new Date(r.timestamp)) + ' ' + fmtTime(r.timestamp) + ' — ' + (h > 0 ? h + ' ч ' + (min % 60) + ' мин' : min + ' мин'));
+        });
+    }
+    y += 5;
+    
+    drawSection('💧 Подгузники (последние 7 дней)');
+    drawRow('Всего смен', diaperData7.length + ' раз');
+    drawRow('В среднем в день', diapersPerDay + ' раз');
+    drawRow('Грязных', dirtyCount + ' раз');
+    drawRow('Мокрых', (diaperData7.length - dirtyCount) + ' раз');
+    y += 5;
+    
+    if (medsData7.length > 0) {
+        drawSection('💊 Лекарства');
+        medsData7.forEach(r => {
+            const intStr = r.interval > 0 ? ' (каждые ' + r.interval + ' ч)' : ' (разово)';
+            drawSub('💊 ' + r.name + ' ' + (r.dose || '') + ' — ' + fmtDate(new Date(r.timestamp)) + ' ' + fmtTime(r.timestamp) + intStr);
+        });
+        y += 5;
+    }
+    
+    if (doctorQuestions) {
+        drawSection('📝 Вопросы врачу (из приложения)');
+        const lines = doctorQuestions.split('\n');
+        lines.forEach(line => { if (line.trim()) drawSub('• ' + line.trim(), textColor); });
+        y += 5;
+    } else {
+        drawSection('📝 Вопросы врачу');
+        for (let i = 1; i <= 3; i++) {
+            ctx.fillStyle = secColor;
+            ctx.font = '13px -apple-system, sans-serif';
+            ctx.fillText(i + '. _______________________________', padding, y);
+            y += 28;
+        }
+    }
+    
+    y += 10;
+    
+    // === QR-КОД ===
+    const qrText = 'Отчёт по ребёнку ' + baby.name + ' от ' + fmtDate(today, { day: 'numeric', month: 'long', year: 'numeric' });
+    const qrDataUrl = generateQRCode(qrText, 120);
+    const qrImg = new Image();
+    qrImg.src = qrDataUrl;
+    qrImg.onload = function() {};
+    
+    // === ФУТЕР ===
+    y = canvas.height - 50;
+    ctx.fillStyle = secColor;
+    ctx.font = '11px -apple-system, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Создано в Мама Трекер • ' + fmtDate(today, { day: 'numeric', month: 'long', year: 'numeric' }), width / 2, y);
+    ctx.fillStyle = secColor;
+    ctx.font = '9px -apple-system, sans-serif';
+    ctx.fillText('QR-код для быстрого доступа к отчёту', width / 2, y + 18);
+    
+    // Вставляем QR-код в правый нижний угол
+    const qrX = width - padding - 140;
+    const qrY = canvas.height - 160;
+    ctx.drawImage(qrImg, qrX, qrY, 120, 120);
+    
+    const dataUrl = canvas.toDataURL('image/png');
+    
+    // === ПОКАЗ ОТЧЁТА С КНОПКОЙ ОТПРАВКИ ===
+    showOverlay(`
+        <div style="text-align:center; max-height: 80vh; overflow-y: auto;">
+            <h3>🏥 Отчёт для педиатра</h3>
+            <img src="${dataUrl}" style="max-width:100%; border-radius:12px; margin:12px 0; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
+            
+            <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-top:12px;">
+                <button onclick="closeOverlay(); downloadReport('${dataUrl}')" class="btn-save" style="padding:10px 20px; width:auto;">
+                    📥 Скачать
+                </button>
+                <button onclick="closeOverlay(); sendReportToDoctor('${encodeURIComponent(dataUrl)}', '${baby.name}')" class="btn-save" style="padding:10px 20px; width:auto; background: #4a90d9;">
+                    📤 Отправить врачу
+                </button>
+                <button onclick="closeOverlay()" class="btn-skip" style="padding:10px 20px; width:auto;">
+                    ✕ Закрыть
+                </button>
+            </div>
+            <p style="font-size:11px; color:var(--text-secondary); margin-top:8px;">
+                📸 Нажмите и удерживайте картинку, чтобы сохранить, или используйте кнопки ниже
+            </p>
+        </div>
+    `);
+}
+
+// === 3. ФУНКЦИЯ ДЛЯ СКАЧИВАНИЯ ОТЧЁТА ===
+function downloadReport(dataUrl) {
+    const link = document.createElement('a');
+    link.download = 'Отчёт_для_педиатра_' + fmtDate(today, { day: '2-digit', month: '2-digit', year: 'numeric' }) + '.png';
+    link.href = dataUrl;
+    link.click();
+    if (tg?.showPopup) {
+        tg.showPopup({
+            title: '✅ Отчёт сохранён!',
+            message: 'Файл скачан на ваше устройство',
+            buttons: [{ type: 'ok' }]
+        });
+    }
+}
+
+// === 4. ФУНКЦИЯ ДЛЯ ОТПРАВКИ ВРАЧУ (через Telegram) ===
+function sendReportToDoctor(encodedData, babyName) {
+    const dataUrl = decodeURIComponent(encodedData);
+    const message = `🏥 Отчёт по ребёнку ${babyName}\n📅 ${fmtDate(today, { day: 'numeric', month: 'long', year: 'numeric' })}\n\nОтчёт сгенерирован в Мама Трекер. Пожалуйста, откройте вложение.`;
+    
+    if (tg) {
+        tg.showPopup({
+            title: '📤 Отправка врачу',
+            message: 'Скопируйте текст и изображение, чтобы отправить врачу через Telegram, WhatsApp или email.\n\n' + message,
+            buttons: [
+                { type: 'default', text: '📋 Копировать текст' },
+                { type: 'cancel', text: 'Закрыть' }
+            ]
+        }, function(buttonId) {
+            if (buttonId === '0') {
+                navigator.clipboard.writeText(message).then(() => {
+                    tg.showPopup({
+                        title: '✅ Скопировано!',
+                        message: 'Текст скопирован. Теперь отправьте изображение врачу.',
+                        buttons: [{ type: 'ok' }]
+                    });
+                });
+            }
+        });
+    } else {
+        navigator.clipboard.writeText(message).then(() => {
+            alert('✅ Текст скопирован! Отправьте его врачу вместе с изображением отчёта.');
+        }).catch(() => {
+            alert('📤 Чтобы отправить врачу:\n1. Скопируйте текст:\n' + message + '\n2. Сохраните изображение отчёта\n3. Отправьте в Telegram, WhatsApp или email');
+        });
+    }
+    
+    setTimeout(() => {
+        downloadReport(dataUrl);
+    }, 500);
+}
 
 // ========================================================================
 // НОВЫЙ КОД: РЕЖИМ ДНЯ
