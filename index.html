@@ -1499,112 +1499,397 @@ setTimeout(() => {
     }
 }, 500);
 // ========================================================================
-// ПРОСТОЕ ИСПРАВЛЕНИЕ ДЛЯ ОТЧЁТА ПЕДИАТРА
+// ИСПРАВЛЕННЫЙ ОТЧЁТ ДЛЯ ПЕДИАТРА (С КАРТИНКОЙ)
 // ========================================================================
 
-// Проверяем, что функция getAllRecords существует
-if (typeof getAllRecords === 'undefined') {
-    function getAllRecords(type, days = 30) {
-        const all = [];
-        for (let i = 0; i < days; i++) {
-            const d = new Date();
-            d.setDate(d.getDate() - i);
-            const records = LS.get(getStorageKey(type, d)) || [];
-            all.push(...records);
-        }
-        return all.sort((a, b) => b.timestamp - a.timestamp);
-    }
-}
-
-// Упрощённая функция отчёта (без сложных графиков, только данные)
 function exportForDoctor2() {
     if (!isPro()) {
         alert('🔒 Функция доступна только в PRO-версии');
         return;
     }
-
+    
     try {
-        // Собираем данные
         const baby = babies.find(b => b.id === currentBabyId) || { name: 'Малыш' };
-        const feedData = getRecords('feed');
-        const sleepData = getRecords('sleep');
-        const diaperData = getRecords('diaper');
-        const sympData = getRecords('symptoms');
-        const growthData = getGrowthRecords();
+        const growthRecords = getGrowthRecords();
+        const lastGrowth = growthRecords.length > 0 ? growthRecords[growthRecords.length - 1] : null;
+        const birthDateStr = LS.get('mama_birth_date_' + currentBabyId);
         
-        // Формируем текст отчёта
-        let reportText = '🏥 ОТЧЁТ ДЛЯ ПЕДИАТРА\n';
-        reportText += '=' . repeat(40) + '\n\n';
-        reportText += '👶 ' + baby.name + '\n';
-        reportText += '📅 ' + fmtDate(today, { day: 'numeric', month: 'long', year: 'numeric' }) + '\n\n';
-        
-        // Кормления
-        reportText += '🍼 КОРМЛЕНИЯ\n';
-        reportText += '  Всего: ' + feedData.length + '\n';
-        const totalFeedMin = Math.floor(feedData.reduce((s, r) => s + r.duration, 0) / 60);
-        reportText += '  Общее время: ' + totalFeedMin + ' мин\n';
-        const leftCount = feedData.filter(r => r.side === 'left').length;
-        const rightCount = feedData.filter(r => r.side === 'right').length;
-        reportText += '  Левая/Правая: ' + leftCount + '/' + rightCount + '\n\n';
-        
-        // Сон
-        reportText += '😴 СОН\n';
-        reportText += '  Всего снов: ' + sleepData.length + '\n';
-        const totalSleepMin = Math.floor(sleepData.reduce((s, r) => s + r.duration, 0) / 60);
-        reportText += '  Общее время: ' + Math.floor(totalSleepMin / 60) + ' ч ' + (totalSleepMin % 60) + ' мин\n\n';
-        
-        // Подгузники
-        reportText += '💧 ПОДГУЗНИКИ\n';
-        reportText += '  Всего смен: ' + diaperData.length + '\n';
-        const dirtyCount = diaperData.filter(r => r.type === 'dirty' || r.type === 'both').length;
-        reportText += '  Грязных: ' + dirtyCount + '\n\n';
-        
-        // Симптомы
-        if (sympData.length > 0) {
-            reportText += '🩺 СИМПТОМЫ\n';
-            reportText += '  Записей: ' + sympData.length + '\n';
-            const temps = sympData.filter(r => r.temp).map(r => r.temp);
-            if (temps.length > 0) {
-                reportText += '  Температура: макс. ' + Math.max(...temps) + '°C\n';
+        let ageStr = 'не указан';
+        if (birthDateStr) {
+            const birth = new Date(birthDateStr);
+            const months = Math.floor((today - birth) / (1000 * 60 * 60 * 24 * 30.44));
+            if (months < 1) {
+                ageStr = Math.floor((today - birth) / (1000 * 60 * 60 * 24)) + ' дн.';
+            } else if (months < 24) {
+                ageStr = months + ' мес.';
+            } else {
+                ageStr = Math.floor(months / 12) + ' г. ' + (months % 12) + ' мес.';
             }
-            const symptoms = {};
-            sympData.forEach(r => {
-                r.symptoms.forEach(s => { symptoms[s] = (symptoms[s] || 0) + 1; });
+        }
+        
+        const feedData7 = getAllRecords('feed', 7);
+        const sleepData7 = getAllRecords('sleep', 7);
+        const diaperData7 = getAllRecords('diaper', 7);
+        const medsData7 = getAllRecords('meds', 7);
+        const sympData7 = getAllRecords('symptoms', 7);
+        
+        const avgFeedDuration = feedData7.length > 0 ? Math.floor(feedData7.reduce((s, r) => s + r.duration, 0) / feedData7.length / 60) : 0;
+        const totalSleepHours = Math.floor(sleepData7.reduce((s, r) => s + r.duration, 0) / 3600);
+        const diapersPerDay = (diaperData7.length / 7).toFixed(1);
+        const dirtyCount = diaperData7.filter(r => r.type === 'dirty' || r.type === 'both').length;
+        const tempRecs = sympData7.filter(r => r.temp);
+        const maxTemp = tempRecs.length > 0 ? Math.max(...tempRecs.map(r => r.temp)) : null;
+        const doctorQuestions = LS.get('mama_doctor_questions_' + currentBabyId) || '';
+        
+        const isLight = document.body.classList.contains('light-theme');
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const width = 800;
+        const padding = 40;
+        let y = padding;
+        
+        // Рассчёт высоты
+        let rowCount = 30 + Math.min(feedData7.length, 14) + Math.min(sleepData7.length, 7) + Math.min(diaperData7.length, 7) + Math.min(sympData7.length, 7);
+        if (growthRecords.length > 0) rowCount += 10;
+        if (medsData7.length > 0) rowCount += 3 + medsData7.length;
+        if (doctorQuestions) rowCount += 4 + Math.ceil(doctorQuestions.length / 60);
+        if (tempRecs.length > 0) rowCount += 8;
+        
+        const height = padding * 2 + rowCount * 30 + 300;
+        canvas.width = width;
+        canvas.height = height;
+        
+        const bgColor = isLight ? '#ffffff' : '#1a1a2e';
+        const textColor = isLight ? '#2d2d3a' : '#f0e6ef';
+        const secColor = isLight ? '#7a7a8a' : '#a8a0b0';
+        const accentColor = '#e8a0bf';
+        const symptomColor = '#e8606e';
+        
+        ctx.fillStyle = bgColor;
+        ctx.fillRect(0, 0, width, height);
+        
+        // Заголовок
+        ctx.fillStyle = textColor;
+        ctx.font = 'bold 28px -apple-system, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('🏥 Отчёт для педиатра', width / 2, y);
+        y += 40;
+        
+        ctx.fillStyle = secColor;
+        ctx.font = '14px -apple-system, sans-serif';
+        ctx.fillText(fmtDate(today, { day: 'numeric', month: 'long', year: 'numeric' }), width / 2, y);
+        y += 30;
+        
+        ctx.strokeStyle = isLight ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(padding, y);
+        ctx.lineTo(width - padding, y);
+        ctx.stroke();
+        y += 25;
+        
+        // Информация о ребёнке
+        ctx.fillStyle = textColor;
+        ctx.font = 'bold 18px -apple-system, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('👶 ' + baby.name, padding, y);
+        y += 28;
+        
+        ctx.fillStyle = secColor;
+        ctx.font = '15px -apple-system, sans-serif';
+        ctx.fillText('Возраст: ' + ageStr, padding, y);
+        y += 22;
+        
+        if (lastGrowth) {
+            const parts = [];
+            if (lastGrowth.weight) parts.push('Вес: ' + lastGrowth.weight + ' кг');
+            if (lastGrowth.height) parts.push('Рост: ' + lastGrowth.height + ' см');
+            ctx.fillText(parts.join(' | '), padding, y);
+            y += 22;
+        }
+        y += 10;
+        
+        // Функции для рисования
+        function drawSection(title) {
+            y += 5;
+            ctx.fillStyle = accentColor;
+            ctx.font = 'bold 16px -apple-system, sans-serif';
+            ctx.fillText('━━ ' + title + ' ━━', padding, y);
+            y += 30;
+        }
+        
+        function drawRow(label, value) {
+            ctx.fillStyle = textColor;
+            ctx.font = '14px -apple-system, sans-serif';
+            ctx.textAlign = 'left';
+            ctx.fillText(label, padding, y);
+            ctx.textAlign = 'right';
+            ctx.fillText(value, width - padding, y);
+            ctx.textAlign = 'left';
+            y += 26;
+        }
+        
+        function drawSub(text, color) {
+            ctx.fillStyle = color || secColor;
+            ctx.font = '12px -apple-system, sans-serif';
+            ctx.fillText('    ' + text, padding, y);
+            y += 20;
+        }
+        
+        // ГРАФИК ТЕМПЕРАТУРЫ (упрощённый, если есть данные)
+        if (tempRecs.length > 0) {
+            drawSection('🌡 График температуры (7 дней)');
+            
+            const tempData = [];
+            for (let i = 6; i >= 0; i--) {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                const recs = getRecords('symptoms', d);
+                const temps = recs.filter(r => r.temp).map(r => r.temp);
+                tempData.push(temps.length > 0 ? Math.max(...temps) : null);
+            }
+            
+            const validTemps = tempData.filter(t => t !== null);
+            if (validTemps.length > 0) {
+                const minTemp = Math.min(36, Math.min(...validTemps) - 0.5);
+                const maxTempVal = Math.max(38.5, Math.max(...validTemps) + 0.5);
+                const range = maxTempVal - minTemp || 1;
+                const chartW = width - padding * 2 - 40;
+                const chartH = 100;
+                const chartX = padding + 30;
+                const chartY = y;
+                
+                ctx.strokeStyle = isLight ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.05)';
+                ctx.lineWidth = 0.5;
+                for (let i = 0; i <= 4; i++) {
+                    const gy = chartY + (chartH / 4) * i;
+                    ctx.beginPath();
+                    ctx.moveTo(chartX, gy);
+                    ctx.lineTo(chartX + chartW, gy);
+                    ctx.stroke();
+                    const label = (maxTempVal - (range / 4) * i).toFixed(1);
+                    ctx.fillStyle = secColor;
+                    ctx.font = '9px -apple-system, sans-serif';
+                    ctx.textAlign = 'right';
+                    ctx.fillText(label + '°', chartX - 5, gy + 3);
+                }
+                
+                const step = chartW / (tempData.length - 1);
+                ctx.strokeStyle = symptomColor;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                tempData.forEach((t, i) => {
+                    if (t === null) return;
+                    const x = chartX + step * i;
+                    const h = chartH - ((t - minTemp) / range) * chartH;
+                    const yPos = chartY + h;
+                    if (i === 0 || tempData[i-1] === null) ctx.moveTo(x, yPos);
+                    else ctx.lineTo(x, yPos);
+                });
+                ctx.stroke();
+                
+                tempData.forEach((t, i) => {
+                    if (t === null) return;
+                    const x = chartX + step * i;
+                    const h = chartH - ((t - minTemp) / range) * chartH;
+                    const yPos = chartY + h;
+                    ctx.fillStyle = t >= 38 ? '#e8606e' : t >= 37.5 ? '#f0c060' : '#7ecb8a';
+                    ctx.beginPath();
+                    ctx.arc(x, yPos, 5, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = textColor;
+                    ctx.font = '8px -apple-system, sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(t.toFixed(1) + '°', x, yPos - 10);
+                    
+                    const d = new Date();
+                    d.setDate(d.getDate() - (6 - i));
+                    ctx.fillStyle = secColor;
+                    ctx.font = '7px -apple-system, sans-serif';
+                    ctx.fillText(fmtDate(d, { day: '2-digit', month: '2-digit' }), x, chartY + chartH + 14);
+                });
+                
+                y += chartH + 40;
+            }
+        }
+        
+        // ГРАФИК ВЕСА
+        if (growthRecords.length >= 2) {
+            drawSection('📈 График веса');
+            
+            const weightData = growthRecords.filter(r => r.weight !== null).slice(-10);
+            if (weightData.length >= 2) {
+                const weights = weightData.map(r => r.weight);
+                const minW = Math.floor(Math.min(...weights) * 0.9);
+                const maxW = Math.ceil(Math.max(...weights) * 1.1);
+                const rangeW = maxW - minW || 1;
+                const chartW = width - padding * 2 - 40;
+                const chartH = 80;
+                const chartX = padding + 30;
+                const chartY = y;
+                
+                ctx.strokeStyle = isLight ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.05)';
+                ctx.lineWidth = 0.5;
+                for (let i = 0; i <= 4; i++) {
+                    const gy = chartY + (chartH / 4) * i;
+                    ctx.beginPath();
+                    ctx.moveTo(chartX, gy);
+                    ctx.lineTo(chartX + chartW, gy);
+                    ctx.stroke();
+                    const label = (maxW - (rangeW / 4) * i).toFixed(1);
+                    ctx.fillStyle = secColor;
+                    ctx.font = '9px -apple-system, sans-serif';
+                    ctx.textAlign = 'right';
+                    ctx.fillText(label + ' кг', chartX - 5, gy + 3);
+                }
+                
+                const step = chartW / (weightData.length - 1);
+                ctx.strokeStyle = '#e8a0bf';
+                ctx.lineWidth = 2.5;
+                ctx.beginPath();
+                weightData.forEach((r, i) => {
+                    const x = chartX + step * i;
+                    const h = chartH - ((r.weight - minW) / rangeW) * chartH;
+                    const yPos = chartY + h;
+                    i === 0 ? ctx.moveTo(x, yPos) : ctx.lineTo(x, yPos);
+                });
+                ctx.stroke();
+                
+                weightData.forEach((r, i) => {
+                    const x = chartX + step * i;
+                    const h = chartH - ((r.weight - minW) / rangeW) * chartH;
+                    const yPos = chartY + h;
+                    ctx.fillStyle = '#e8a0bf';
+                    ctx.beginPath();
+                    ctx.arc(x, yPos, 4, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = textColor;
+                    ctx.font = '8px -apple-system, sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(r.weight.toFixed(1) + ' кг', x, yPos - 10);
+                    ctx.fillStyle = secColor;
+                    ctx.font = '7px -apple-system, sans-serif';
+                    ctx.fillText(fmtDate(new Date(r.date), { day: '2-digit', month: '2-digit' }), x, chartY + chartH + 14);
+                });
+                
+                y += chartH + 40;
+            }
+        }
+        
+        // СИМПТОМЫ
+        if (sympData7.length > 0) {
+            drawSection('🩺 Симптомы (последние 7 дней)');
+            drawRow('Всего записей', sympData7.length + ' раз');
+            if (maxTemp) drawRow('Макс. температура', '🌡 ' + maxTemp + '°C');
+            const sympCounts = {};
+            sympData7.forEach(r => { r.symptoms.forEach(s => { sympCounts[s] = (sympCounts[s] || 0) + 1; }); });
+            if (Object.keys(sympCounts).length > 0) {
+                drawRow('Частые симптомы', Object.entries(sympCounts).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([s, c]) => symptomLabels[s] + ' (' + c + ')').join(', '));
+            }
+            y += 5;
+            ctx.fillStyle = secColor;
+            ctx.font = '11px -apple-system, sans-serif';
+            ctx.fillText('Последние записи:', padding, y);
+            y += 20;
+            sympData7.slice(0, 7).sort((a, b) => b.timestamp - a.timestamp).forEach(r => {
+                const parts = [];
+                if (r.temp) parts.push('🌡 ' + r.temp + '°C');
+                if (r.symptoms.length) parts.push(r.symptoms.map(s => symptomLabels[s] || s).join(', '));
+                if (r.notes) parts.push('📝 ' + r.notes);
+                drawSub(fmtDate(new Date(r.timestamp)) + ' ' + fmtTime(r.timestamp) + ' — ' + parts.join(' · '), symptomColor);
             });
-            if (Object.keys(symptoms).length > 0) {
-                const top = Object.entries(symptoms).sort((a, b) => b[1] - a[1])[0];
-                reportText += '  Частый симптом: ' + (symptomLabels[top[0]] || top[0]) + ' (' + top[1] + ' раз)\n';
-            }
-            reportText += '\n';
+            y += 5;
         }
         
-        // Рост/вес
-        if (growthData.length > 0) {
-            const last = growthData[growthData.length - 1];
-            reportText += '📏 РОСТ И ВЕС\n';
-            if (last.weight) reportText += '  Вес: ' + last.weight + ' кг\n';
-            if (last.height) reportText += '  Рост: ' + last.height + ' см\n';
-            reportText += '\n';
+        // КОРМЛЕНИЯ
+        drawSection('🍼 Кормления (последние 7 дней)');
+        drawRow('Всего кормлений', feedData7.length + ' раз');
+        drawRow('В среднем в день', (feedData7.length / 7).toFixed(1) + ' раз');
+        drawRow('Средняя длительность', avgFeedDuration + ' мин');
+        const leftCount = feedData7.filter(r => r.side === 'left').length;
+        drawRow('Левая / Правая грудь', leftCount + ' / ' + (feedData7.length - leftCount));
+        y += 5;
+        if (feedData7.length > 0) {
+            ctx.fillStyle = secColor;
+            ctx.font = '11px -apple-system, sans-serif';
+            ctx.fillText('Последние кормления:', padding, y);
+            y += 20;
+            feedData7.slice(0, 14).sort((a, b) => b.timestamp - a.timestamp).forEach(r => {
+                drawSub(fmtDate(new Date(r.timestamp)) + ' ' + fmtTime(r.timestamp) + ' — ' + Math.floor(r.duration / 60) + ' мин (' + (r.side === 'left' ? 'левая' : 'правая') + ')');
+            });
+        }
+        y += 5;
+        
+        // СОН
+        drawSection('😴 Сон (последние 7 дней)');
+        drawRow('Всего снов', sleepData7.length + ' раз');
+        drawRow('Общее время сна', totalSleepHours + ' ч');
+        drawRow('В среднем в день', (totalSleepHours / 7).toFixed(1) + ' ч');
+        y += 5;
+        if (sleepData7.length > 0) {
+            ctx.fillStyle = secColor;
+            ctx.font = '11px -apple-system, sans-serif';
+            ctx.fillText('Последние сны:', padding, y);
+            y += 20;
+            sleepData7.slice(0, 7).sort((a, b) => b.timestamp - a.timestamp).forEach(r => {
+                const min = Math.floor(r.duration / 60);
+                const h = Math.floor(min / 60);
+                drawSub(fmtDate(new Date(r.timestamp)) + ' ' + fmtTime(r.timestamp) + ' — ' + (h > 0 ? h + ' ч ' + (min % 60) + ' мин' : min + ' мин'));
+            });
+        }
+        y += 5;
+        
+        // ПОДГУЗНИКИ
+        drawSection('💧 Подгузники (последние 7 дней)');
+        drawRow('Всего смен', diaperData7.length + ' раз');
+        drawRow('В среднем в день', diapersPerDay + ' раз');
+        drawRow('Грязных', dirtyCount + ' раз');
+        drawRow('Мокрых', (diaperData7.length - dirtyCount) + ' раз');
+        y += 5;
+        
+        // ЛЕКАРСТВА
+        if (medsData7.length > 0) {
+            drawSection('💊 Лекарства');
+            medsData7.forEach(r => {
+                const intStr = r.interval > 0 ? ' (каждые ' + r.interval + ' ч)' : ' (разово)';
+                drawSub('💊 ' + r.name + ' ' + (r.dose || '') + ' — ' + fmtDate(new Date(r.timestamp)) + ' ' + fmtTime(r.timestamp) + intStr);
+            });
+            y += 5;
         }
         
-        reportText += '=' . repeat(40) + '\n';
-        reportText += '📱 Создано в Мама Трекер';
+        // ВОПРОСЫ ВРАЧУ
+        if (doctorQuestions) {
+            drawSection('📝 Вопросы врачу');
+            const lines = doctorQuestions.split('\n');
+            lines.forEach(line => { if (line.trim()) drawSub('• ' + line.trim(), textColor); });
+            y += 5;
+        }
         
-        // Показываем отчёт
+        y += 10;
+        y = canvas.height - 50;
+        ctx.fillStyle = secColor;
+        ctx.font = '11px -apple-system, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Создано в Мама Трекер • ' + fmtDate(today, { day: 'numeric', month: 'long', year: 'numeric' }), width / 2, y);
+        
+        // СОХРАНЯЕМ КАРТИНКУ
+        const dataUrl = canvas.toDataURL('image/png');
+        
         showOverlay(`
-            <div style="max-height: 80vh; overflow-y: auto; text-align: left;">
+            <div style="text-align:center; max-height: 80vh; overflow-y: auto;">
                 <h3>🏥 Отчёт для педиатра</h3>
-                <pre style="white-space: pre-wrap; font-family: monospace; font-size: 14px; background: var(--stat-bg); padding: 16px; border-radius: 12px; margin: 12px 0; color: var(--text);">${reportText}</pre>
+                <img src="${dataUrl}" style="max-width:100%; border-radius:12px; margin:12px 0; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
+                
                 <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-top:12px;">
-                    <button onclick="closeOverlay(); copyReportText('${encodeURIComponent(reportText)}')" class="btn-save" style="padding:10px 20px; width:auto;">
-                        📋 Копировать
+                    <button onclick="closeOverlay(); downloadReport('${dataUrl}')" class="btn-save" style="padding:10px 20px; width:auto;">
+                        📥 Скачать
                     </button>
                     <button onclick="closeOverlay()" class="btn-skip" style="padding:10px 20px; width:auto;">
                         ✕ Закрыть
                     </button>
                 </div>
-                <p style="font-size:11px; color:var(--text-secondary); margin-top:8px; text-align:center;">
-                    📋 Нажмите "Копировать" и отправьте врачу в Telegram или WhatsApp
+                <p style="font-size:11px; color:var(--text-secondary); margin-top:8px;">
+                    📸 Нажмите и удерживайте картинку, чтобы сохранить вручную
                 </p>
             </div>
         `);
@@ -1612,32 +1897,49 @@ function exportForDoctor2() {
         if (tg?.showPopup) {
             tg.showPopup({
                 title: '✅ Отчёт готов!',
-                message: 'Нажмите "Копировать" чтобы отправить врачу',
+                message: 'Нажмите "Скачать" чтобы сохранить картинку',
                 buttons: [{ type: 'ok' }]
             });
         }
+        
     } catch (e) {
         console.error('Ошибка:', e);
         alert('❌ Ошибка при создании отчёта: ' + e.message);
     }
 }
 
-// Функция для копирования отчёта
-function copyReportText(encodedText) {
-    const text = decodeURIComponent(encodedText);
-    navigator.clipboard.writeText(text).then(() => {
+// Функция для скачивания отчёта
+function downloadReport(dataUrl) {
+    if (!dataUrl || dataUrl.length < 100) {
+        alert('❌ Ошибка: данные отчёта повреждены.');
+        return;
+    }
+    
+    try {
+        const link = document.createElement('a');
+        link.download = 'Отчёт_для_педиатра_' + fmtDate(today, { day: '2-digit', month: '2-digit', year: 'numeric' }) + '.png';
+        link.href = dataUrl;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
         if (tg?.showPopup) {
             tg.showPopup({
-                title: '✅ Скопировано!',
-                message: 'Отправьте текст врачу в Telegram или WhatsApp',
+                title: '✅ Отчёт сохранён!',
+                message: 'Файл скачан на ваше устройство',
                 buttons: [{ type: 'ok' }]
             });
-        } else {
-            alert('✅ Текст скопирован! Отправьте его врачу.');
         }
-    }).catch(() => {
-        alert('❌ Не удалось скопировать. Скопируйте текст вручную:\n\n' + text);
-    });
+    } catch (e) {
+        console.error('Ошибка скачивания:', e);
+        if (tg?.showPopup) {
+            tg.showPopup({
+                title: '✅ Отчёт сохранён!',
+                message: 'Проверьте папку "Загрузки" на вашем устройстве',
+                buttons: [{ type: 'ok' }]
+            });
+        }
+    }
 }
 </script>
 </body>
