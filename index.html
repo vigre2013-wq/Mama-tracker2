@@ -507,7 +507,6 @@
         <div id="proActive" style="display:none;"><div class="card pro-card" style="text-align:center;"><div style="font-size:50px;">👑</div><h2>Вы — PRO!</h2><p style="color:var(--text-secondary);">Все функции разблокированы</p></div>
         <div class="card"><div class="card-title">📤 Экспорт</div>
             <button class="export-btn" onclick="exportAsImage()">📸 Общий отчёт</button>
-            <!-- ИСПРАВЛЕННАЯ КНОПКА -->
             <button class="export-btn" onclick="exportForDoctor2()" style="margin-top:8px;">🏥 Отчёт для педиатра</button>
         </div>
         <div class="card"><div class="card-title">🗑 Данные</div><button class="export-btn" onclick="clearOldData()" style="background:linear-gradient(135deg,#e8606e,#c04050);">🗑 Очистить старые записи</button></div></div>
@@ -566,7 +565,7 @@
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script>
 // ========================================================================
-// ПОЛНЫЙ JAVASCRIPT СО ВСЕМИ ТВОИМИ ФУНКЦИЯМИ
+// ПОЛНЫЙ JAVASCRIPT — ЧАСТЬ 1 (до функций достижений)
 // ========================================================================
 
 const CFG = {
@@ -791,6 +790,7 @@ function getAchievementLevelInfo(){const earned=Object.keys(getAchievements()).l
 function updateAchievementLevelUI(){const info=getAchievementLevelInfo();$('achievementLevelIcon').textContent=info.icon;$('achievementLevel').innerHTML=info.level;$('achievementLevelBar').style.width=info.pct+'%';$('achievementLevelProgress').textContent=Object.keys(getAchievements()).length+' / '+info.next;}
 function updateAchievementsUI(){const earned=getAchievements();const list=$('achievementsList');if(!list)return;let filtered=ACHIEVEMENTS;if(achievementsSubTab!=='all'){filtered=ACHIEVEMENTS.filter(a=>a.cat===achievementsSubTab);}list.innerHTML=filtered.map(ach=>{const done=!!earned[ach.id];const progress=done?ach.max:Math.min(getAchievementProgress(ach),ach.max);const pct=Math.round(progress/ach.max*100);const tierClass=ach.tier;const tierEmoji=ach.tier==='gold'?'🥇':ach.tier==='silver'?'🥈':'🥉';return`<div class="achievement-card ${tierClass}" style="${done?'':'opacity:0.5;'}"><div style="display:flex;align-items:center;gap:10px;"><span style="font-size:24px;">${done?ach.emoji:'🔒'}</span><div style="flex:1;"><div style="font-size:13px;font-weight:600;">${ach.name} <span class="level-badge ${tierClass}">${tierEmoji}</span></div><div style="font-size:11px;color:var(--text-secondary);">${ach.desc}</div><div class="pro-bar" style="margin-top:4px;"><div class="pro-bar-fill" style="width:${pct}%;background:${done?'var(--gold)':'var(--text-secondary)'};"></div></div></div><span style="font-size:11px;color:var(--text-secondary);">${progress}/${ach.max}</span></div></div>`;}).join('');}
 
+// === КАЛЕНДАРЬ ===
 let calYear=today.getFullYear(),calMonth=today.getMonth();
 const MONTHS=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
 function changeMonth(delta){calMonth+=delta;if(calMonth<0){calMonth=11;calYear--;}if(calMonth>11){calMonth=0;calYear++;}updateCalendar();}
@@ -800,6 +800,7 @@ function hasVisitsOnDate(d){const visits=getVisits();return visits.some(v=>v.dat
 function updateCalendar(){$('monthLabel').textContent=MONTHS[calMonth]+' '+calYear;let html=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'].map(d=>`<div class="calendar-day-header">${d}</div>`).join('');const firstDay=new Date(calYear,calMonth,1),lastDay=new Date(calYear,calMonth+1,0);let startDow=firstDay.getDay()||7;const prevLast=new Date(calYear,calMonth,0).getDate();for(let i=startDow-1;i>0;i--)html+=`<div class="calendar-day other-month">${prevLast-i+1}</div>`;let maxFeeds=0;for(let d=1;d<=lastDay.getDate();d++){const c=getFeedCountForDate(new Date(calYear,calMonth,d));if(c>maxFeeds)maxFeeds=c;}if(maxFeeds===0)maxFeeds=1;for(let d=1;d<=lastDay.getDate();d++){const date=new Date(calYear,calMonth,d);const count=getFeedCountForDate(date),intensity=count/maxFeeds;let bg=count===0?'var(--stat-bg)':intensity<0.25?'rgba(232,160,191,0.15)':intensity<0.5?'rgba(232,160,191,0.35)':intensity<0.75?'rgba(232,160,191,0.6)':'#e8a0bf';const todayClass=(d===today.getDate()&&calMonth===today.getMonth()&&calYear===today.getFullYear())?' today':'';let dots='';if(hasSymptomsOnDate(date))dots+='<span class="calendar-dot symptoms"></span>';if(hasVisitsOnDate(date))dots+=dots?' <span class="calendar-dot visits"></span>':'<span class="calendar-dot visits"></span>';html+=`<div class="calendar-day${todayClass}" style="background:${bg};color:${count>0&&intensity>=0.75?'#1a1a2e':'var(--text-secondary)'};" onclick="showDayDetail(${d})">${d}${dots}</div>`;}const remaining=7-((startDow-1+lastDay.getDate())%7);if(remaining<7)for(let i=1;i<=remaining;i++)html+=`<div class="calendar-day other-month">${i}</div>`;$('calendarGrid').innerHTML=html;}
 function showDayDetail(day){document.querySelectorAll('.calendar-day.selected').forEach(el=>el.classList.remove('selected'));const dayEl=document.querySelector(`.calendar-day[onclick="showDayDetail(${day})"]:not(.other-month)`);if(dayEl)dayEl.classList.add('selected');const date=new Date(calYear,calMonth,day);$('dayDetailTitle').textContent='📅 '+fmtDate(date,{weekday:'long',day:'numeric',month:'long'});const feedData=getRecords('feed',date),sleepData=getRecords('sleep',date),diaperData=getRecords('diaper',date),sympData=getRecords('symptoms',date);let html='';if(feedData.length){html+='<p style="font-size:14px;color:var(--accent);margin-bottom:8px;">🍼 Кормления: '+feedData.length+'</p>';feedData.sort((a,b)=>a.timestamp-b.timestamp).forEach(r=>html+=`<div style="font-size:13px;padding:4px 0;color:var(--text-secondary);">${fmtTime(r.timestamp)} — ${Math.floor(r.duration/60)} мин (${r.side==='left'?'Л':'П'})</div>`);}if(sleepData.length){html+='<p style="font-size:14px;color:var(--sleep);margin-top:12px;margin-bottom:8px;">😴 Сон: '+sleepData.length+'</p>';sleepData.sort((a,b)=>a.timestamp-b.timestamp).forEach(r=>html+=`<div style="font-size:13px;padding:4px 0;color:var(--text-secondary);">${fmtTime(r.timestamp)} — ${Math.floor(r.duration/60)} мин</div>`);}if(diaperData.length){html+='<p style="font-size:14px;color:var(--diaper);margin-top:12px;margin-bottom:8px;">💧 Подгузники: '+diaperData.length+'</p>';diaperData.sort((a,b)=>a.timestamp-b.timestamp).forEach(r=>html+=`<div style="font-size:13px;padding:4px 0;color:var(--text-secondary);">${fmtTime(r.timestamp)} — ${CFG.DIAPER_LABELS[r.type]||r.type}</div>`);}if(sympData.length){html+='<p style="font-size:14px;color:#e8606e;margin-top:12px;margin-bottom:8px;">🩺 Симптомы: '+sympData.length+'</p>';sympData.sort((a,b)=>a.timestamp-b.timestamp).forEach(r=>{const parts=[];if(r.temp)parts.push('🌡 '+r.temp+'°C');if(r.symptoms.length)parts.push(r.symptoms.map(s=>symptomEmojis[s]||s).join(' '));if(r.notes)parts.push('📝 '+r.notes);html+=`<div style="font-size:13px;padding:4px 0;color:var(--text-secondary);">${fmtTime(r.timestamp)} — ${parts.join(' · ')}</div>`;});}$('dayDetailContent').innerHTML=html||'<p style="color:var(--text-secondary);">Нет данных за этот день</p>';$('dayDetail').style.display='block';}
 
+// === РОСТ И ВЕС ===
 function getGrowthRecords(){return(LS.get('mama'+getBabyPrefix()+'-growth')||[]).sort((a,b)=>a.date.localeCompare(b.date));}
 function addGrowth(){const date=$('growthDate').value,weight=parseFloat($('growthWeight').value),height=parseFloat($('growthHeight').value);if(!date)return alert('Выберите дату');if(!weight&&!height)return alert('Введите вес или рост');const records=getGrowthRecords();const existing=records.findIndex(r=>r.date===date);const entry={date,weight:weight||null,height:height||null,timestamp:Date.now()};if(existing>=0)records[existing]=entry;else records.push(entry);LS.set('mama'+getBabyPrefix()+'-growth',records);$('growthDate').value='';$('growthWeight').value='';$('growthHeight').value='';updateGrowthUI();haptic();checkAchievements();updateAchievementsUI();updateAchievementLevelUI();}
 function deleteGrowth(index){const records=getGrowthRecords();records.splice(index,1);LS.set('mama'+getBabyPrefix()+'-growth',records);updateGrowthUI();}
@@ -808,12 +809,13 @@ function drawGrowthChart(canvasId,records,field,color,unit){const canvas=$(canva
 function updateGrowthUI(){const records=getGrowthRecords();$('growthHistory').innerHTML=records.length?records.map((r,i)=>{const parts=[];if(r.weight)parts.push('⚖️ '+r.weight+' кг');if(r.height)parts.push('📏 '+r.height+' см');return`<div class="growth-list-item" onclick="editGrowth(${i})"><span>${fmtDate(new Date(r.date),{day:'2-digit',month:'2-digit',year:'numeric'})}</span><span style="font-size:13px;color:var(--text-secondary);">${parts.join(' · ')}</span><span onclick="event.stopPropagation();deleteGrowth(${i})" style="color:#e8606e;cursor:pointer;">🗑</span></div>`;}).join(''):'<div class="empty-state">Нет записей</div>';$('growthDate').value=today.toISOString().split('T')[0];updateGrowthComparison();setTimeout(()=>{drawGrowthChart('weightChart',records,'weight','var(--accent)',' кг');drawGrowthChart('heightChart',records,'height','var(--sleep)',' см');},100);}
 function updateGrowthComparison(){const records=getGrowthRecords(),currentDate=$('growthDate').value;if(!currentDate||records.length===0){$('growthComparison').innerHTML='';return;}const prevRecords=records.filter(r=>r.date<currentDate).sort((a,b)=>b.date.localeCompare(a.date));if(prevRecords.length===0){$('growthComparison').innerHTML='<span style="font-size:12px;color:var(--text-secondary);">Это первое измерение</span>';return;}const prev=prevRecords[0],daysDiff=Math.floor((new Date(currentDate)-new Date(prev.date))/(86400000));let parts=[];if(prev.weight!=null){const cw=parseFloat($('growthWeight').value);if(cw){const diff=cw-prev.weight,sign=diff>=0?'+':'';parts.push('⚖️ Вес: '+sign+diff.toFixed(1)+' кг (было '+prev.weight+' кг, '+(daysDiff===0?'сегодня':daysDiff+' дн. назад')+')');}}if(prev.height!=null){const ch=parseFloat($('growthHeight').value);if(ch){const diff=ch-prev.height,sign=diff>=0?'+':'';parts.push('📏 Рост: '+sign+diff.toFixed(1)+' см (было '+prev.height+' см, '+(daysDiff===0?'сегодня':daysDiff+' дн. назад')+')');}}$('growthComparison').innerHTML=parts.length>0?'<span style="font-size:12px;color:var(--accent);">С прошлого измерения:</span><br>'+parts.join('<br>'):'<span style="font-size:12px;color:var(--text-secondary);">Введите вес или рост для сравнения</span>';}
 
+// === НАСТРОЕНИЕ ===
 function getMoodKey(d){return'mama-mood-'+(d||today).toISOString().split('T')[0];}
 function getAllMoodRecords(){const all=[];for(let i=0;i<90;i++){const d=new Date();d.setDate(d.getDate()-i);const val=LS.get(getMoodKey(d));if(val)all.push({date:d.toISOString().split('T')[0],mood:val});}return all.sort((a,b)=>b.date.localeCompare(a.date));}
 function saveMood(mood){LS.set(getMoodKey(),mood);updateMoodUI();haptic();checkAchievements();updateAchievementsUI();updateAchievementLevelUI();updateWidget();}
 function updateMoodUI(){const todayMood=LS.get(getMoodKey());$('moodTodayLabel').innerHTML=todayMood&&CFG.MOODS[todayMood]?`Сегодня: ${CFG.MOODS[todayMood].emoji} ${CFG.MOODS[todayMood].text}`:'Выберите настроение';const allMoods=getAllMoodRecords();const days=moodSubTab==='week'?7:30;const periodMoods=allMoods.filter(r=>{const d=new Date(r.date),wa=new Date();wa.setDate(wa.getDate()-days);return d>=wa;});$('moodHistory').innerHTML=allMoods.slice(0,30).map(r=>{const m=CFG.MOODS[r.mood]||{emoji:'❓',text:'Неизвестно'};return`<div class="mood-history-item"><span class="mood-emoji-big">${m.emoji}</span><span class="mood-label">${m.text}</span><span class="mood-date" style="margin-left:auto;">${fmtDate(new Date(r.date),{weekday:'short',day:'numeric',month:'short'})}</span></div>`;}).join('');if(periodMoods.length===0){$('moodWeekStats').innerHTML='—';$('moodWeekLabel').textContent='Нет данных';}else{const counts={};periodMoods.forEach(r=>{counts[r.mood]=(counts[r.mood]||0)+1;});const top=Object.entries(counts).sort((a,b)=>b[1]-a[1])[0],m=CFG.MOODS[top[0]];$('moodWeekStats').innerHTML=`${m.emoji} ${m.text}`;$('moodWeekLabel').textContent=`Чаще всего за ${days} дн. (${top[1]} из ${periodMoods.length})`;}}
 
-// === ЛЕКАРСТВА С БЫСТРЫМИ КНОПКАМИ ===
+// === ЛЕКАРСТВА ===
 let medInterval=4,medTimerId=null,medEndTime=null,lastMedName='',lastMedDose='',lastMedCourse=0;
 let commonMeds=LS.get('mama_common_meds')||[];
 function updateCommonMedsList(){const list=$('commonMedsList');if(list)list.innerHTML=commonMeds.map(m=>`<option value="${m}">`).join('');}
@@ -827,13 +829,14 @@ function resetMedTimer(){medEndTime=Date.now()+medInterval*3600000;updateMedCoun
 function markMedTaken(){saveRecord('meds',{name:lastMedName||'Лекарство',dose:lastMedDose,interval:medInterval,courseDays:lastMedCourse,timestamp:Date.now()});resetMedTimer();updateMedHistory();haptic();}
 function updateMedHistory(){const recs=getAllRecords('meds',7);$('medHistory').innerHTML=recs.length?recs.map(r=>{const t=fmtTime(r.timestamp);const d=fmtDate(new Date(r.timestamp));const intStr=r.interval>0?` (каждые ${r.interval} ч)`:' (разово)';let courseStr='';if(r.courseDays>0){const courseStart=new Date(r.timestamp);const daysPassed=Math.floor((today-courseStart)/(86400000))+1;const remaining=Math.max(0,r.courseDays-daysPassed);courseStr=` <span class="med-course-badge">курс: ${daysPassed}/${r.courseDays}</span>`;if(remaining===0)courseStr=' <span class="med-course-badge" style="background:#7ecb8a;">✅ завершён</span>';}return`<div class="history-item"><span>💊 ${r.name} ${r.dose}${courseStr}</span><span style="font-size:12px;color:var(--text-secondary);">${d} ${t}${intStr}</span></div>`;}).join(''):'<div class="empty-state">Нет записей</div>';}
 
-// === НАПОМИНАНИЯ С СОХРАНЕНИЕМ ===
+// === НАПОМИНАНИЯ ===
 let reminderInterval=null,reminderMinutes=null;
 function getMinutesSinceLastFeeding(){const recs=getRecords('feed');return recs.length?Math.floor((Date.now()-recs[recs.length-1].timestamp)/60000):null;}
 function startReminder(min){stopReminder();reminderMinutes=min;LS.set('mama_last_reminder',min);$('reminderStatus').innerHTML='⏰ Напоминание через '+min+' мин';$('reminderStatus').style.color='#f0c060';reminderInterval=setInterval(()=>{const m=getMinutesSinceLastFeeding();if(m!==null&&m>=reminderMinutes){if('Notification' in window&&Notification.permission==='granted'){new Notification('🍼 Время кормления!',{body:'Прошло '+m+' минут',tag:'feed-reminder',vibrate:[200,100,200]});}stopReminder();}},30000);}
 function stopReminder(){if(reminderInterval){clearInterval(reminderInterval);reminderInterval=null;}reminderMinutes=null;$('reminderStatus').innerHTML='';}
 const savedReminder=LS.get('mama_last_reminder');if(savedReminder){startReminder(savedReminder);}
 
+// === БЕЛЫЙ ШУМ ===
 let audioCtx=null,soundNodes=[],soundTimer=null,currentVolume=0.5;
 function initAudio(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')audioCtx.resume();}
 function stopAllNodes(){soundNodes.forEach(n=>{try{if(n.stop)n.stop();if(n.disconnect)n.disconnect();}catch(e){}});soundNodes=[];}
@@ -843,7 +846,7 @@ function playSound(type){initAudio();stopAllNodes();if(soundTimer)clearTimeout(s
 function setVolume(val){currentVolume=val/100;$('volumeLabel').textContent=val+'%';soundNodes.forEach(n=>{if(n.gain?.value!==undefined)n.gain.value=currentVolume;});}
 function setSoundTimer(minutes){if(soundTimer)clearTimeout(soundTimer);document.querySelectorAll('#soundTimers button').forEach(b=>b.classList.toggle('active',parseInt(b.textContent)===minutes||(minutes===0&&b.textContent==='∞')));if(minutes>0)soundTimer=setTimeout(stopSound,minutes*60*1000);}
 
-// === ЗАМЕТКИ С ШАБЛОНАМИ ===
+// === ЗАМЕТКИ ===
 let pendingSave=null,pendingPhoto=null;
 let customTemplates=LS.get('mama_custom_templates')||[];
 function getAllTemplates(){return[...CFG.NOTE_TEMPLATES,...customTemplates.map(t=>({emoji:'✏️',text:t}))];}
@@ -858,16 +861,20 @@ function showNote(type,index){const recsAll=type==='feed'?(isPro()?getAllRecords
 function updateNote(type,ts){const nn=$('editNoteText')?.value.trim();const key=getStorageKey(type,new Date(ts));const all=LS.get(key)||[];for(let i=all.length-1;i>=0;i--){if(all[i].timestamp===ts){all[i].note=nn||undefined;if(!nn)delete all[i].note;break;}}LS.set(key,all);closeOverlay();refreshAll();}
 function deleteNote(type,ts){const key=getStorageKey(type,new Date(ts));const all=LS.get(key)||[];for(let i=all.length-1;i>=0;i--){if(all[i].timestamp===ts){delete all[i].note;delete all[i].photo;break;}}LS.set(key,all);closeOverlay();refreshAll();}
 
+// === ОВЕРЛЕЙ ===
 let overlayEl=null;
 function showOverlay(html){closeOverlay();overlayEl=document.createElement('div');overlayEl.className='overlay';const dialog=document.createElement('div');dialog.className='dialog';dialog.innerHTML=html;overlayEl.appendChild(dialog);document.body.appendChild(overlayEl);overlayEl.addEventListener('click',e=>{if(e.target===overlayEl)closeOverlay();});}
 function closeOverlay(){if(overlayEl){if(overlayEl.parentNode)overlayEl.parentNode.removeChild(overlayEl);overlayEl=null;}}
 
+// === ИТОГИ ДНЯ ===
 function showDaySummary(){const feedData=getRecords('feed'),sleepData=getRecords('sleep'),diaperData=getRecords('diaper'),growthData=getGrowthRecords(),sympData=getRecords('symptoms');const babyName=(babies.find(b=>b.id===currentBabyId)||{name:'Малыш'}).name;const todayMood=LS.get(getMoodKey());const totalFeedMin=Math.floor(feedData.reduce((s,r)=>s+r.duration,0)/60);const totalSleepMin=Math.floor(sleepData.reduce((s,r)=>s+r.duration,0)/60);const dirtyCount=diaperData.filter(r=>r.type==='dirty'||r.type==='both').length;const lastGrowth=growthData.length>0?growthData[growthData.length-1]:null;let growthText='';if(lastGrowth){const p=[];if(lastGrowth.weight)p.push('⚖️ '+lastGrowth.weight+' кг');if(lastGrowth.height)p.push('📏 '+lastGrowth.height+' см');growthText=p.join(' · ');}const maxTemp=sympData.filter(r=>r.temp).length>0?Math.max(...sympData.filter(r=>r.temp).map(r=>r.temp)):null;const fmtDur=s=>{const m=Math.floor(s/60);return m<60?m+' мин':Math.floor(m/60)+' ч '+(m%60)+' мин';};showOverlay(`<h3>📝 Итоги дня</h3><p style="color:var(--text-secondary);font-size:13px;margin-bottom:16px;">${babyName} · ${fmtDate(today,{day:'numeric',month:'long'})}</p><div class="summary-row"><div class="summary-emoji">🍼</div><div class="summary-info"><div class="title">Кормления</div><div class="detail">${feedData.length} раз</div></div><div class="summary-value">${fmtDur(totalFeedMin*60)}</div></div><div class="summary-row"><div class="summary-emoji">😴</div><div class="summary-info"><div class="title">Сон</div><div class="detail">${sleepData.length} снов</div></div><div class="summary-value">${fmtDur(totalSleepMin*60)}</div></div><div class="summary-row"><div class="summary-emoji">💧</div><div class="summary-info"><div class="title">Подгузники</div><div class="detail">${diaperData.length} смен, ${dirtyCount} грязных</div></div><div class="summary-value">${diaperData.length}</div></div>${sympData.length>0?`<div class="summary-row"><div class="summary-emoji">🩺</div><div class="summary-info"><div class="title">Симптомы</div><div class="detail">${sympData.length} записей${maxTemp?' · макс. '+maxTemp+'°C':''}</div></div><div class="summary-value">${maxTemp?maxTemp+'°C':'—'}</div></div>`:''}${growthText?`<div class="summary-row"><div class="summary-emoji">📏</div><div class="summary-info"><div class="title">Рост/вес</div><div class="detail">Последнее измерение</div></div><div class="summary-value" style="font-size:14px;">${growthText}</div></div>`:''}${todayMood&&CFG.MOODS[todayMood]?`<div class="summary-row"><div class="summary-emoji">💖</div><div class="summary-info"><div class="title">Настроение мамы</div><div class="detail">Сегодня</div></div><div class="summary-value">${CFG.MOODS[todayMood].emoji}</div></div>`:''}<div style="margin-top:16px;text-align:center;font-size:14px;color:var(--accent);font-weight:600;">🌟 Вы молодец, мама! 🌟</div><div class="dialog-buttons" style="margin-top:16px;"><button class="btn-skip" onclick="closeOverlay()">Закрыть</button><button class="btn-save" onclick="copySummary()">📤 Поделиться</button></div>`);window._summaryData={babyName,totalFeedMin,totalSleepMin,feedData,sleepData,diaperData,sympData,growthText,todayMood,maxTemp};}
 function copySummary(){const d=window._summaryData;if(!d)return;const fmtDur=s=>{const m=Math.floor(s/60);return m<60?m+' мин':Math.floor(m/60)+' ч '+(m%60)+' мин';};const text=`📝 Итоги дня — ${d.babyName}\n${fmtDate(today,{day:'numeric',month:'long'})}\n\n🍼 Кормлений: ${d.feedData.length} (${fmtDur(d.totalFeedMin*60)})\n😴 Сна: ${d.sleepData.length} (${fmtDur(d.totalSleepMin*60)})\n💧 Подгузников: ${d.diaperData.length}\n${d.sympData&&d.sympData.length>0?'🩺 Симптомы: '+d.sympData.length+' записей'+(d.maxTemp?', макс. '+d.maxTemp+'°C':'')+'\n':''}${d.growthText?'📏 '+d.growthText+'\n':''}${d.todayMood?'💖 Настроение: '+CFG.MOODS[d.todayMood].emoji+'\n':''}\nСоздано в Мама Трекер`;navigator.clipboard.writeText(text).then(()=>{tg?.showPopup?tg.showPopup({title:'✅ Скопировано!',message:'Итоги дня скопированы!',buttons:[{type:'ok'}]}):alert('Итоги скопированы!');});}
 function toggleFeedbackPanel(){showOverlay(`<h3>💬 Обратная связь</h3><textarea id="feedbackMsg" placeholder="Ваше сообщение..." style="height:100px;margin-bottom:12px;"></textarea><div class="dialog-buttons"><button class="btn-skip" onclick="closeOverlay()">Закрыть</button><button class="btn-save" id="btnSendFeedback">📨 Отправить</button></div>`);$('btnSendFeedback').onclick=async function(){const text=$('feedbackMsg').value.trim();if(!text)return alert('Напишите сообщение');const btn=$('btnSendFeedback');btn.textContent='⏳ Отправка...';btn.disabled=true;try{const r=await fetch('https://formspree.io/f/xojgbrjj',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text,date:new Date().toLocaleString('ru-RU'),app:'Мама Трекер'})});if(r.ok){closeOverlay();tg?.showPopup?tg.showPopup({title:'✅ Спасибо!',message:'Сообщение отправлено!',buttons:[{type:'ok'}]}):alert('Спасибо!');}else{btn.textContent='📨 Отправить';btn.disabled=false;alert('Ошибка отправки.');}}catch(e){btn.textContent='📨 Отправить';btn.disabled=false;alert('Ошибка отправки.');}};setTimeout(()=>$('feedbackMsg')?.focus(),100);}
 
+// === КОНФЕТТИ ===
 function spawnConfetti(x,y){const emojis=['🎉','✨','🌟','💖','🎊','🥳','💫','🌸','💗','🎀','💝','🌺','🎈','💐','🎵'];for(let i=0;i<40;i++){const piece=document.createElement('div');piece.textContent=emojis[Math.floor(Math.random()*emojis.length)];piece.style.cssText=`position:fixed;left:${x}px;top:${y}px;z-index:10000;pointer-events:none;font-size:${18+Math.random()*28}px;transition:none;opacity:0;`;document.body.appendChild(piece);const duration=1.5+Math.random()*1.5,delay=Math.random()*0.5,spreadX=(Math.random()-0.5)*350,spreadY=-(100+Math.random()*400),rotation=(Math.random()-0.5)*1080;requestAnimationFrame(()=>{requestAnimationFrame(()=>{piece.style.transition=`all ${duration}s ease-out ${delay}s`;piece.style.transform=`translate(${spreadX*2}px, ${spreadY+600}px) rotate(${rotation}deg) scale(1)`;piece.style.opacity='1';});});setTimeout(()=>{piece.style.transition='opacity 0.8s ease-in';piece.style.opacity='0';setTimeout(()=>piece.remove(),800);},(duration+delay)*1000-400);}}
 
+// === ЭКСПОРТ ОБЩЕГО ОТЧЁТА ===
 function exportAsImage(){if(!isPro())return;const isLight=document.body.classList.contains('light-theme');const canvas=document.createElement('canvas'),ctx=canvas.getContext('2d');const width=800,padding=40,lineHeight=32;const feedData=getAllRecords('feed',30).slice(0,20),sleepData=getAllRecords('sleep',30).slice(0,10),diaperData=getAllRecords('diaper',30).slice(0,10);const totalFeedMin=Math.floor(feedData.reduce((s,r)=>s+r.duration,0)/60),totalSleepMin=Math.floor(sleepData.reduce((s,r)=>s+r.duration,0)/60);const leftCount=feedData.filter(r=>r.side==='left').length,rightCount=feedData.filter(r=>r.side==='right').length;let y=padding,height=padding*2+lineHeight*3+lineHeight*(Math.min(feedData.length,20)+3)+lineHeight*(Math.min(sleepData.length,10)+3)+lineHeight*(Math.min(diaperData.length,10)+3)+200;canvas.width=width;canvas.height=height;const bgColor=isLight?'#ffffff':'#1a1a2e',textColor=isLight?'#2d2d3a':'#f0e6ef',secColor=isLight?'#7a7a8a':'#a8a0b0';ctx.fillStyle=bgColor;ctx.fillRect(0,0,width,height);ctx.fillStyle=textColor;ctx.font='bold 32px -apple-system, sans-serif';ctx.textAlign='center';ctx.fillText('🤱 Мама Трекер — Отчёт',width/2,y);y+=50;ctx.fillStyle=secColor;ctx.font='16px -apple-system, sans-serif';ctx.fillText(fmtDate(today,{weekday:'long',day:'numeric',month:'long',year:'numeric'}),width/2,y);y+=30;ctx.strokeStyle=isLight?'rgba(0,0,0,0.1)':'rgba(255,255,255,0.1)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(padding,y);ctx.lineTo(width-padding,y);ctx.stroke();y+=30;function drawSection(title,emoji,color){ctx.fillStyle=color;ctx.font='bold 20px -apple-system, sans-serif';ctx.textAlign='left';ctx.fillText(emoji+' '+title,padding,y);y+=lineHeight+8;}function drawRow(text,value,isHeader){ctx.fillStyle=isHeader?secColor:textColor;ctx.font=isHeader?'13px -apple-system, sans-serif':'16px -apple-system, sans-serif';ctx.textAlign='left';ctx.fillText(text,padding,y);if(value){ctx.textAlign='right';ctx.fillText(value,width-padding,y);}y+=lineHeight;}drawSection('Общая сводка','','#f0c060');drawRow('Всего кормлений',feedData.length+'');drawRow('Общее время кормлений',totalFeedMin+' мин');drawRow('Левая / Правая',leftCount+' / '+rightCount);drawRow('Всего сна',totalSleepMin+' мин');drawRow('Смен подгузников',diaperData.length+'');y+=16;drawSection('Кормления','🍼','#e8a0bf');drawRow('Дата','Длительность',true);feedData.forEach(r=>drawRow(fmtDate(new Date(r.timestamp))+' '+fmtTime(r.timestamp),Math.floor(r.duration/60)+' мин ('+(r.side==='left'?'Л':'П')+')'));y+=16;drawSection('Сон','😴','#c4a0e8');drawRow('Дата','Длительность',true);sleepData.forEach(r=>drawRow(fmtDate(new Date(r.timestamp)),Math.floor(r.duration/60)+' мин'));y+=16;drawSection('Подгузники','💧','#a0e8c4');drawRow('Дата и время','Тип',true);diaperData.forEach(r=>drawRow(fmtDate(new Date(r.timestamp))+' '+fmtTime(r.timestamp),CFG.DIAPER_LABELS[r.type]||r.type));y=canvas.height-60;ctx.fillStyle=secColor;ctx.font='12px -apple-system, sans-serif';ctx.textAlign='center';ctx.fillText('Создано в Мама Трекер — @MamaFeedBot',width/2,y);const dataUrl=canvas.toDataURL('image/png');showOverlay(`<div style="text-align:center;"><img src="${dataUrl}" style="max-width:100%;max-height:80vh;border-radius:12px;"><p style="color:#a8a0b0;font-size:14px;text-align:center;margin-top:16px;">📸 Нажмите и удерживайте картинку, чтобы сохранить</p><button class="btn-skip" onclick="closeOverlay()" style="margin-top:12px;padding:12px 30px;width:auto;">✕ Закрыть</button></div>`);}
 
 // ========================================================================
@@ -894,7 +901,7 @@ function generateQRCode(text, size) {
 }
 
 // ========================================================================
-// ИСПРАВЛЕННАЯ ФУНКЦИЯ ОТЧЁТА ДЛЯ ПЕДИАТРА
+// НОВАЯ ФУНКЦИЯ ОТЧЁТА ДЛЯ ПЕДИАТРА
 // ========================================================================
 function exportForDoctor2() {
     if (!isPro()) {
@@ -902,17 +909,396 @@ function exportForDoctor2() {
         return;
     }
     
-    // ... (весь код exportForDoctor2 с графиками)
-    // Я сократил эту часть, но она полностью рабочая
+    const baby = babies.find(b => b.id === currentBabyId) || { name: 'Малыш' };
+    const growthRecords = getGrowthRecords();
+    const lastGrowth = growthRecords.length > 0 ? growthRecords[growthRecords.length - 1] : null;
+    const birthDateStr = LS.get('mama_birth_date_' + currentBabyId);
     
-    // В конце вызываем showOverlayWithReport
-    showOverlayWithReport(dataUrl, baby.name);
+    let ageStr = 'не указан';
+    if (birthDateStr) {
+        const birth = new Date(birthDateStr);
+        const months = Math.floor((today - birth) / (1000 * 60 * 60 * 24 * 30.44));
+        if (months < 1) {
+            const days = Math.floor((today - birth) / (1000 * 60 * 60 * 24));
+            ageStr = days + ' дн.';
+        } else if (months < 24) {
+            ageStr = months + ' мес.';
+        } else {
+            ageStr = Math.floor(months / 12) + ' г. ' + (months % 12) + ' мес.';
+        }
+    }
+    
+    const feedData7 = getAllRecords('feed', 7);
+    const sleepData7 = getAllRecords('sleep', 7);
+    const diaperData7 = getAllRecords('diaper', 7);
+    const medsData7 = getAllRecords('meds', 7);
+    const sympData7 = getAllRecords('symptoms', 7);
+    
+    const avgFeedDuration = feedData7.length > 0 ? Math.floor(feedData7.reduce((s, r) => s + r.duration, 0) / feedData7.length / 60) : 0;
+    const totalSleepHours = Math.floor(sleepData7.reduce((s, r) => s + r.duration, 0) / 3600);
+    const diapersPerDay = (diaperData7.length / 7).toFixed(1);
+    const dirtyCount = diaperData7.filter(r => r.type === 'dirty' || r.type === 'both').length;
+    const tempRecs = sympData7.filter(r => r.temp);
+    const maxTemp = tempRecs.length > 0 ? Math.max(...tempRecs.map(r => r.temp)) : null;
+    const doctorQuestions = LS.get('mama_doctor_questions_' + currentBabyId) || '';
+    
+    const isLight = document.body.classList.contains('light-theme');
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const width = 800;
+    const padding = 40;
+    let y = padding;
+    let rowCount = 30 + Math.min(feedData7.length, 14) + Math.min(sleepData7.length, 7) + Math.min(diaperData7.length, 7) + Math.min(sympData7.length, 7);
+    if (growthRecords.length > 0) rowCount += 10;
+    if (medsData7.length > 0) rowCount += 3 + medsData7.length;
+    if (doctorQuestions) rowCount += 4 + Math.ceil(doctorQuestions.length / 60);
+    if (tempRecs.length > 0) rowCount += 8;
+    
+    const height = padding * 2 + rowCount * 30 + 300;
+    canvas.width = width;
+    canvas.height = height;
+    
+    const bgColor = isLight ? '#ffffff' : '#1a1a2e';
+    const textColor = isLight ? '#2d2d3a' : '#f0e6ef';
+    const secColor = isLight ? '#7a7a8a' : '#a8a0b0';
+    const accentColor = '#e8a0bf';
+    const symptomColor = '#e8606e';
+    
+    ctx.fillStyle = bgColor;
+    ctx.fillRect(0, 0, width, height);
+    
+    ctx.fillStyle = textColor;
+    ctx.font = 'bold 28px -apple-system, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🏥 Отчёт для педиатра', width / 2, y);
+    y += 40;
+    
+    ctx.fillStyle = secColor;
+    ctx.font = '14px -apple-system, sans-serif';
+    ctx.fillText(fmtDate(today, { day: 'numeric', month: 'long', year: 'numeric' }), width / 2, y);
+    y += 30;
+    
+    ctx.strokeStyle = isLight ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(padding, y);
+    ctx.lineTo(width - padding, y);
+    ctx.stroke();
+    y += 25;
+    
+    ctx.fillStyle = textColor;
+    ctx.font = 'bold 18px -apple-system, sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText('👶 ' + baby.name, padding, y);
+    y += 28;
+    
+    ctx.fillStyle = secColor;
+    ctx.font = '15px -apple-system, sans-serif';
+    ctx.fillText('Возраст: ' + ageStr, padding, y);
+    y += 22;
+    
+    if (lastGrowth) {
+        const parts = [];
+        if (lastGrowth.weight) parts.push('Вес: ' + lastGrowth.weight + ' кг');
+        if (lastGrowth.height) parts.push('Рост: ' + lastGrowth.height + ' см');
+        ctx.fillText(parts.join(' | '), padding, y);
+        y += 22;
+    }
+    y += 10;
+    
+    // ГРАФИК ТЕМПЕРАТУРЫ
+    if (tempRecs.length > 0) {
+        ctx.fillStyle = accentColor;
+        ctx.font = 'bold 16px -apple-system, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('━━ 🌡 График температуры (7 дней) ━━', padding, y);
+        y += 30;
+        
+        const tempData = [];
+        for (let i = 6; i >= 0; i--) {
+            const d = new Date();
+            d.setDate(d.getDate() - i);
+            const recs = getRecords('symptoms', d);
+            const temps = recs.filter(r => r.temp).map(r => r.temp);
+            tempData.push(temps.length > 0 ? Math.max(...temps) : null);
+        }
+        
+        const validTemps = tempData.filter(t => t !== null);
+        if (validTemps.length > 0) {
+            const minTemp = Math.min(36, Math.min(...validTemps) - 0.5);
+            const maxTempVal = Math.max(38.5, Math.max(...validTemps) + 0.5);
+            const range = maxTempVal - minTemp || 1;
+            const chartW = width - padding * 2 - 40;
+            const chartH = 100;
+            const chartX = padding + 30;
+            const chartY = y;
+            
+            ctx.strokeStyle = isLight ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.05)';
+            ctx.lineWidth = 0.5;
+            for (let i = 0; i <= 4; i++) {
+                const gy = chartY + (chartH / 4) * i;
+                ctx.beginPath();
+                ctx.moveTo(chartX, gy);
+                ctx.lineTo(chartX + chartW, gy);
+                ctx.stroke();
+                const label = (maxTempVal - (range / 4) * i).toFixed(1);
+                ctx.fillStyle = secColor;
+                ctx.font = '9px -apple-system, sans-serif';
+                ctx.textAlign = 'right';
+                ctx.fillText(label + '°', chartX - 5, gy + 3);
+            }
+            
+            const step = chartW / (tempData.length - 1);
+            ctx.strokeStyle = symptomColor;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            tempData.forEach((t, i) => {
+                if (t === null) return;
+                const x = chartX + step * i;
+                const h = chartH - ((t - minTemp) / range) * chartH;
+                const yPos = chartY + h;
+                if (i === 0 || tempData[i-1] === null) ctx.moveTo(x, yPos);
+                else ctx.lineTo(x, yPos);
+            });
+            ctx.stroke();
+            
+            tempData.forEach((t, i) => {
+                if (t === null) return;
+                const x = chartX + step * i;
+                const h = chartH - ((t - minTemp) / range) * chartH;
+                const yPos = chartY + h;
+                ctx.fillStyle = t >= 38 ? '#e8606e' : t >= 37.5 ? '#f0c060' : '#7ecb8a';
+                ctx.beginPath();
+                ctx.arc(x, yPos, 5, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = textColor;
+                ctx.font = '8px -apple-system, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(t.toFixed(1) + '°', x, yPos - 10);
+                
+                const d = new Date();
+                d.setDate(d.getDate() - (6 - i));
+                ctx.fillStyle = secColor;
+                ctx.font = '7px -apple-system, sans-serif';
+                ctx.fillText(fmtDate(d, { day: '2-digit', month: '2-digit' }), x, chartY + chartH + 14);
+            });
+            
+            y += chartH + 40;
+        }
+    }
+    
+    // ГРАФИК ВЕСА
+    if (growthRecords.length >= 2) {
+        ctx.fillStyle = accentColor;
+        ctx.font = 'bold 16px -apple-system, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('━━ 📈 График веса ━━', padding, y);
+        y += 30;
+        
+        const weightData = growthRecords.filter(r => r.weight !== null).slice(-10);
+        if (weightData.length >= 2) {
+            const weights = weightData.map(r => r.weight);
+            const minW = Math.floor(Math.min(...weights) * 0.9);
+            const maxW = Math.ceil(Math.max(...weights) * 1.1);
+            const rangeW = maxW - minW || 1;
+            const chartW = width - padding * 2 - 40;
+            const chartH = 80;
+            const chartX = padding + 30;
+            const chartY = y;
+            
+            ctx.strokeStyle = isLight ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.05)';
+            ctx.lineWidth = 0.5;
+            for (let i = 0; i <= 4; i++) {
+                const gy = chartY + (chartH / 4) * i;
+                ctx.beginPath();
+                ctx.moveTo(chartX, gy);
+                ctx.lineTo(chartX + chartW, gy);
+                ctx.stroke();
+                const label = (maxW - (rangeW / 4) * i).toFixed(1);
+                ctx.fillStyle = secColor;
+                ctx.font = '9px -apple-system, sans-serif';
+                ctx.textAlign = 'right';
+                ctx.fillText(label + ' кг', chartX - 5, gy + 3);
+            }
+            
+            const step = chartW / (weightData.length - 1);
+            ctx.strokeStyle = '#e8a0bf';
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            weightData.forEach((r, i) => {
+                const x = chartX + step * i;
+                const h = chartH - ((r.weight - minW) / rangeW) * chartH;
+                const yPos = chartY + h;
+                i === 0 ? ctx.moveTo(x, yPos) : ctx.lineTo(x, yPos);
+            });
+            ctx.stroke();
+            
+            weightData.forEach((r, i) => {
+                const x = chartX + step * i;
+                const h = chartH - ((r.weight - minW) / rangeW) * chartH;
+                const yPos = chartY + h;
+                ctx.fillStyle = '#e8a0bf';
+                ctx.beginPath();
+                ctx.arc(x, yPos, 4, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = textColor;
+                ctx.font = '8px -apple-system, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(r.weight.toFixed(1) + ' кг', x, yPos - 10);
+                ctx.fillStyle = secColor;
+                ctx.font = '7px -apple-system, sans-serif';
+                ctx.fillText(fmtDate(new Date(r.date), { day: '2-digit', month: '2-digit' }), x, chartY + chartH + 14);
+            });
+            
+            y += chartH + 40;
+        }
+    }
+    
+    // ОСТАЛЬНОЙ ОТЧЁТ
+    function drawSection(title) {
+        y += 5;
+        ctx.fillStyle = accentColor;
+        ctx.font = 'bold 16px -apple-system, sans-serif';
+        ctx.fillText('━━ ' + title + ' ━━', padding, y);
+        y += 30;
+    }
+    
+    function drawRow(label, value) {
+        ctx.fillStyle = textColor;
+        ctx.font = '14px -apple-system, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(label, padding, y);
+        ctx.textAlign = 'right';
+        ctx.fillText(value, width - padding, y);
+        ctx.textAlign = 'left';
+        y += 26;
+    }
+    
+    function drawSub(text, color) {
+        ctx.fillStyle = color || secColor;
+        ctx.font = '12px -apple-system, sans-serif';
+        ctx.fillText('    ' + text, padding, y);
+        y += 20;
+    }
+    
+    if (sympData7.length > 0) {
+        drawSection('🩺 Симптомы (последние 7 дней)');
+        drawRow('Всего записей', sympData7.length + ' раз');
+        if (maxTemp) drawRow('Макс. температура', '🌡 ' + maxTemp + '°C');
+        const sympCounts = {};
+        sympData7.forEach(r => { r.symptoms.forEach(s => { sympCounts[s] = (sympCounts[s] || 0) + 1; }); });
+        if (Object.keys(sympCounts).length > 0) {
+            drawRow('Частые симптомы', Object.entries(sympCounts).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([s, c]) => symptomLabels[s] + ' (' + c + ')').join(', '));
+        }
+        y += 5;
+        ctx.fillStyle = secColor;
+        ctx.font = '11px -apple-system, sans-serif';
+        ctx.fillText('Последние записи:', padding, y);
+        y += 20;
+        sympData7.slice(0, 7).sort((a, b) => b.timestamp - a.timestamp).forEach(r => {
+            const parts = [];
+            if (r.temp) parts.push('🌡 ' + r.temp + '°C');
+            if (r.symptoms.length) parts.push(r.symptoms.map(s => symptomLabels[s] || s).join(', '));
+            if (r.notes) parts.push('📝 ' + r.notes);
+            drawSub(fmtDate(new Date(r.timestamp)) + ' ' + fmtTime(r.timestamp) + ' — ' + parts.join(' · '), symptomColor);
+        });
+        y += 5;
+    }
+    
+    drawSection('🍼 Кормления (последние 7 дней)');
+    drawRow('Всего кормлений', feedData7.length + ' раз');
+    drawRow('В среднем в день', (feedData7.length / 7).toFixed(1) + ' раз');
+    drawRow('Средняя длительность', avgFeedDuration + ' мин');
+    const leftCount = feedData7.filter(r => r.side === 'left').length;
+    drawRow('Левая / Правая грудь', leftCount + ' / ' + (feedData7.length - leftCount));
+    y += 5;
+    if (feedData7.length > 0) {
+        ctx.fillStyle = secColor;
+        ctx.font = '11px -apple-system, sans-serif';
+        ctx.fillText('Последние кормления:', padding, y);
+        y += 20;
+        feedData7.slice(0, 14).sort((a, b) => b.timestamp - a.timestamp).forEach(r => {
+            drawSub(fmtDate(new Date(r.timestamp)) + ' ' + fmtTime(r.timestamp) + ' — ' + Math.floor(r.duration / 60) + ' мин (' + (r.side === 'left' ? 'левая' : 'правая') + ')');
+        });
+    }
+    y += 5;
+    
+    drawSection('😴 Сон (последние 7 дней)');
+    drawRow('Всего снов', sleepData7.length + ' раз');
+    drawRow('Общее время сна', totalSleepHours + ' ч');
+    drawRow('В среднем в день', (totalSleepHours / 7).toFixed(1) + ' ч');
+    y += 5;
+    if (sleepData7.length > 0) {
+        ctx.fillStyle = secColor;
+        ctx.font = '11px -apple-system, sans-serif';
+        ctx.fillText('Последние сны:', padding, y);
+        y += 20;
+        sleepData7.slice(0, 7).sort((a, b) => b.timestamp - a.timestamp).forEach(r => {
+            const min = Math.floor(r.duration / 60);
+            const h = Math.floor(min / 60);
+            drawSub(fmtDate(new Date(r.timestamp)) + ' ' + fmtTime(r.timestamp) + ' — ' + (h > 0 ? h + ' ч ' + (min % 60) + ' мин' : min + ' мин'));
+        });
+    }
+    y += 5;
+    
+    drawSection('💧 Подгузники (последние 7 дней)');
+    drawRow('Всего смен', diaperData7.length + ' раз');
+    drawRow('В среднем в день', diapersPerDay + ' раз');
+    drawRow('Грязных', dirtyCount + ' раз');
+    drawRow('Мокрых', (diaperData7.length - dirtyCount) + ' раз');
+    y += 5;
+    
+    if (medsData7.length > 0) {
+        drawSection('💊 Лекарства');
+        medsData7.forEach(r => {
+            const intStr = r.interval > 0 ? ' (каждые ' + r.interval + ' ч)' : ' (разово)';
+            drawSub('💊 ' + r.name + ' ' + (r.dose || '') + ' — ' + fmtDate(new Date(r.timestamp)) + ' ' + fmtTime(r.timestamp) + intStr);
+        });
+        y += 5;
+    }
+    
+    if (doctorQuestions) {
+        drawSection('📝 Вопросы врачу (из приложения)');
+        const lines = doctorQuestions.split('\n');
+        lines.forEach(line => { if (line.trim()) drawSub('• ' + line.trim(), textColor); });
+        y += 5;
+    } else {
+        drawSection('📝 Вопросы врачу');
+        for (let i = 1; i <= 3; i++) {
+            ctx.fillStyle = secColor;
+            ctx.font = '13px -apple-system, sans-serif';
+            ctx.fillText(i + '. _______________________________', padding, y);
+            y += 28;
+        }
+    }
+    
+    y += 10;
+    
+    // QR-КОД (настоящий)
+    const qrText = 'Отчёт по ребёнку ' + baby.name + ' от ' + fmtDate(today, { day: 'numeric', month: 'long', year: 'numeric' });
+    const qrDataUrl = generateQRCode(qrText, 120);
+    const qrImg = new Image();
+    qrImg.src = qrDataUrl;
+    qrImg.onload = function() {
+        const qrX = width - padding - 140;
+        const qrY = canvas.height - 160;
+        ctx.drawImage(qrImg, qrX, qrY, 120, 120);
+        const dataUrl = canvas.toDataURL('image/png');
+        showOverlayWithReport(dataUrl, baby.name);
+    };
+    
+    setTimeout(function() {
+        if (!qrImg.complete) {
+            const dataUrl = canvas.toDataURL('image/png');
+            showOverlayWithReport(dataUrl, baby.name);
+        }
+    }, 500);
 }
 
-// === ФУНКЦИЯ ДЛЯ ПОКАЗА ОТЧЁТА (ТОЛЬКО СКАЧИВАНИЕ) ===
+// === ПОКАЗ ОТЧЁТА (ТОЛЬКО СКАЧИВАНИЕ) ===
 function showOverlayWithReport(dataUrl, babyName) {
     if (!dataUrl || dataUrl.length < 100) {
-        alert('❌ Ошибка: не удалось сгенерировать отчёт.');
+        alert('❌ Ошибка: не удалось сгенерировать отчёт. Попробуйте ещё раз.');
         return;
     }
     
@@ -936,10 +1322,10 @@ function showOverlayWithReport(dataUrl, babyName) {
     `);
 }
 
-// === ФУНКЦИЯ ДЛЯ СКАЧИВАНИЯ ОТЧЁТА ===
+// === СКАЧИВАНИЕ ОТЧЁТА ===
 function downloadReport(dataUrl) {
     if (!dataUrl || dataUrl.length < 100) {
-        alert('❌ Ошибка: данные отчёта повреждены.');
+        alert('❌ Ошибка: данные отчёта повреждены. Попробуйте сгенерировать отчёт заново.');
         return;
     }
     
